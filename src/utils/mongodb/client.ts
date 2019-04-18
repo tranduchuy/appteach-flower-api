@@ -1,7 +1,7 @@
-import { Db, ObjectID } from 'mongodb';
-import { injectable } from 'inversify';
-import { MongoDBConnection } from './connection';
-import { User } from '../../models/user';
+import { Db, ObjectID } from "mongodb";
+import { injectable } from "inversify";
+import { MongoDBConnection } from "./connection";
+import { User } from "../../models/user";
 
 @injectable()
 export class MongoDBClient {
@@ -20,7 +20,7 @@ export class MongoDBClient {
   }
 
   public findOneById(collection: string, objectId: string, result: (error, data) => void): void {
-    this.db.collection(collection).find({ _id: new ObjectID(objectId) }).limit(1).toArray((error, find) => {
+    this.db.collection(collection).find({_id: new ObjectID(objectId)}).limit(1).toArray((error, find) => {
       return result(error, find[0]);
     });
   }
@@ -33,14 +33,14 @@ export class MongoDBClient {
 
   public update(collection: string, objectId: string, model: User, result: (error, data) => void): void {
     this.db.collection(collection).updateOne(
-      { _id: new ObjectID(objectId) },
-      { $set: model },
+      {_id: new ObjectID(objectId)},
+      {$set: model},
       (error, update) => result(error, model)
     );
   }
 
   public remove(collection: string, objectId: string, result: (error, data) => void): void {
-    this.db.collection(collection).deleteOne({ _id: new ObjectID(objectId) }, (error, remove) => {
+    this.db.collection(collection).deleteOne({_id: new ObjectID(objectId)}, (error, remove) => {
       return result(error, remove);
     });
   }

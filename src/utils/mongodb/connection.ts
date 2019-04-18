@@ -1,6 +1,6 @@
-import { Db, MongoClient } from 'mongodb';
+import { Db, MongoClient } from "mongodb";
 
-const connStr = 'mongodb://localhost:27017';
+const connStr = "mongodb://localhost:27017";
 const dbName = "inversify-express-example";
 
 export class MongoDBConnection {
