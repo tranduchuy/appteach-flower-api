@@ -30,13 +30,15 @@ if (process.env.NODE_ENV === "development") {
 
 // start the server
 const server = new InversifyExpressServer(container);
-const app = server.build();
+server.setConfig((app) => {
+  app.use(bodyParser.urlencoded({
+    extended: true
+  }));
+  app.use(bodyParser.json());
+  app.use(helmet());
+});
 
+const app = server.build();
 app.set("port", process.env.PORT || 2000);
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
-app.use(bodyParser.json());
-app.use(helmet());
 
 export default app;
