@@ -1,4 +1,3 @@
-#!/bin/sh
 import { prop, Typegoose } from "typegoose";
 import { General } from "../constant/generals";
 import { Status } from "../constant/status";
@@ -9,7 +8,7 @@ import UserTypes = General.UserTypes;
 export class User extends Typegoose {
     @prop({required: true})
     name: string;
-    @prop({ unique: true, required: true, lowercase: true, trim: true})
+    @prop({ required: true, unique: true, lowercase: true, trim: true})
     username: string;
     @prop({ validate: /\S+@\S+\.\S+/, unique: true, required: true, lowercase: true, trim: true })
     email: string;
@@ -17,14 +16,16 @@ export class User extends Typegoose {
     phone: string;
     @prop({required: true})
     passwordHash: string;
+    @prop({required: true})
+    passwordSalt: string;
     @prop({required: true, enum: Genders})
     gender: number;
-    @prop({required: true})
-    city: number;
-    @prop({required: true})
-    district: number;
-    @prop({required: true})
-    ward: number;
+    @prop()
+    city?: number;
+    @prop()
+    district?: number;
+    @prop()
+    ward?: number;
     @prop({required: true})
     address: string;
     @prop({required: true, enum: UserTypes})
