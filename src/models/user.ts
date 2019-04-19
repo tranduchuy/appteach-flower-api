@@ -4,6 +4,7 @@ import { Status } from "../constant/status";
 import UserRoles = General.UserRoles;
 import Genders = General.Genders;
 import UserTypes = General.UserTypes;
+import RegisterByTypes = General.RegisterByTypes;
 
 export class User extends Typegoose {
     @prop({required: true})
@@ -48,6 +49,8 @@ export class User extends Typegoose {
     passwordReminderToken?: string;
     @prop()
     passwordReminderExpire?: Date;
+    @prop({enum: RegisterByTypes, default: RegisterByTypes.NORMAL})
+    registerBy?: number
 }
 
 export default new User().getModelForClass(User);

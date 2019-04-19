@@ -13,6 +13,7 @@ import UserTypes = General.UserTypes;
 import {HttpCodes} from "../constant/http-codes";
 import Genders = General.Genders;
 import {MailerService} from "../services/mailer.service";
+import RegisterByTypes = General.RegisterByTypes;
 
 interface IRes<T> {
   status: Number;
@@ -112,6 +113,7 @@ export class UserController {
                   city: city || null,
                   district: district || null,
                   ward: ward || null,
+                  registerBy: RegisterByTypes.NORMAL,
                   address
               };
 
@@ -195,7 +197,8 @@ export class UserController {
                         gender: user.gender,
                         city: user.city,
                         district: user.district,
-                        ward: user.ward
+                        ward: user.ward,
+                        registerBy: user.registerBy
                     }
                 ;
                 const token = this.userService.generateToken({email: user.email});

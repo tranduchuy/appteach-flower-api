@@ -24,7 +24,7 @@ export class MailerService {
             from: 'cskh.hecta@gmail.com',
             to: email,
             subject: "Flower VN - Xác nhận đăng kí",
-            text: "http://localhost:2000/user/account-confirm/" + token
+            text: "http://localhost:2000/user/account-confirm?token=" + token
         };
 
         this.transporter.sendMail(mailOptions, function (error, info) {

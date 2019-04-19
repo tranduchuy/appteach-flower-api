@@ -2,7 +2,6 @@ import {injectable} from 'inversify';
 import UserModel from '../models/user';
 import {UserConstant} from '../constant/users';
 import bcrypt from 'bcrypt';
-
 import jwt from 'jsonwebtoken';
 import RandomString from 'randomstring';
 import {Status} from "../constant/status";
@@ -11,7 +10,7 @@ import UserRoles = General.UserRoles;
 
 @injectable()
 export class UserService {
-    createUser = async ({email, password, type, name, username, phone, address, city, district, ward, gender, role}) => {
+    createUser = async ({email, password, type, name, username, phone, address, city, district, ward, registerBy, gender, role}) => {
         const salt = bcrypt.genSaltSync(UserConstant.saltLength);
         const tokenEmailConfirm = RandomString.generate({
             length: UserConstant.tokenConfirmEmailLength,
@@ -27,6 +26,7 @@ export class UserService {
             username,
             phone,
             tokenEmailConfirm,
+            registerBy,
             status: Status.PENDING_OR_WAIT_COMFIRM,
             address: address || '',
             city: city || null,
@@ -41,7 +41,7 @@ export class UserService {
     }
 
     generateToken =(data) => {
-        const secretKey = 'Hello';
+        const secretKey = General.jwtSecret;
         return jwt.sign(data, secretKey, {
             expiresIn: (60 * 60) * UserConstant.tokenExpiredInHour
         });
