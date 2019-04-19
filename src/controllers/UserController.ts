@@ -12,6 +12,7 @@ import {Status} from "../constant/status";
 import UserTypes = General.UserTypes;
 import {HttpCodes} from "../constant/http-codes";
 import Genders = General.Genders;
+import {MailerService} from "../services/mailer.service";
 
 interface IRes<T> {
   status: Number;
@@ -22,7 +23,8 @@ interface IRes<T> {
 @controller('/user')
 export class UserController {
   constructor(
-    @inject(TYPES.UserService) private userService: UserService
+    @inject(TYPES.UserService) private userService: UserService,
+    @inject(TYPES.MailerService) private mailerService: MailerService
   ) {
   }
 
@@ -121,7 +123,7 @@ export class UserController {
                   await newUser.save();
               } else {
                   // Send email
-                  /*MailService.sendConfirmEmail(email, newUser.tokenEmailConfirm);*/
+                  this.mailerService.sendConfirmEmail(email, newUser.tokenEmailConfirm);
               }
 
               const result: IRes<{}> = {
@@ -151,7 +153,6 @@ export class UserController {
             try {
                 const {email, username, password} = request.body;
                 const user = await this.userService.findByEmailOrUsername(email, username);
-                console.log(user);
 
                 if (!user) {
                     const result: IRes<{}> = {
@@ -224,4 +225,53 @@ export class UserController {
             }
         });
     }
+
+    @httpGet("/account-confirm")
+    public confirm(request: Request, response: Response): Promise<IRes<{}>> {
+        return new Promise<IRes<{}>>(async (resolve, reject) => {
+            try {
+                const {token} = request.query;
+
+                const user = await UserModel.findOne({
+                    tokenEmailConfirm: token
+                });
+
+                if (!user) {
+                    const result: IRes<{}> = {
+                        status: HttpCodes.ERROR,
+                        messages: ['Invalid token'],
+                        data: {}
+                    };
+                    return resolve(result);
+                }
+
+                user.status =  Status.ACTIVE;
+                user.tokenEmailConfirm = '';
+
+                await user.save();
+                const result: IRes<{}> = {
+                    status: HttpCodes.SUCCESS,
+                    messages: ['Success'],
+                    data: {
+                        meta: {},
+                        entries: []
+                    }
+                };
+
+                resolve(result);
+
+            }
+            catch (e) {
+                const messages = Object.keys(e.errors).map(key => {
+                    return e.errors[key].message;
+                });
+                const result: IRes<{}> = {
+                    status: HttpCodes.ERROR,
+                    messages: messages,
+                    data: {}
+                };
+                resolve(result);
+            }
+        });
+  }
 }

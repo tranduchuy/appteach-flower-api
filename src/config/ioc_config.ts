@@ -9,6 +9,7 @@ import {
 import TYPES from '../constant/types';
 import TAG from '../constant/tags';
 import { UserService } from '../services/user.service';
+import {MailerService} from "../services/mailer.service";
 
 const container = new Container();
 
@@ -17,7 +18,7 @@ container.bind<UserController>(TYPES.UserController).to(UserController).whenTarg
 
 // Bind Service
 container.bind<UserService>(TYPES.UserService).to(UserService);
-
+container.bind<MailerService>(TYPES.MailerService).to(MailerService);
 // Bind model
 
 export default container;

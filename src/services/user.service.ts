@@ -11,22 +11,6 @@ import UserRoles = General.UserRoles;
 
 @injectable()
 export class UserService {
-    /**
-     *
-     * @param email
-     * @param password
-     * @param type
-     * @param name
-     * @param username
-     * @param phone
-     * @param address
-     * @param city
-     * @param district
-     * @param ward
-     * @param gender
-     * @param Date birthday
-     * @returns {Promise<this|Errors.ValidationError>|*|void}
-     */
     createUser = async ({email, password, type, name, username, phone, address, city, district, ward, gender, role}) => {
         const salt = bcrypt.genSaltSync(UserConstant.saltLength);
         const tokenEmailConfirm = RandomString.generate({
@@ -56,11 +40,6 @@ export class UserService {
 
     }
 
-    /**
-     * Generate token by data
-     * @param {object} data
-     * @returns {string}
-     */
     generateToken =(data) => {
         const secretKey = 'Hello';
         return jwt.sign(data, secretKey, {
