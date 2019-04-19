@@ -1,8 +1,7 @@
 import "reflect-metadata";
 
 import { Container } from "inversify";
-
-import { MongoDBClient } from "../utils/mongodb/client";
+import { UserService } from "../services/user.service";
 
 import {
   UserController,
@@ -17,8 +16,8 @@ const container = new Container();
 container.bind<UserController>(TYPES.UserController).to(UserController).whenTargetNamed(TAG.UserController);
 
 // Bind Service
+container.bind<UserService>(TYPES.UserService).to(UserService);
 
 // Bind model
-container.bind<MongoDBClient>(TYPES.MongoDBClient).to(MongoDBClient);
 
 export default container;

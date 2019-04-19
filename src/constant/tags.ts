@@ -1,5 +1,6 @@
 const TAGS = {
-    UserController: "UserController"
+    UserController: "UserController",
+    UserService: "UserService"
 };
 
 export default TAGS;

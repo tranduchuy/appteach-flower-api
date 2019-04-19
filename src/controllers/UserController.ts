@@ -1,60 +1,23 @@
 import {
-    controller, httpGet, httpPost, httpPut, httpDelete
+  controller, httpGet
 } from "inversify-express-utils";
-import { Request } from "express";
-import { User } from "../models/user";
 import { inject } from "inversify";
 import TYPES from "../constant/types";
-import { MongoDBClient } from "../utils/mongodb/client";
+import { UserService } from "../services/user.service";
+import UserModel, { User } from "../models/user";
 
 @controller("/user")
 export class UserController {
-    constructor(
-        @inject(TYPES.MongoDBClient) private mongoClient: MongoDBClient
-    ) { }
+  constructor(
+    @inject(TYPES.UserService) private userService: UserService
+  ) {
+    this.userService.sayHello();
+  }
 
-    @httpGet("/")
-    public getUsers(): Promise<User[]> {
-        return new Promise<User[]>((resolve, reject) => {
-            this.mongoClient.find("user", {}, (error, data: User[]) => {
-                resolve(data);
-            });
-        });
-    }
-
-    @httpGet("/:id")
-    public getUser(request: Request): Promise<User> {
-        return new Promise<User>((resolve, reject) => {
-            this.mongoClient.findOneById("user", request.params.id, (error, data: User) => {
-                resolve(data);
-            });
-        });
-    }
-
-    @httpPost("/")
-    public newUser(request: Request): Promise<User> {
-        return new Promise<User>((resolve, reject) => {
-            this.mongoClient.insert("user", request.body, (error, data: User) => {
-                resolve(data);
-            });
-        });
-    }
-
-    @httpPut("/:id")
-    public updateUser(request: Request): Promise<User> {
-        return new Promise<User>((resolve, reject) => {
-            this.mongoClient.update("user", request.params.id, request.body, (error, data: User) => {
-                resolve(data);
-            });
-        });
-    }
-
-    @httpDelete("/:id")
-    public deleteUser(request: Request): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            this.mongoClient.remove("user", request.params.id, (error, data: any) => {
-                resolve(data);
-            });
-        });
-    }
+  @httpGet("/")
+  public getUsers(request: Request, response: Response): Promise<User[]> {
+    return new Promise<User[]>(async (resolve, reject) => {
+      resolve(<User[]>await UserModel.find());
+    });
+  }
 }
