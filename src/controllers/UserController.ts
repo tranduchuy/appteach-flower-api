@@ -1,10 +1,10 @@
 import {
   controller, httpGet
-} from "inversify-express-utils";
-import { inject } from "inversify";
-import TYPES from "../constant/types";
-import UserModel, { User } from "../models/user";
-import { UserService } from "../services/user.service";
+} from 'inversify-express-utils';
+import { inject } from 'inversify';
+import TYPES from '../constant/types';
+import UserModel, { User } from '../models/user';
+import { UserService } from '../services/user.service';
 
 interface IRes<T> {
   status: Number;
@@ -12,7 +12,7 @@ interface IRes<T> {
   data: T;
 }
 
-@controller("/user")
+@controller('/user')
 export class UserController {
   constructor(
     @inject(TYPES.UserService) private userService: UserService
@@ -20,13 +20,13 @@ export class UserController {
     this.userService.demo();
   }
 
-  @httpGet("/")
+  @httpGet('/')
   public getUsers(request: Request, response: Response): Promise<IRes<User[]>> {
     return new Promise<IRes<User[]>>(async (resolve, reject) => {
 
       const result: IRes<User[]> = {
         status: 1,
-        messages: ["Success"],
+        messages: ['Success'],
         data: await UserModel.find()
       };
 

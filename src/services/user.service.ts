@@ -1,8 +1,8 @@
-import { injectable } from "inversify";
+import { injectable } from 'inversify';
 
 @injectable()
 export class UserService {
   demo() {
-    console.log("Test user service");
+    console.log('Test user service');
   }
 }

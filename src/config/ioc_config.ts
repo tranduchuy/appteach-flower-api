@@ -1,14 +1,14 @@
-import "reflect-metadata";
+import 'reflect-metadata';
 
-import { Container } from "inversify";
+import { Container } from 'inversify';
 
 import {
   UserController,
-} from "../controllers";
+} from '../controllers';
 
-import TYPES from "../constant/types";
-import TAG from "../constant/tags";
-import { UserService } from "../services/user.service";
+import TYPES from '../constant/types';
+import TAG from '../constant/tags';
+import { UserService } from '../services/user.service';
 
 const container = new Container();
 
