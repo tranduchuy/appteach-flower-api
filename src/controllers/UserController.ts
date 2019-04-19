@@ -3,21 +3,34 @@ import {
 } from "inversify-express-utils";
 import { inject } from "inversify";
 import TYPES from "../constant/types";
-import { UserService } from "../services/user.service";
 import UserModel, { User } from "../models/user";
+import { UserService } from "../services/user.service";
+
+interface IRes<T> {
+  status: Number;
+  messages: string[];
+  data: T;
+}
 
 @controller("/user")
 export class UserController {
   constructor(
     @inject(TYPES.UserService) private userService: UserService
   ) {
-    this.userService.sayHello();
+    this.userService.demo();
   }
 
   @httpGet("/")
-  public getUsers(request: Request, response: Response): Promise<User[]> {
-    return new Promise<User[]>(async (resolve, reject) => {
-      resolve(<User[]>await UserModel.find());
+  public getUsers(request: Request, response: Response): Promise<IRes<User[]>> {
+    return new Promise<IRes<User[]>>(async (resolve, reject) => {
+
+      const result: IRes<User[]> = {
+        status: 1,
+        messages: ["Success"],
+        data: await UserModel.find()
+      };
+
+      resolve(result);
     });
   }
 }
