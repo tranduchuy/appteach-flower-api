@@ -1,4 +1,4 @@
-import {injectable} from 'inversify';
+import { injectable } from 'inversify';
 import ProductModel from '../models/product';
 import urlSlug from "url-slug";
 import { SearchSelector } from "../constant/search-selector.constant";
@@ -8,14 +8,16 @@ import RandomString from 'randomstring';
 
 @injectable()
 export class ProductService {
-  createProduct = async ({title, sku, description, topic, user, images, salePrice, originalPrice, tags,
-                           design , specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage}) => {
+  createProduct = async ({
+                           title, sku, description, topic, user, images, salePrice, originalPrice, tags,
+                           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
+                         }) => {
     //TODO: map price ranges
     let priceRange = null;
-    const range = PriceRanges.find(range =>{
+    const range = PriceRanges.find(range => {
       return (range.min <= originalPrice && originalPrice < range.max);
     });
-    if(range){
+    if (range) {
       priceRange = range.value;
     }
 
@@ -27,7 +29,7 @@ export class ProductService {
     const duplicatedNumber = await ProductModel.count({
       title: title
     });
-    if(duplicatedNumber > 0){
+    if (duplicatedNumber > 0) {
       slug = `${slug}-${duplicatedNumber}`
     }
 
@@ -37,7 +39,7 @@ export class ProductService {
       endDate: null,
       active: false
     };
-    if(salePrice){
+    if (salePrice) {
       saleOff = {
         price: salePrice,
         startDate: null,

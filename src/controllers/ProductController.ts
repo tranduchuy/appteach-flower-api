@@ -1,19 +1,17 @@
 import {
   controller, httpGet, httpPost
 } from 'inversify-express-utils';
-import {inject} from 'inversify';
+import { inject } from 'inversify';
 import TYPES from '../constant/types';
-import {Request, Response} from "express";
-import {ProductService} from '../services/product.service';
-import {HttpCodes} from "../constant/http-codes";
-import ProductModel, {Product} from "../models/product";
+import { Request, Response } from "express";
+import { ProductService } from '../services/product.service';
+import { HttpCodes } from "../constant/http-codes";
+import ProductModel, { Product } from "../models/product";
 import { General } from "../constant/generals";
 import UserTypes = General.UserTypes;
 import Joi from '@hapi/joi';
 // validate schema
 import addProductSchema from '../validation-schemas/product/add-new.schema';
-
-
 
 
 interface IRes<T> {
@@ -47,8 +45,8 @@ export class ProductController {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
         const {error} = Joi.validate(request.body, addProductSchema);
-        if(error){
-          let messages = error.details.map(detail =>{
+        if (error) {
+          let messages = error.details.map(detail => {
             return detail.message;
           });
           const result: IRes<{}> = {
@@ -60,9 +58,11 @@ export class ProductController {
         }
 
         const user = request.user;
-        const {title, sku, description, images, topic, salePrice, originalPrice,
-            tags,
-          design , specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage} = request.body;
+        const {
+          title, sku, description, images, topic, salePrice, originalPrice,
+          tags,
+          design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
+        } = request.body;
 
         if (user.type !== UserTypes.TYPE_SELLER) {
           const result: IRes<{}> = {
@@ -95,13 +95,11 @@ export class ProductController {
         });
 
 
-
         const result: IRes<{}> = {
           status: HttpCodes.SUCCESS,
           messages: ['Successfully'],
           data: {
-            meta: {
-            },
+            meta: {},
             entries: [newProduct]
           }
         };
