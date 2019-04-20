@@ -10,55 +10,55 @@ import UserRoles = General.UserRoles;
 
 @injectable()
 export class UserService {
-    createUser = async ({email, password, type, name, username, phone, address, city, district, ward, registerBy, gender, role}) => {
-        const salt = bcrypt.genSaltSync(UserConstant.saltLength);
-        const tokenEmailConfirm = RandomString.generate({
-            length: UserConstant.tokenConfirmEmailLength,
-            charset: 'alphabetic'
-        });
+  createUser = async ({email, password, type, name, username, phone, address, city, district, ward, registerBy, gender, role}) => {
+    const salt = bcrypt.genSaltSync(UserConstant.saltLength);
+    const tokenEmailConfirm = RandomString.generate({
+      length: UserConstant.tokenConfirmEmailLength,
+      charset: 'alphabetic'
+    });
 
-        const newUser = new UserModel({
-            email,
-            passwordHash: bcrypt.hashSync(password, salt),
-            passwordSalt: salt,
-            type,
-            name,
-            username,
-            phone,
-            tokenEmailConfirm,
-            registerBy,
-            status: Status.PENDING_OR_WAIT_COMFIRM,
-            address: address || '',
-            city: city || null,
-            district: district || null,
-            ward: ward || null,
-            gender: gender || null,
-            role: role || UserRoles.USER_ROLE_ENDUSER
-        });
+    const newUser = new UserModel({
+      email,
+      passwordHash: bcrypt.hashSync(password, salt),
+      passwordSalt: salt,
+      type,
+      name,
+      username,
+      phone,
+      tokenEmailConfirm,
+      registerBy,
+      status: Status.PENDING_OR_WAIT_COMFIRM,
+      address: address || '',
+      city: city || null,
+      district: district || null,
+      ward: ward || null,
+      gender: gender || null,
+      role: role || UserRoles.USER_ROLE_ENDUSER
+    });
 
-        return await newUser.save();
+    return await newUser.save();
 
+  }
+
+  generateToken = (data) => {
+    const secretKey = General.jwtSecret;
+    return jwt.sign(data, secretKey, {
+      expiresIn: (60 * 60) * UserConstant.tokenExpiredInHour
+    });
+  };
+
+  findByEmailOrUsername = async (email, username) => {
+    return await UserModel.findOne({
+      $or: [{email: email}, {username: username}]
+    });
+  };
+
+  isValidHashPassword = (hashed, plainText) => {
+    try {
+      return bcrypt.compareSync(plainText, hashed);
+    } catch (e) {
+      return false;
     }
-
-    generateToken =(data) => {
-        const secretKey = General.jwtSecret;
-        return jwt.sign(data, secretKey, {
-            expiresIn: (60 * 60) * UserConstant.tokenExpiredInHour
-        });
-    };
-
-    findByEmailOrUsername = async (email, username) => {
-        return await UserModel.findOne({
-            $or: [{email: email}, {username: username}]
-        });
-    };
-
-    isValidHashPassword = (hashed, plainText) => {
-        try {
-            return bcrypt.compareSync(plainText, hashed);
-        } catch (e) {
-            return false;
-        }
-    };
+  };
 
 }

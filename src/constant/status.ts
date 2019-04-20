@@ -18,7 +18,7 @@ export const Status = {
 
 };
 
-export const StatusNm = { 
+export const StatusNm = {
   1: 'Kích hoạt',
   2: 'Chờ',
   3: 'Bị khoá',
