@@ -73,7 +73,7 @@ export class ProductController {
           return resolve(result);
         }
 
-        let newProduct = this.productService.createProduct({
+        let newProduct = await this.productService.createProduct({
           title,
           sku,
           description,

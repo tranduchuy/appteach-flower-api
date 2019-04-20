@@ -1,13 +1,23 @@
 import {injectable} from 'inversify';
 import ProductModel from '../models/product';
 import urlSlug from "url-slug";
+import { SearchSelector } from "../constant/search-selector.constant";
+import PriceRanges = SearchSelector.PriceRanges;
+
+import RandomString from 'randomstring';
 
 @injectable()
 export class ProductService {
   createProduct = async ({title, sku, description, topic, user, images, salePrice, originalPrice, tags,
                            design , specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage}) => {
     //TODO: map price ranges
-    const priceRange = 0;
+    let priceRange = null;
+    const range = PriceRanges.find(range =>{
+      return (range.min <= originalPrice && originalPrice < range.max);
+    });
+    if(range){
+      priceRange = range.value;
+    }
 
     //TODO: add tags
 
@@ -35,6 +45,7 @@ export class ProductService {
         active: false
       }
     }
+    const code = RandomString.generate() + Date.now();
     const newProduct = new ProductModel({
       title,
       sku,
@@ -42,6 +53,7 @@ export class ProductService {
       topic,
       priceRange,
       slug,
+      code,
       originalPrice,
       user: user._id,
       images: images || [],

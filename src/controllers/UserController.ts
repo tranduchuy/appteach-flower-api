@@ -149,7 +149,10 @@ export class UserController {
         const result: IRes<{}> = {
           status: HttpCodes.SUCCESS,
           messages: ["Success"],
-          data: {}
+          data: {
+            meta: {},
+            entries: [{email, name, username, phone, address, gender, city, district, ward}]
+          }
         };
 
         resolve(result);
@@ -160,7 +163,9 @@ export class UserController {
         const result: IRes<{}> = {
           status: HttpCodes.ERROR,
           messages: messages,
-          data: {}
+          data: {
+            meta: {},
+            entries: []}
         };
         resolve(result);
       }

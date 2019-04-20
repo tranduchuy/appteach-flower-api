@@ -5,14 +5,6 @@ import { User } from './user';
   this.updatedAt = new Date();
   next();
 })
-//title, images, sku, description, topic, priceRange, slug, originalPrice, user
-//saleOff: {
-//     price: number;
-//     startDate: Date;
-//     endDate: Date;
-//     active: boolean;
-//   };
-//design , specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
 export class Product extends Typegoose {
   @prop({required: true})
   title: string;
@@ -72,6 +64,9 @@ export class Product extends Typegoose {
     endDate: Date;
     active: boolean;
   };
+
+  @prop({required: true})
+  code: string;
 
   @prop({default: new Date()})
   updatedAt: Date;
