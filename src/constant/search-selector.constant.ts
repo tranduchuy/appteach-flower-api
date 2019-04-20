@@ -69,11 +69,11 @@ export namespace SearchSelector {
   ];
 
   export const PriceRanges = [
-    {text: '100.000 - 300.000', value: 1},
-    {text: '300.000 - 500.000', value: 2},
-    {text: '500.000 - 1.000.000', value: 3},
-    {text: '1.000.000 - 2.000.000', value: 4},
-    {text: '> 2.000.000', value: 5},
+    {text: '100.000 - 300.000', value: 1, min: 100000, max: 300000},
+    {text: '300.000 - 500.000', value: 2, min: 300000, max: 500000},
+    {text: '500.000 - 1.000.000', value: 3, min: 500000, max: 1000000},
+    {text: '1.000.000 - 2.000.000', value: 4, min: 1000000, max: 2000000},
+    {text: '> 2.000.000', value: 5, min: 2000000}
   ];
 
   export const Cities = [{
