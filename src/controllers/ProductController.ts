@@ -9,6 +9,9 @@ import {HttpCodes} from "../constant/http-codes";
 import ProductModel, {Product} from "../models/product";
 import { General } from "../constant/generals";
 import UserTypes = General.UserTypes;
+import Joi from '@hapi/joi';
+// validate schema
+import addProductSchema from '../validation-schemas/product/add-new.schema';
 
 
 
@@ -29,7 +32,6 @@ export class ProductController {
   @httpGet("/")
   public getProducts(request: Request, response: Response): Promise<IRes<Product[]>> {
     return new Promise<IRes<Product[]>>(async (resolve, reject) => {
-
       const result: IRes<Product[]> = {
         status: 1,
         messages: ["Success"],
@@ -40,12 +42,27 @@ export class ProductController {
     });
   }
 
-  @httpPost("/add", TYPES.CheckTokenMiddleware)
+  @httpPost("/", TYPES.CheckTokenMiddleware)
   public addOne(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
+        const {error} = Joi.validate(request.body, addProductSchema);
+        if(error){
+          let messages = error.details.map(detail =>{
+            return detail.message;
+          });
+          const result: IRes<{}> = {
+            status: HttpCodes.ERROR,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
         const user = request.user;
-        const {title, sku, description, topic, priceRange, slug, originalPrice} = request.body;
+        const {title, sku, description, images, topic, salePrice, originalPrice,
+            tags,
+          design , specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage} = request.body;
 
         if (user.type !== UserTypes.TYPE_SELLER) {
           const result: IRes<{}> = {
@@ -56,25 +73,28 @@ export class ProductController {
           return resolve(result);
         }
 
-        const product = await ProductModel.findOne({});
         let newProduct = this.productService.createProduct({
           title,
           sku,
           description,
           topic,
-          priceRange,
-          slug,
           originalPrice,
-          user});
+          user,
+          tags: tags || [],
+          salePrice: salePrice || null,
+          images: images || [],
+          design: design || null,
+          specialOccasion: specialOccasion || null,
+          floret: floret || null,
+          city: city || null,
+          district: district || null,
+          color: color || null,
+          seoUrl: seoUrl || null,
+          seoDescription: seoDescription || null,
+          seoImage: seoImage || null
+        });
 
-        if (!product) {
-          const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
-            messages: ['Product SKU is duplicated'],
-            data: {newProduct}
-          };
-          return resolve(result);
-        }
+
 
         const result: IRes<{}> = {
           status: HttpCodes.SUCCESS,
@@ -82,7 +102,7 @@ export class ProductController {
           data: {
             meta: {
             },
-            entries: []
+            entries: [newProduct]
           }
         };
 

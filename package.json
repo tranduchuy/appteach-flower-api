@@ -57,6 +57,7 @@
     "ts-node-dev": "^1.0.0-pre.32",
     "tsconfig-paths": "^3.8.0",
     "typegoose": "^5.6.0",
+    "url-slug": "^2.0.0",
     "winston": "^2.4.0"
   },
   "devDependencies": {
