@@ -22,14 +22,14 @@ export class User extends Typegoose {
   @prop({required: true, enum: Genders})
   gender: number;
   @prop()
-  city?: number;
+  city?: string;
   @prop()
   district?: number;
   @prop()
   ward?: number;
   @prop({required: true})
   address: string;
-  @prop({required: true, enum: UserTypes})
+  @prop({enum: UserTypes})
   type: number;
   @prop({required: true, enum: Status, default: Status.PENDING_OR_WAIT_COMFIRM})
   status: number;
