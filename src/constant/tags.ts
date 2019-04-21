@@ -1,6 +1,8 @@
 const TAGS = {
   UserController: 'UserController',
-  UserService: 'UserService'
+  ProductController: 'ProductController',
+  UserService: 'UserService',
+  ProductService: 'ProductService'
 };
 
 export default TAGS;

@@ -15,6 +15,11 @@ import Genders = General.Genders;
 import {MailerService} from "../services/mailer.service";
 import RegisterByTypes = General.RegisterByTypes;
 
+import Joi from '@hapi/joi';
+// validate schema
+import loginSchema from '../validation-schemas/user/login.schema';
+import registerSchema from '../validation-schemas/user/register.schema';
+
 interface IRes<T> {
   status: Number;
   messages: string[];
@@ -47,6 +52,18 @@ export class UserController {
   public registerNewUser(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
+        const {error} = Joi.validate(request.body, registerSchema);
+        if(error){
+          let messages = error.details.map(detail =>{
+            return detail.message;
+          });
+          const result: IRes<{}> = {
+            status: HttpCodes.ERROR,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
         const {
           email, password, confirmedPassword,
           name, username, phone, address, gender, city, district, ward
@@ -132,7 +149,10 @@ export class UserController {
         const result: IRes<{}> = {
           status: HttpCodes.SUCCESS,
           messages: ["Success"],
-          data: {}
+          data: {
+            meta: {},
+            entries: [{email, name, username, phone, address, gender, city, district, ward}]
+          }
         };
 
         resolve(result);
@@ -143,7 +163,9 @@ export class UserController {
         const result: IRes<{}> = {
           status: HttpCodes.ERROR,
           messages: messages,
-          data: {}
+          data: {
+            meta: {},
+            entries: []}
         };
         resolve(result);
       }
@@ -154,6 +176,19 @@ export class UserController {
   public login(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
+        const {error} = Joi.validate(request.body, loginSchema);
+        if(error){
+          let messages = error.details.map(detail =>{
+            return detail.message;
+          });
+          const result: IRes<{}> = {
+            status: HttpCodes.ERROR,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
         const {email, username, password} = request.body;
         const user = await this.userService.findByEmailOrUsername(email, username);
 

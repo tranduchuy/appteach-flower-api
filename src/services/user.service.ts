@@ -1,11 +1,11 @@
-import {injectable} from 'inversify';
+import { injectable } from 'inversify';
 import UserModel from '../models/user';
-import {UserConstant} from '../constant/users';
+import { UserConstant } from '../constant/users';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import RandomString from 'randomstring';
-import {Status} from "../constant/status";
-import {General} from "../constant/generals";
+import { Status } from "../constant/status";
+import { General } from "../constant/generals";
 import UserRoles = General.UserRoles;
 
 @injectable()

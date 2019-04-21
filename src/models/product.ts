@@ -5,7 +5,6 @@ import { User } from './user';
   this.updatedAt = new Date();
   next();
 })
-
 export class Product extends Typegoose {
   @prop({required: true})
   title: string;
@@ -65,6 +64,9 @@ export class Product extends Typegoose {
     endDate: Date;
     active: boolean;
   };
+
+  @prop({required: true})
+  code: string;
 
   @prop({default: new Date()})
   updatedAt: Date;
