@@ -12,6 +12,7 @@ import UserTypes = General.UserTypes;
 import Joi from '@hapi/joi';
 // validate schema
 import addProductSchema from '../validation-schemas/product/add-new.schema';
+import { ResponseMessages } from "../constant/messages";
 
 
 interface IRes<T> {
@@ -32,7 +33,7 @@ export class ProductController {
     return new Promise<IRes<Product[]>>(async (resolve, reject) => {
       const result: IRes<Product[]> = {
         status: 1,
-        messages: ["Success"],
+        messages: [ResponseMessages.SUCCESS],
         data: await ProductModel.find()
       };
 
@@ -67,7 +68,7 @@ export class ProductController {
         if (user.type !== UserTypes.TYPE_SELLER) {
           const result: IRes<{}> = {
             status: HttpCodes.ERROR,
-            messages: ['Only Seller is permitted to add product'],
+            messages: [ResponseMessages.Product.Add.NO_ADD_PRODUCT_PERMISSION],
             data: {}
           };
           return resolve(result);
@@ -97,7 +98,7 @@ export class ProductController {
 
         const result: IRes<{}> = {
           status: HttpCodes.SUCCESS,
-          messages: ['Successfully'],
+          messages: [ResponseMessages.Product.Add.ADD_PRODUCT_SUCCESS],
           data: {
             meta: {},
             entries: [newProduct]

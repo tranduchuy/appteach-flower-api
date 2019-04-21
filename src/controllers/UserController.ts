@@ -19,6 +19,7 @@ import Joi from '@hapi/joi';
 // validate schema
 import loginSchema from '../validation-schemas/user/login.schema';
 import registerSchema from '../validation-schemas/user/register.schema';
+import { ResponseMessages } from "../constant/messages";
 
 interface IRes<T> {
   status: Number;
@@ -40,7 +41,7 @@ export class UserController {
 
       const result: IRes<User[]> = {
         status: 1,
-        messages: ["Success"],
+        messages: [ResponseMessages.SUCCESS],
         data: await UserModel.find()
       };
 
@@ -73,7 +74,7 @@ export class UserController {
         if (duplicatedPhones.length !== 0) {
           const result: IRes<{}> = {
             status: HttpCodes.ERROR,
-            messages: ["Duplicate phone"],
+            messages: [ResponseMessages.User.Register.PHONE_DUPLICATED],
             data: {}
           };
           return resolve(result);
@@ -82,7 +83,7 @@ export class UserController {
         if (password !== confirmedPassword) {
           const result: IRes<{}> = {
             status: HttpCodes.ERROR,
-            messages: ["2 passwords not same"],
+            messages: [ResponseMessages.User.Register.PASSWORD_DONT_MATCH],
             data: {}
           };
           return resolve(result);
@@ -92,7 +93,7 @@ export class UserController {
         if (duplicatedUsers.length !== 0) {
           const result: IRes<{}> = {
             status: HttpCodes.ERROR,
-            messages: ["Duplicate email"],
+            messages: [ResponseMessages.User.Register.EMAIL_DUPLICATED],
             data: {}
           };
           return resolve(result);
@@ -102,7 +103,7 @@ export class UserController {
         if (duplicatedUsernames.length !== 0) {
           const result: IRes<{}> = {
             status: HttpCodes.ERROR,
-            messages: ["Duplicate username"],
+            messages: [ResponseMessages.User.Register.USERNAME_DUPLICATED],
             data: {}
           };
           return resolve(result);
@@ -148,7 +149,7 @@ export class UserController {
 
         const result: IRes<{}> = {
           status: HttpCodes.SUCCESS,
-          messages: ["Success"],
+          messages: [ResponseMessages.User.Register.REGISTER_SUCCESS],
           data: {
             meta: {},
             entries: [{email, name, username, phone, address, gender, city, district, ward}]
@@ -195,7 +196,7 @@ export class UserController {
         if (!user) {
           const result: IRes<{}> = {
             status: HttpCodes.ERROR,
-            messages: ['User not found'],
+            messages: [ResponseMessages.User.Login.USER_NOT_FOUND],
             data: {}
           };
           return resolve(result);
@@ -204,7 +205,7 @@ export class UserController {
         if (!this.userService.isValidHashPassword(user.passwordHash, password)) {
           const result: IRes<{}> = {
             status: HttpCodes.ERROR,
-            messages: ['Wrong password'],
+            messages: [ResponseMessages.User.Login.WRONG_PASSWORD],
             data: {}
           };
           return resolve(result);
@@ -213,7 +214,7 @@ export class UserController {
         if (user.status !== Status.ACTIVE) {
           const result: IRes<{}> = {
             status: HttpCodes.ERROR,
-            messages: ['User inactive'],
+            messages: [ResponseMessages.User.Login.INACTIVE_USER],
             data: {}
           };
           return resolve(result);
@@ -241,7 +242,7 @@ export class UserController {
 
         const result: IRes<{}> = {
           status: HttpCodes.SUCCESS,
-          messages: ['Successfully'],
+          messages: [ResponseMessages.User.Login.LOGIN_SUCCESS],
           data: {
             meta: {
               token
@@ -278,7 +279,7 @@ export class UserController {
         if (!user) {
           const result: IRes<{}> = {
             status: HttpCodes.ERROR,
-            messages: ['Invalid token'],
+            messages: [ResponseMessages.User.Confirm.INVALID_TOKEN],
             data: {}
           };
           return resolve(result);
@@ -290,7 +291,7 @@ export class UserController {
         await user.save();
         const result: IRes<{}> = {
           status: HttpCodes.SUCCESS,
-          messages: ['Success'],
+          messages: [ResponseMessages.User.Confirm.CONFIRM_SUCCESS],
           data: {
             meta: {},
             entries: []
