@@ -3,36 +3,30 @@ import {
 } from 'inversify-express-utils';
 import { inject } from 'inversify';
 import TYPES from '../constant/types';
-import { Request, Response } from "express";
+import { Request, Response } from 'express';
+import { IRes } from '../interfaces/i-res';
 import { ProductService } from '../services/product.service';
-import { HttpCodes } from "../constant/http-codes";
-import ProductModel, { Product } from "../models/product";
-import { General } from "../constant/generals";
+import { HttpCodes } from '../constant/http-codes';
+import ProductModel, { Product } from '../models/product';
+import { General } from '../constant/generals';
 import UserTypes = General.UserTypes;
 import Joi from '@hapi/joi';
 // validate schema
 import addProductSchema from '../validation-schemas/product/add-new.schema';
 
-
-interface IRes<T> {
-  status: Number;
-  messages: string[];
-  data: T;
-}
-
 @controller('/product')
 export class ProductController {
   constructor(
-      @inject(TYPES.ProductService) private productService: ProductService
+    @inject(TYPES.ProductService) private productService: ProductService
   ) {
   }
 
-  @httpGet("/")
+  @httpGet('/')
   public getProducts(request: Request, response: Response): Promise<IRes<Product[]>> {
     return new Promise<IRes<Product[]>>(async (resolve, reject) => {
       const result: IRes<Product[]> = {
         status: 1,
-        messages: ["Success"],
+        messages: ['Success'],
         data: await ProductModel.find()
       };
 
@@ -40,15 +34,16 @@ export class ProductController {
     });
   }
 
-  @httpPost("/", TYPES.CheckTokenMiddleware)
+  @httpPost('/', TYPES.CheckTokenMiddleware)
   public addOne(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
         const {error} = Joi.validate(request.body, addProductSchema);
         if (error) {
-          let messages = error.details.map(detail => {
+          const messages = error.details.map(detail => {
             return detail.message;
           });
+
           const result: IRes<{}> = {
             status: HttpCodes.ERROR,
             messages: messages,
@@ -73,7 +68,7 @@ export class ProductController {
           return resolve(result);
         }
 
-        let newProduct = await this.productService.createProduct({
+        const newProduct = await this.productService.createProduct({
           title,
           sku,
           description,
@@ -94,7 +89,6 @@ export class ProductController {
           seoImage: seoImage || null
         });
 
-
         const result: IRes<{}> = {
           status: HttpCodes.SUCCESS,
           messages: ['Successfully'],
@@ -109,6 +103,7 @@ export class ProductController {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
+
         const result: IRes<{}> = {
           status: HttpCodes.ERROR,
           messages: messages,

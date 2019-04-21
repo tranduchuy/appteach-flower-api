@@ -4,6 +4,7 @@ import {
 import {inject} from 'inversify';
 import TYPES from '../constant/types';
 import {Request, Response} from "express";
+import { IRes } from '../interfaces/i-res';
 import UserModel, {User} from '../models/user';
 import {UserService} from '../services/user.service';
 import {General} from "../constant/generals";
@@ -19,12 +20,6 @@ import Joi from '@hapi/joi';
 // validate schema
 import loginSchema from '../validation-schemas/user/login.schema';
 import registerSchema from '../validation-schemas/user/register.schema';
-
-interface IRes<T> {
-  status: Number;
-  messages: string[];
-  data: T;
-}
 
 @controller('/user')
 export class UserController {
