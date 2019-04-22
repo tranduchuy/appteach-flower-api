@@ -30,6 +30,26 @@ export class UserController {
   ) {
   }
 
+  @httpGet('/info', TYPES.CheckTokenMiddleware)
+  public getLoggedInInfo(request: Request): Promise<IRes<User>> {
+    return new Promise<IRes<User>>((resolve => {
+
+      const user: User = JSON.parse(JSON.stringify(<User>request.user));
+      delete user.passwordHash;
+      delete user.passwordSalt;
+      delete user.passwordReminderExpire;
+      delete user.passwordReminderToken;
+
+      const result: IRes<User> = {
+        status: 1,
+        messages: [ResponseMessages.SUCCESS],
+        data: user
+      };
+
+      resolve(result);
+    }));
+  }
+
   @httpGet("/")
   public getUsers(request: Request, response: Response): Promise<IRes<User[]>> {
     return new Promise<IRes<User[]>>(async (resolve, reject) => {
