@@ -5,9 +5,21 @@ import { HttpCodes } from '../constant/http-codes';
 import TYPES from '../constant/types';
 import { IRes } from '../interfaces/i-res';
 import Joi from '@hapi/joi';
+import { Product } from '../models/product';
 import { UrlParam } from '../models/url-param';
 import { SearchService } from '../services/search.service';
 import boxSchema from '../validation-schemas/search/box.schema';
+
+interface ISearchBoxResponse {
+  url: string;
+}
+
+interface ISearchResponse {
+  isList?: boolean;
+  isDetail?: boolean;
+  products?: Product[];
+  product?: Product;
+}
 
 @controller('/search')
 export class SearchController {
@@ -16,25 +28,24 @@ export class SearchController {
   }
 
   @httpGet('/')
-  public search(): Promise<any> {
-    return new Promise<any>((resolve) => {
+  public search(): Promise<IRes<ISearchResponse>> {
+    return new Promise<IRes<ISearchResponse>>((resolve) => {
 
     });
   }
 
   @httpPost('/box')
-  public box(req: Request): Promise<any> {
-    return new Promise<any>(async (resolve) => {
+  public box(req: Request): Promise<IRes<ISearchBoxResponse>> {
+    return new Promise<IRes<ISearchBoxResponse>>(async (resolve) => {
       const {error} = Joi.validate(req.body, boxSchema);
       if (error) {
         const messages = error.details.map(detail => {
           return detail.message;
         });
 
-        const result: IRes<{}> = {
+        const result: IRes<ISearchBoxResponse> = {
           status: HttpCodes.ERROR,
-          messages: messages,
-          data: {}
+          messages: messages
         };
 
         return resolve(result);
@@ -54,7 +65,6 @@ export class SearchController {
         }
       });
 
-      console.log(queryObj);
       let urlParamInstance: UrlParam = await this.searchService.searchUrlParamByQuery(queryObj);
       if (!urlParamInstance) {
         urlParamInstance = await this.searchService.createUrlParamByQuery(queryObj);
