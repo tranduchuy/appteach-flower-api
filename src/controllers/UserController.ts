@@ -19,6 +19,7 @@ import RegisterByTypes = General.RegisterByTypes;
 import Joi from '@hapi/joi';
 // validate schema
 import loginSchema from '../validation-schemas/user/login.schema';
+import loginGoogleSchema from '../validation-schemas/user/login-google.schema';
 import registerSchema from '../validation-schemas/user/register.schema';
 import { ResponseMessages } from "../constant/messages";
 
@@ -233,6 +234,88 @@ export class UserController {
               registerBy: user.registerBy
             }
         ;
+        const token = this.userService.generateToken({email: user.email});
+
+        const result: IRes<{}> = {
+          status: HttpCodes.SUCCESS,
+          messages: [ResponseMessages.User.Login.LOGIN_SUCCESS],
+          data: {
+            meta: {
+              token
+            },
+            entries: [userInfoResponse]
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<{}> = {
+          status: HttpCodes.ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
+  @httpPost("/login-by-google")
+  public loginByGoogle(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const {error} = Joi.validate(request.body, loginGoogleSchema);
+        if(error){
+          let messages = error.details.map(detail =>{
+            return detail.message;
+          });
+          const result: IRes<{}> = {
+            status: HttpCodes.ERROR,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const {email, googleId, name} = request.body;
+        let user = await this.userService.findByGoogleId(googleId);
+
+
+        if (!user) {
+          user = await this.userService.findByEmail(email);
+          if(user){
+            user = await this.userService.updateGoogleId(user, googleId);
+          }
+          else{
+            const newUser ={
+              name,
+              email,
+              googleId
+            };
+            user = await this.userService.createUserByGoogle(newUser);
+          }
+        }
+
+        const userInfoResponse = {
+              id: user.id,
+              role: user.role,
+              email: user.email,
+              username: user.username,
+              name: user.name,
+              phone: user.phone,
+              address: user.address,
+              type: user.type,
+              status: user.status,
+              avatar: user.avatar,
+              gender: user.gender,
+              city: user.city,
+              district: user.district,
+              ward: user.ward,
+              registerBy: user.registerBy,
+              googleId: user.googleId
+            };
         const token = this.userService.generateToken({email: user.email});
 
         const result: IRes<{}> = {

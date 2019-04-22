@@ -9,17 +9,17 @@ import RegisterByTypes = General.RegisterByTypes;
 export class User extends Typegoose {
   @prop({required: true})
   name: string;
-  @prop({required: true, unique: true, lowercase: true, trim: true})
+  @prop({unique: true, lowercase: true, trim: true})
   username: string;
   @prop({validate: /\S+@\S+\.\S+/, unique: true, required: true, lowercase: true, trim: true})
   email: string;
-  @prop({unique: true, required: true, lowercase: true, trim: true, match: /[0-9]*/, minlength: 10, maxlength: 11})
+  @prop({unique: true, lowercase: true, trim: true, match: /[0-9]*/, minlength: 10, maxlength: 11})
   phone: string;
-  @prop({required: true})
+  @prop()
   passwordHash: string;
-  @prop({required: true})
+  @prop()
   passwordSalt: string;
-  @prop({required: true, enum: Genders})
+  @prop({enum: Genders})
   gender: number;
   @prop()
   city?: string;
@@ -27,7 +27,7 @@ export class User extends Typegoose {
   district?: number;
   @prop()
   ward?: number;
-  @prop({required: true})
+  @prop()
   address: string;
   @prop({enum: UserTypes})
   type: number;
@@ -50,7 +50,9 @@ export class User extends Typegoose {
   @prop()
   passwordReminderExpire?: Date;
   @prop({enum: RegisterByTypes, default: RegisterByTypes.NORMAL})
-  registerBy?: number
+  registerBy?: number;
+  @prop()
+  googleId?: string;
 }
 
 export default new User().getModelForClass(User);

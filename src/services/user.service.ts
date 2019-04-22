@@ -7,6 +7,8 @@ import RandomString from 'randomstring';
 import { Status } from "../constant/status";
 import { General } from "../constant/generals";
 import UserRoles = General.UserRoles;
+import UserTypes = General.UserTypes;
+import RegisterByTypes = General.RegisterByTypes;
 
 @injectable()
 export class UserService {
@@ -38,7 +40,31 @@ export class UserService {
 
     return await newUser.save();
 
-  }
+  };
+
+  createUserByGoogle = async ({email, name, googleId}) => {
+
+    const newUser = new UserModel({
+      email,
+      passwordHash: null,
+      passwordSalt: null,
+      type: UserTypes.TYPE_CUSTOMER,
+      name,
+      username: null,
+      phone: null,
+      tokenEmailConfirm: null,
+      registerBy: RegisterByTypes.GOOGLE,
+      status: Status.ACTIVE,
+      address: null,
+      city: null,
+      district: null,
+      ward: null,
+      gender: null,
+      role: UserRoles.USER_ROLE_ENDUSER,
+      googleId
+    });
+    return await newUser.save();
+  };
 
   generateToken = (data) => {
     const secretKey = General.jwtSecret;
@@ -52,6 +78,20 @@ export class UserService {
       $or: [{email: email}, {username: username}]
     });
   };
+
+  updateGoogleId = async (user, googleId) => {
+    user.googleId = googleId;
+    return await user.save();
+  };
+
+  findByEmail = async (email) => {
+    return await UserModel.findOne({email: email});
+  };
+
+  findByGoogleId = async (googleId) => {
+    return await UserModel.findOne({googleId: googleId});
+  };
+
 
   isValidHashPassword = (hashed, plainText) => {
     try {
