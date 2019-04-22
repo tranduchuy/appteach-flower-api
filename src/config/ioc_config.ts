@@ -9,6 +9,7 @@ import {
 import TYPES from '../constant/types';
 import TAG from '../constant/tags';
 import { SearchController } from '../controllers/SearchController';
+import { SearchService } from '../services/search.service';
 import { UserService } from '../services/user.service';
 import { MailerService } from '../services/mailer.service';
 
@@ -27,6 +28,8 @@ container.bind<SearchController>(TYPES.SearchController).to(SearchController);
 container.bind<UserService>(TYPES.UserService).to(UserService);
 container.bind<ProductService>(TYPES.ProductService).to(ProductService);
 container.bind<MailerService>(TYPES.MailerService).to(MailerService);
+container.bind<SearchService>(TYPES.SearchService).to(SearchService);
+
 // Bind model
 
 // Bind Middleware

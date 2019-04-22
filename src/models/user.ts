@@ -35,9 +35,9 @@ export class User extends Typegoose {
   status: number;
   @prop({required: true, enum: UserRoles, default: UserRoles.USER_ROLE_ENDUSER})
   role: number;
-  @prop({default: Date.now()})
+  @prop({default: new Date()})
   createdAt?: Date;
-  @prop({default: Date.now()})
+  @prop({default: new Date()})
   updatedAt?: Date;
   @prop()
   avatar?: string;
