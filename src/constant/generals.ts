@@ -1,6 +1,6 @@
 export namespace General {
   export const ApiTokenName = 'accesstoken';
-  export const jwtSecret = "Hello";
+  export const jwtSecret = 'Hello';
   export const Genders = {
     GENDER_MALE: 1,
     GENDER_FEMALE: 2

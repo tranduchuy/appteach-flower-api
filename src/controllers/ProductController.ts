@@ -13,7 +13,7 @@ import UserTypes = General.UserTypes;
 import Joi from '@hapi/joi';
 // validate schema
 import addProductSchema from '../validation-schemas/product/add-new.schema';
-import { ResponseMessages } from "../constant/messages";
+import { ResponseMessages } from '../constant/messages';
 
 @controller('/product')
 export class ProductController {

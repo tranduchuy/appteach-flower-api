@@ -1,6 +1,6 @@
-import {prop, Typegoose} from "typegoose";
-import {General} from "../constant/generals";
-import {Status} from "../constant/status";
+import { prop, Typegoose } from 'typegoose';
+import { General } from '../constant/generals';
+import { Status } from '../constant/status';
 import UserRoles = General.UserRoles;
 import Genders = General.Genders;
 import UserTypes = General.UserTypes;

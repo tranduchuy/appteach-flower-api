@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
 import ProductModel from '../models/product';
-import urlSlug from "url-slug";
-import { SearchSelector } from "../constant/search-selector.constant";
+import urlSlug from 'url-slug';
+import { SearchSelector } from '../constant/search-selector.constant';
 import PriceRanges = SearchSelector.PriceRanges;
 
 import RandomString from 'randomstring';
@@ -30,7 +30,7 @@ export class ProductService {
       title: title
     });
     if (duplicatedNumber > 0) {
-      slug = `${slug}-${duplicatedNumber}`
+      slug = `${slug}-${duplicatedNumber}`;
     }
 
     let saleOff = {
@@ -45,7 +45,7 @@ export class ProductService {
         startDate: null,
         endDate: null,
         active: false
-      }
+      };
     }
     const code = RandomString.generate() + Date.now();
     const newProduct = new ProductModel({
@@ -72,6 +72,6 @@ export class ProductService {
     });
 
     return await newProduct.save();
-  }
+  };
 
 }

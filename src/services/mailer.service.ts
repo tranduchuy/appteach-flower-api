@@ -11,7 +11,7 @@ export class MailerService {
     secure: true,
     auth: {
       type: 'OAuth2',
-      user: "cskh.hecta@gmail.com",
+      user: 'cskh.hecta@gmail.com',
       clientId: '392023644781-6u308jk38e2n7kl203uaf2gpqvn2foso.apps.googleusercontent.com',
       clientSecret: 'G7PGcCfpq8L4iUZgiHWLiojM',
       refreshToken: '1/TokkXRnESwFnkst42sfu1DVDsdL42vbhqrkfZiEzDA8',
@@ -24,8 +24,8 @@ export class MailerService {
     const mailOptions = {
       from: 'cskh.hecta@gmail.com',
       to: email,
-      subject: "Flower VN - Xác nhận đăng kí",
-      text: "http://localhost:2000/user/account-confirm?token=" + token
+      subject: 'Flower VN - Xác nhận đăng kí',
+      text: 'http://localhost:2000/user/account-confirm?token=' + token
     };
 
     this.transporter.sendMail(mailOptions, function (error, info) {

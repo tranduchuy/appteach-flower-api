@@ -1,19 +1,19 @@
 import {
   controller, httpGet, httpPost
 } from 'inversify-express-utils';
-import {inject} from 'inversify';
+import { inject } from 'inversify';
 import TYPES from '../constant/types';
-import {Request, Response} from "express";
+import { Request, Response } from 'express';
 import { IRes } from '../interfaces/i-res';
-import UserModel, {User} from '../models/user';
-import {UserService} from '../services/user.service';
-import {General} from "../constant/generals";
+import UserModel, { User } from '../models/user';
+import { UserService } from '../services/user.service';
+import { General } from '../constant/generals';
 import UserRoles = General.UserRoles;
-import {Status} from "../constant/status";
+import { Status } from '../constant/status';
 import UserTypes = General.UserTypes;
-import {HttpCodes} from "../constant/http-codes";
+import { HttpCodes } from '../constant/http-codes';
 import Genders = General.Genders;
-import {MailerService} from "../services/mailer.service";
+import { MailerService } from '../services/mailer.service';
 import RegisterByTypes = General.RegisterByTypes;
 
 import Joi from '@hapi/joi';
@@ -21,13 +21,13 @@ import Joi from '@hapi/joi';
 import loginSchema from '../validation-schemas/user/login.schema';
 import loginGoogleSchema from '../validation-schemas/user/login-google.schema';
 import registerSchema from '../validation-schemas/user/register.schema';
-import { ResponseMessages } from "../constant/messages";
+import { ResponseMessages } from '../constant/messages';
 
 @controller('/user')
 export class UserController {
   constructor(
-      @inject(TYPES.UserService) private userService: UserService,
-      @inject(TYPES.MailerService) private mailerService: MailerService
+    @inject(TYPES.UserService) private userService: UserService,
+    @inject(TYPES.MailerService) private mailerService: MailerService
   ) {
   }
 
@@ -51,7 +51,7 @@ export class UserController {
     }));
   }
 
-  @httpGet("/")
+  @httpGet('/')
   public getUsers(request: Request, response: Response): Promise<IRes<User[]>> {
     return new Promise<IRes<User[]>>(async (resolve, reject) => {
 
@@ -65,13 +65,13 @@ export class UserController {
     });
   }
 
-  @httpPost("/register")
+  @httpPost('/register')
   public registerNewUser(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
         const {error} = Joi.validate(request.body, registerSchema);
-        if(error){
-          let messages = error.details.map(detail =>{
+        if (error) {
+          let messages = error.details.map(detail => {
             return detail.message;
           });
           const result: IRes<{}> = {
@@ -182,20 +182,21 @@ export class UserController {
           messages: messages,
           data: {
             meta: {},
-            entries: []}
+            entries: []
+          }
         };
         resolve(result);
       }
     });
   }
 
-  @httpPost("/login")
+  @httpPost('/login')
   public login(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
         const {error} = Joi.validate(request.body, loginSchema);
-        if(error){
-          let messages = error.details.map(detail =>{
+        if (error) {
+          let messages = error.details.map(detail => {
             return detail.message;
           });
           const result: IRes<{}> = {
@@ -237,22 +238,22 @@ export class UserController {
         }
 
         const userInfoResponse = {
-              id: user.id,
-              role: user.role,
-              email: user.email,
-              username: user.username,
-              name: user.name,
-              phone: user.phone,
-              address: user.address,
-              type: user.type,
-              status: user.status,
-              avatar: user.avatar,
-              gender: user.gender,
-              city: user.city,
-              district: user.district,
-              ward: user.ward,
-              registerBy: user.registerBy
-            }
+            id: user.id,
+            role: user.role,
+            email: user.email,
+            username: user.username,
+            name: user.name,
+            phone: user.phone,
+            address: user.address,
+            type: user.type,
+            status: user.status,
+            avatar: user.avatar,
+            gender: user.gender,
+            city: user.city,
+            district: user.district,
+            ward: user.ward,
+            registerBy: user.registerBy
+          }
         ;
         const token = this.userService.generateToken({email: user.email});
 
@@ -282,13 +283,13 @@ export class UserController {
     });
   }
 
-  @httpPost("/login-by-google")
+  @httpPost('/login-by-google')
   public loginByGoogle(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
         const {error} = Joi.validate(request.body, loginGoogleSchema);
-        if(error){
-          let messages = error.details.map(detail =>{
+        if (error) {
+          let messages = error.details.map(detail => {
             return detail.message;
           });
           const result: IRes<{}> = {
@@ -305,11 +306,10 @@ export class UserController {
 
         if (!user) {
           user = await this.userService.findByEmail(email);
-          if(user){
+          if (user) {
             user = await this.userService.updateGoogleId(user, googleId);
-          }
-          else{
-            const newUser ={
+          } else {
+            const newUser = {
               name,
               email,
               googleId
@@ -319,23 +319,23 @@ export class UserController {
         }
 
         const userInfoResponse = {
-              id: user.id,
-              role: user.role,
-              email: user.email,
-              username: user.username,
-              name: user.name,
-              phone: user.phone,
-              address: user.address,
-              type: user.type,
-              status: user.status,
-              avatar: user.avatar,
-              gender: user.gender,
-              city: user.city,
-              district: user.district,
-              ward: user.ward,
-              registerBy: user.registerBy,
-              googleId: user.googleId
-            };
+          id: user.id,
+          role: user.role,
+          email: user.email,
+          username: user.username,
+          name: user.name,
+          phone: user.phone,
+          address: user.address,
+          type: user.type,
+          status: user.status,
+          avatar: user.avatar,
+          gender: user.gender,
+          city: user.city,
+          district: user.district,
+          ward: user.ward,
+          registerBy: user.registerBy,
+          googleId: user.googleId
+        };
         const token = this.userService.generateToken({email: user.email});
 
         const result: IRes<{}> = {
@@ -364,7 +364,7 @@ export class UserController {
     });
   }
 
-  @httpGet("/account-confirm")
+  @httpGet('/account-confirm')
   public confirm(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
@@ -398,8 +398,7 @@ export class UserController {
 
         resolve(result);
 
-      }
-      catch (e) {
+      } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });

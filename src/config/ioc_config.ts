@@ -10,11 +10,11 @@ import TYPES from '../constant/types';
 import TAG from '../constant/tags';
 import { SearchController } from '../controllers/SearchController';
 import { UserService } from '../services/user.service';
-import {MailerService} from "../services/mailer.service";
+import { MailerService } from '../services/mailer.service';
 
-import {CheckTokenMiddleware} from "../middlewares/check-token";
-import {ProductController} from "../controllers/ProductController";
-import {ProductService} from "../services/product.service";
+import { CheckTokenMiddleware } from '../middlewares/check-token';
+import { ProductController } from '../controllers/ProductController';
+import { ProductService } from '../services/product.service';
 
 const container = new Container();
 
