@@ -1,5 +1,7 @@
 import { pre, prop, Ref, Typegoose } from 'typegoose';
 import { User } from './user';
+import { General } from "../constant/generals";
+import ProductStatus = General.ProductStatus;
 
 @pre<Product>('save', function (next) {
   this.updatedAt = new Date();
@@ -76,6 +78,9 @@ export class Product extends Typegoose {
 
   @prop({required: true})
   user: Ref<User>;
+
+  @prop({default: ProductStatus.ACTIVE})
+  status: number;
 }
 
 export default new Product().getModelForClass(Product);

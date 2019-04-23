@@ -11,11 +11,10 @@ import { General } from '../constant/generals';
 import UserRoles = General.UserRoles;
 import { Status } from '../constant/status';
 import UserTypes = General.UserTypes;
-import { HttpCodes } from '../constant/http-codes';
 import Genders = General.Genders;
 import { MailerService } from '../services/mailer.service';
 import RegisterByTypes = General.RegisterByTypes;
-
+import * as HttpStatus from 'http-status-codes';
 import Joi from '@hapi/joi';
 // validate schema
 import loginSchema from '../validation-schemas/user/login.schema';
@@ -75,7 +74,7 @@ export class UserController {
             return detail.message;
           });
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
             messages: messages,
             data: {}
           };
@@ -89,7 +88,7 @@ export class UserController {
         const duplicatedPhones = await UserModel.find({phone: phone});
         if (duplicatedPhones.length !== 0) {
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
             messages: [ResponseMessages.User.Register.PHONE_DUPLICATED],
             data: {}
           };
@@ -98,7 +97,7 @@ export class UserController {
 
         if (password !== confirmedPassword) {
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
             messages: [ResponseMessages.User.Register.PASSWORD_DONT_MATCH],
             data: {}
           };
@@ -108,7 +107,7 @@ export class UserController {
         const duplicatedUsers = await UserModel.find({email: email});
         if (duplicatedUsers.length !== 0) {
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
             messages: [ResponseMessages.User.Register.EMAIL_DUPLICATED],
             data: {}
           };
@@ -118,7 +117,7 @@ export class UserController {
         const duplicatedUsernames = await UserModel.find({username: username});
         if (duplicatedUsernames.length !== 0) {
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
             messages: [ResponseMessages.User.Register.USERNAME_DUPLICATED],
             data: {}
           };
@@ -164,7 +163,7 @@ export class UserController {
         }
 
         const result: IRes<{}> = {
-          status: HttpCodes.SUCCESS,
+          status: HttpStatus.OK,
           messages: [ResponseMessages.User.Register.REGISTER_SUCCESS],
           data: {
             meta: {},
@@ -178,7 +177,7 @@ export class UserController {
           return e.errors[key].message;
         });
         const result: IRes<{}> = {
-          status: HttpCodes.ERROR,
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages,
           data: {
             meta: {},
@@ -200,7 +199,7 @@ export class UserController {
             return detail.message;
           });
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.BAD_REQUEST,
             messages: messages,
             data: {}
           };
@@ -212,7 +211,7 @@ export class UserController {
 
         if (!user) {
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.User.Login.USER_NOT_FOUND],
             data: {}
           };
@@ -221,7 +220,7 @@ export class UserController {
 
         if (!this.userService.isValidHashPassword(user.passwordHash, password)) {
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.User.Login.WRONG_PASSWORD],
             data: {}
           };
@@ -230,7 +229,7 @@ export class UserController {
 
         if (user.status !== Status.ACTIVE) {
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.User.Login.INACTIVE_USER],
             data: {}
           };
@@ -258,7 +257,7 @@ export class UserController {
         const token = this.userService.generateToken({email: user.email});
 
         const result: IRes<{}> = {
-          status: HttpCodes.SUCCESS,
+          status: HttpStatus.OK,
           messages: [ResponseMessages.User.Login.LOGIN_SUCCESS],
           data: {
             meta: {
@@ -274,7 +273,7 @@ export class UserController {
           return e.errors[key].message;
         });
         const result: IRes<{}> = {
-          status: HttpCodes.ERROR,
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages,
           data: {}
         };
@@ -293,7 +292,7 @@ export class UserController {
             return detail.message;
           });
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.BAD_REQUEST,
             messages: messages,
             data: {}
           };
@@ -339,7 +338,7 @@ export class UserController {
         const token = this.userService.generateToken({email: user.email});
 
         const result: IRes<{}> = {
-          status: HttpCodes.SUCCESS,
+          status: HttpStatus.OK,
           messages: [ResponseMessages.User.Login.LOGIN_SUCCESS],
           data: {
             meta: {
@@ -355,7 +354,7 @@ export class UserController {
           return e.errors[key].message;
         });
         const result: IRes<{}> = {
-          status: HttpCodes.ERROR,
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages,
           data: {}
         };
@@ -376,7 +375,7 @@ export class UserController {
 
         if (!user) {
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.User.Confirm.INVALID_TOKEN],
             data: {}
           };
@@ -388,7 +387,7 @@ export class UserController {
 
         await user.save();
         const result: IRes<{}> = {
-          status: HttpCodes.SUCCESS,
+          status: HttpStatus.OK,
           messages: [ResponseMessages.User.Confirm.CONFIRM_SUCCESS],
           data: {
             meta: {},
@@ -403,7 +402,7 @@ export class UserController {
           return e.errors[key].message;
         });
         const result: IRes<{}> = {
-          status: HttpCodes.ERROR,
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages,
           data: {}
         };

@@ -1,19 +1,18 @@
 import { BaseMiddleware } from 'inversify-express-utils';
 import { injectable } from 'inversify';
-import { HttpCodes } from '../constant/http-codes';
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { General } from '../constant/generals';
 import { Status } from '../constant/status';
 import UserModel from '../models/user';
-
+import * as HttpStatus from 'http-status-codes';
 const WhiteList = require('./user-white-list');
 
 @injectable()
 export class CheckTokenMiddleware extends BaseMiddleware {
 
   responseAccessDenied = {
-    status: HttpCodes.ERROR,
+    status: HttpStatus.UNAUTHORIZED,
     messages: ['Access denied'],
     data: {
       meta: {},

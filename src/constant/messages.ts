@@ -20,9 +20,15 @@ export namespace ResponseMessages {
     }
   }
   export namespace Product {
+    export const PRODUCT_NOT_FOUND = 'Không tìm thấy sản phẩm';
+    export const NOT_VALID_PRICE = 'Giá khuyến mãi phải nhỏ hơn giá bình thường';
     export namespace Add {
       export const ADD_PRODUCT_SUCCESS = 'Thêm sản phẩm thành công';
       export const NO_ADD_PRODUCT_PERMISSION = 'Chỉ có người bán được phép thêm sản phẩm';
+    }
+    export namespace Update {
+      export const UPDATE_PRODUCT_SUCCESS = 'Cập nhật sản phẩm thành công';
+      export const NO_UPDATE_PRODUCT_PERMISSION = 'Chỉ có người bán được phép cập nhật sản phẩm';
     }
   }
 }
