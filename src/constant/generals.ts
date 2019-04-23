@@ -19,5 +19,10 @@ export namespace General {
     USER_ROLE_ADMIN: 2,
     USER_ROLE_ENDUSER: 3
   };
+  export const ProductStatus = {
+    ACTIVE: 1,
+    BLOCKED: 3,
+    OUT_OF_STOCK: 60
+  }
 
 }
