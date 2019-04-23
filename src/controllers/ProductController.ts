@@ -48,7 +48,7 @@ export class ProductController {
           });
 
           const result: IRes<{}> = {
-            status: HttpStatus.OK,
+            status: HttpStatus.BAD_REQUEST,
             messages: messages,
             data: {}
           };
@@ -138,7 +138,7 @@ export class ProductController {
           });
 
           const result: IRes<{}> = {
-            status: HttpStatus.OK,
+            status: HttpStatus.BAD_REQUEST,
             messages: messages,
             data: {}
           };
@@ -241,7 +241,7 @@ export class ProductController {
           });
 
           const result: IRes<{}> = {
-            status: HttpStatus.OK,
+            status: HttpStatus.BAD_REQUEST,
             messages: messages,
             data: {}
           };
