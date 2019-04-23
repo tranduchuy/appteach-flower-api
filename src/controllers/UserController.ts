@@ -74,7 +74,7 @@ export class UserController {
             return detail.message;
           });
           const result: IRes<{}> = {
-            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            status: HttpStatus.BAD_REQUEST,
             messages: messages,
             data: {}
           };
