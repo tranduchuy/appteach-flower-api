@@ -9,6 +9,7 @@ import ProductModel, { Product } from '../models/product';
 import { UrlParam } from '../models/url-param';
 import { SearchService } from '../services/search.service';
 import boxSchema from '../validation-schemas/search/box.schema';
+import searchSchema from '../validation-schemas/search/search.schema';
 import Url from 'url';
 
 interface ISearchBoxResponse {
@@ -35,6 +36,20 @@ export class SearchController {
   @httpGet('/')
   public search(req: Request): Promise<IRes<ISearchResponse>> {
     return new Promise<IRes<ISearchResponse>>(async (resolve) => {
+      const {error} = Joi.validate(req.query, searchSchema);
+      if (error) {
+        const messages = error.details.map(detail => {
+          return detail.message;
+        });
+
+        const result: IRes<ISearchResponse> = {
+          status: HttpCodes.ERROR,
+          messages: messages
+        };
+
+        return resolve(result);
+      }
+
       const url = req.query.url || '';
       if (!url) {
         const result: IRes<ISearchResponse> = {
@@ -63,13 +78,17 @@ export class SearchController {
 
       if (SLUG_CAT === eles[0]) {
         // case search list
-        const result = await this.searchService.searchListByUrlParam({url: eles[1], limit: 10, page: 1});
+        const result = await this.searchService.searchListByUrlParam({
+          url: eles[1],
+          limit: parseInt((req.query.limit || 10).toString()),
+          page: parseInt((req.query.page || 1).toString()),
+          sortBy: req.query.sb || '',
+          sortDirection: req.query.sd || ''
+        });
         resultSuccess.data.isList = true;
         resultSuccess.data.products = result.products;
         resultSuccess.data.totalItems = result.total;
-      }
-
-      if (SLUG_DETAIL === eles[0]) {
+      } else if (SLUG_DETAIL === eles[0]) {
         // case detail product
         resultSuccess.data.isDetail = true;
         resultSuccess.data.product = await ProductModel.findOne({slug: eles[1]});

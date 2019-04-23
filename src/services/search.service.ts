@@ -28,7 +28,7 @@ export class SearchService {
       .join('-');
   }
 
-  async searchListByUrlParam(condition: {url: string, limit: number, page: number}): Promise<{total: number, products: Product[]}> {
+  async searchListByUrlParam(condition: { url: string, limit: number, page: number, sortBy?: string, sortDirection?: string }): Promise<{ total: number, products: Product[] }> {
     const urlParam: UrlParam | null = await UrlParamModel.findOne({url: condition.url});
     if (!urlParam) {
       return {
@@ -48,22 +48,33 @@ export class SearchService {
       }
     });
 
-    const stages = [
+
+    const stages: any[] = [
       {
         $match: queryObj
-      },
-      {
-        $facet: {
-          entries: [
-            {$skip: (condition.page - 1) * condition.limit},
-            {$limit: condition.limit}
-          ],
-          meta: [
-            {$group: {_id: null, totalItems: {$sum: 1}}},
-          ],
-        }
       }
     ];
+
+
+    if (condition.sortBy) {
+      const sortStage = {
+        $sort: {}
+      };
+      sortStage.$sort[condition.sortBy] = condition.sortDirection === 'DESC' ? -1 : 1;
+      stages.push(sortStage);
+    }
+
+    stages.push({
+      $facet: {
+        entries: [
+          {$skip: (condition.page - 1) * condition.limit},
+          {$limit: condition.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}},
+        ],
+      }
+    });
 
     const result = (await ProductModel.aggregate(stages))[0];
 
