@@ -5,10 +5,11 @@ import { HttpCodes } from '../constant/http-codes';
 import TYPES from '../constant/types';
 import { IRes } from '../interfaces/i-res';
 import Joi from '@hapi/joi';
-import { Product } from '../models/product';
+import ProductModel, { Product } from '../models/product';
 import { UrlParam } from '../models/url-param';
 import { SearchService } from '../services/search.service';
 import boxSchema from '../validation-schemas/search/box.schema';
+import Url from 'url';
 
 interface ISearchBoxResponse {
   url: string;
@@ -19,7 +20,11 @@ interface ISearchResponse {
   isDetail?: boolean;
   products?: Product[];
   product?: Product;
+  totalItems?: number;
 }
+
+const SLUG_CAT = 'danh-muc';
+const SLUG_DETAIL = 'chi-tiet-san-pham';
 
 @controller('/search')
 export class SearchController {
@@ -28,9 +33,49 @@ export class SearchController {
   }
 
   @httpGet('/')
-  public search(): Promise<IRes<ISearchResponse>> {
-    return new Promise<IRes<ISearchResponse>>((resolve) => {
+  public search(req: Request): Promise<IRes<ISearchResponse>> {
+    return new Promise<IRes<ISearchResponse>>(async (resolve) => {
+      const url = req.query.url || '';
+      if (!url) {
+        const result: IRes<ISearchResponse> = {
+          status: HttpCodes.ERROR,
+          messages: ['Url is required']
+        };
 
+        return resolve(result);
+      }
+
+      const eles = Url.parse(req.query.url).pathname.split('/');
+      if (eles.length < 2) {
+        const result: IRes<ISearchResponse> = {
+          status: HttpCodes.ERROR,
+          messages: ['Url is wrong']
+        };
+
+        return resolve(result);
+      }
+
+      const resultSuccess: IRes<ISearchResponse> = {
+        status: 1,
+        messages: ['Success'],
+        data: {}
+      };
+
+      if (SLUG_CAT === eles[0]) {
+        // case search list
+        const result = await this.searchService.searchListByUrlParam({url: eles[1], limit: 10, page: 1});
+        resultSuccess.data.isList = true;
+        resultSuccess.data.products = result.products;
+        resultSuccess.data.totalItems = result.total;
+      }
+
+      if (SLUG_DETAIL === eles[0]) {
+        // case detail product
+        resultSuccess.data.isDetail = true;
+        resultSuccess.data.product = await ProductModel.findOne({slug: eles[1]});
+      }
+
+      resolve(resultSuccess);
     });
   }
 
