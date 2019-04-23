@@ -6,7 +6,6 @@ import TYPES from '../constant/types';
 import { Request, Response } from 'express';
 import { IRes } from '../interfaces/i-res';
 import { ProductService } from '../services/product.service';
-import { HttpCodes } from '../constant/http-codes';
 import * as HttpStatus from 'http-status-codes';
 import ProductModel, { Product } from '../models/product';
 import { General } from '../constant/generals';
@@ -65,7 +64,7 @@ export class ProductController {
 
         if (user.type !== UserTypes.TYPE_SELLER) {
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.Product.Add.NO_ADD_PRODUCT_PERMISSION],
             data: {}
           };
@@ -104,7 +103,7 @@ export class ProductController {
         });
 
         const result: IRes<{}> = {
-          status: HttpCodes.SUCCESS,
+          status: HttpStatus.OK,
           messages: [ResponseMessages.Product.Add.ADD_PRODUCT_SUCCESS],
           data: {
             meta: {},
@@ -119,7 +118,7 @@ export class ProductController {
         });
 
         const result: IRes<{}> = {
-          status: HttpCodes.ERROR,
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages,
           data: {}
         };
@@ -160,7 +159,7 @@ export class ProductController {
 
         if (user.type !== UserTypes.TYPE_SELLER) {
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.Product.Update.NO_UPDATE_PRODUCT_PERMISSION],
             data: {}
           };
@@ -222,7 +221,7 @@ export class ProductController {
         });
 
         const result: IRes<{}> = {
-          status: HttpStatus.FORBIDDEN,
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages,
           data: {}
         };
@@ -263,7 +262,7 @@ export class ProductController {
 
         if (user.type !== UserTypes.TYPE_SELLER) {
           const result: IRes<{}> = {
-            status: HttpCodes.ERROR,
+            status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.Product.Update.NO_UPDATE_PRODUCT_PERMISSION],
             data: {}
           };
@@ -290,7 +289,7 @@ export class ProductController {
         });
 
         const result: IRes<{}> = {
-          status: HttpStatus.FORBIDDEN,
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages,
           data: {}
         };
