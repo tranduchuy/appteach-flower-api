@@ -5,6 +5,7 @@ import { SearchSelector } from '../constant/search-selector.constant';
 import PriceRanges = SearchSelector.PriceRanges;
 
 import RandomString from 'randomstring';
+import { General } from "../constant/generals";
 
 @injectable()
 export class ProductService {
@@ -136,7 +137,8 @@ export class ProductService {
       color: color || null,
       seoUrl: seoUrl || null,
       seoDescription: seoDescription || null,
-      seoImage: seoImage || null
+      seoImage: seoImage || null,
+      updatedAt: new Date()
     };
 
     Object.keys(newProduct).map(key =>{
@@ -145,11 +147,12 @@ export class ProductService {
       }
     });
 
-    return await ProductModel.findByIdAndUpdate(productId, newProduct);
+
+    return await ProductModel.findOneAndUpdate({_id: productId}, newProduct);
   };
 
   updateProductStatus = async (product, status) =>{
-    return await ProductModel.findByIdAndUpdate(product._id, {status: status || product.status});
+    return await ProductModel.findOneAndUpdate({_id: product._id}, {status: status || product.status, updatedAt: new Date()});
   }
 
   updateViews = async (product) => {
@@ -158,6 +161,26 @@ export class ProductService {
         product.view = product.view + 1;
         return await product.save();
       }
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  getFeaturedProducts = async ()=>{
+    try {
+      return await ProductModel.find({}).sort({
+        view: 1
+      }).limit(General.HOME_PRODUCT_LIMIT);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  getSaleProducts = async ()=>{
+    try {
+      return await ProductModel.find({"saleOff.active": true}).sort({
+        updatedAt: -1
+      }).limit(General.HOME_PRODUCT_LIMIT);
     } catch (e) {
       console.log(e);
     }

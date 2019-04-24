@@ -39,6 +39,40 @@ export class ProductController {
     });
   }
 
+  @httpGet('/home')
+  public getHomeProducts(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const featuredProducts = await this.productService.getFeaturedProducts();
+        const saleProducts = await this.productService.getSaleProducts();
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.Product.Add.ADD_PRODUCT_SUCCESS],
+          data: {
+            meta: {},
+            entries: {
+              featuredProducts: featuredProducts,
+              saleProducts: saleProducts
+            }
+          }
+        };
+        resolve(result);
+      }catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
   @httpPost('/', TYPES.CheckTokenMiddleware)
   public addOne(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
