@@ -9,6 +9,8 @@ import { General } from "../constant/generals";
 
 @injectable()
 export class ProductService {
+  listProductFields = ['_id', 'status', 'title', 'image', 'originalPrice', 'saleOff', 'slug', 'view'];
+
   createProduct = async ({
                            title, sku, description, topic, user, images, salePrice, originalPrice, tags,
                            design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
@@ -153,7 +155,7 @@ export class ProductService {
 
   updateProductStatus = async (product, status) =>{
     return await ProductModel.findOneAndUpdate({_id: product._id}, {status: status || product.status, updatedAt: new Date()});
-  }
+  };
 
   updateViews = async (product) => {
     try {
@@ -164,27 +166,47 @@ export class ProductService {
     } catch (e) {
       console.log(e);
     }
-  }
+  };
+
+
+  mappingProductList = (products) => {
+    return products.map(product =>{
+      const {_id, status, title, images, originalPrice, saleOff, slug} = product;
+      return {
+        _id,
+        status,
+        title,
+        images,
+        originalPrice,
+        saleOff,
+        slug
+      }
+    })
+  };
 
   getFeaturedProducts = async ()=>{
     try {
-      return await ProductModel.find({}).sort({
-        view: 1
+      let products = await ProductModel.find({}, this.listProductFields).sort({
+        view: -1
       }).limit(General.HOME_PRODUCT_LIMIT);
+
+      return products;
     } catch (e) {
       console.log(e);
     }
-  }
+  };
 
   getSaleProducts = async ()=>{
     try {
-      return await ProductModel.find({"saleOff.active": true}).sort({
+      let products = await ProductModel.find({"saleOff.active": true}, this.listProductFields).sort({
         updatedAt: -1
       }).limit(General.HOME_PRODUCT_LIMIT);
+
+      return products;
     } catch (e) {
       console.log(e);
     }
-  }
+  };
 
 
 }
