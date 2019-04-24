@@ -81,6 +81,9 @@ export class Product extends Typegoose {
 
   @prop({default: ProductStatus.ACTIVE})
   status: number;
+
+  @prop({default: 0})
+  view: number;
 }
 
 export default new Product().getModelForClass(Product);

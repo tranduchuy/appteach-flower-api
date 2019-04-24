@@ -1,4 +1,6 @@
 export namespace General {
+  export const API_COMFIRM_IMAGE = 'http://157.230.248.161:3100/images/confirmation';
+
   export const ApiTokenName = 'accesstoken';
   export const jwtSecret = 'Hello';
   export const Genders = {

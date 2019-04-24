@@ -152,4 +152,16 @@ export class ProductService {
     return await ProductModel.findByIdAndUpdate(product._id, {status: status || product.status});
   }
 
+  updateViews = async (product) => {
+    try {
+      if(product){
+        product.view = product.view + 1;
+        return await product.save();
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+
 }

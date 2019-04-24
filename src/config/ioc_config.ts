@@ -16,6 +16,7 @@ import { MailerService } from '../services/mailer.service';
 import { CheckTokenMiddleware } from '../middlewares/check-token';
 import { ProductController } from '../controllers/ProductController';
 import { ProductService } from '../services/product.service';
+import { ImageService } from "../services/image.service";
 
 const container = new Container();
 
@@ -29,6 +30,7 @@ container.bind<UserService>(TYPES.UserService).to(UserService);
 container.bind<ProductService>(TYPES.ProductService).to(ProductService);
 container.bind<MailerService>(TYPES.MailerService).to(MailerService);
 container.bind<SearchService>(TYPES.SearchService).to(SearchService);
+container.bind<ImageService>(TYPES.ImageService).to(ImageService);
 
 // Bind model
 

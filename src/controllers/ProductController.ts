@@ -16,11 +16,13 @@ import addProductSchema from '../validation-schemas/product/add-new.schema';
 import updateProductSchema from '../validation-schemas/product/update-one.schema';
 import updateStatusValidationSchema from '../validation-schemas/product/update-status.schema';
 import { ResponseMessages } from '../constant/messages';
+import { ImageService } from "../services/image.service";
 
 @controller('/product')
 export class ProductController {
   constructor(
-    @inject(TYPES.ProductService) private productService: ProductService
+    @inject(TYPES.ProductService) private productService: ProductService,
+    @inject(TYPES.ImageService) private imageService: ImageService
   ) {
   }
 
@@ -101,6 +103,13 @@ export class ProductController {
           seoDescription: seoDescription || null,
           seoImage: seoImage || null
         });
+
+        //confirm images
+        const paths = newProduct.images || [];
+
+        if(paths.length > 0){
+          this.imageService.confirmImages(newProduct.images);
+        }
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -185,6 +194,10 @@ export class ProductController {
           };
           return resolve(result);
         }
+
+        const oldImages = product.images || [];
+        const newImages = images;
+
         await this.productService.updateProduct(product, {
           title,
           sku,
@@ -204,6 +217,11 @@ export class ProductController {
           seoDescription,
           seoImage
         });
+
+        //update images on static server
+        if(newImages){
+          this.imageService.updateImages(oldImages, newImages);
+        }
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
