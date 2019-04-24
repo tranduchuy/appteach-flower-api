@@ -11,6 +11,7 @@ import { SearchService } from '../services/search.service';
 import boxSchema from '../validation-schemas/search/box.schema';
 import searchSchema from '../validation-schemas/search/search.schema';
 import Url from 'url';
+import { ProductService } from "../services/product.service";
 
 interface ISearchBoxResponse {
   url: string;
@@ -29,7 +30,8 @@ const SLUG_DETAIL = 'chi-tiet-san-pham';
 
 @controller('/search')
 export class SearchController {
-  constructor(@inject(TYPES.SearchService) private searchService: SearchService) {
+  constructor(@inject(TYPES.SearchService) private searchService: SearchService,
+              @inject(TYPES.ProductService) private productService: ProductService) {
 
   }
 
@@ -92,6 +94,8 @@ export class SearchController {
         // case detail product
         resultSuccess.data.isDetail = true;
         resultSuccess.data.product = await ProductModel.findOne({slug: eles[1]});
+        //update product view
+        await this.productService.updateViews(resultSuccess.data.product);
       }
 
       resolve(resultSuccess);

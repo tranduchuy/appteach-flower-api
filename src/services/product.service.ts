@@ -5,9 +5,12 @@ import { SearchSelector } from '../constant/search-selector.constant';
 import PriceRanges = SearchSelector.PriceRanges;
 
 import RandomString from 'randomstring';
+import { General } from "../constant/generals";
 
 @injectable()
 export class ProductService {
+  listProductFields = ['_id', 'status', 'title', 'image', 'originalPrice', 'saleOff', 'slug', 'view'];
+
   createProduct = async ({
                            title, sku, description, topic, user, images, salePrice, originalPrice, tags,
                            design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
@@ -136,7 +139,8 @@ export class ProductService {
       color: color || null,
       seoUrl: seoUrl || null,
       seoDescription: seoDescription || null,
-      seoImage: seoImage || null
+      seoImage: seoImage || null,
+      updatedAt: new Date()
     };
 
     Object.keys(newProduct).map(key =>{
@@ -145,11 +149,64 @@ export class ProductService {
       }
     });
 
-    return await ProductModel.findByIdAndUpdate(productId, newProduct);
+
+    return await ProductModel.findOneAndUpdate({_id: productId}, newProduct);
   };
 
   updateProductStatus = async (product, status) =>{
-    return await ProductModel.findByIdAndUpdate(product._id, {status: status || product.status});
-  }
+    return await ProductModel.findOneAndUpdate({_id: product._id}, {status: status || product.status, updatedAt: new Date()});
+  };
+
+  updateViews = async (product) => {
+    try {
+      if(product){
+        product.view = product.view + 1;
+        return await product.save();
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+
+  mappingProductList = (products) => {
+    return products.map(product =>{
+      const {_id, status, title, images, originalPrice, saleOff, slug} = product;
+      return {
+        _id,
+        status,
+        title,
+        images,
+        originalPrice,
+        saleOff,
+        slug
+      }
+    })
+  };
+
+  getFeaturedProducts = async ()=>{
+    try {
+      let products = await ProductModel.find({}, this.listProductFields).sort({
+        view: -1
+      }).limit(General.HOME_PRODUCT_LIMIT);
+
+      return products;
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  getSaleProducts = async ()=>{
+    try {
+      let products = await ProductModel.find({"saleOff.active": true}, this.listProductFields).sort({
+        updatedAt: -1
+      }).limit(General.HOME_PRODUCT_LIMIT);
+
+      return products;
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
 
 }

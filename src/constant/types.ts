@@ -9,6 +9,7 @@ const TYPES = {
   UserService: Symbol.for('UserService'),
   ProductService: Symbol.for('ProductService'),
   SearchService: Symbol.for('SearchService'),
+  ImageService: Symbol.for('ImageService'),
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware')
 };
