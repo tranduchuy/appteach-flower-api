@@ -1,11 +1,10 @@
 import 'reflect-metadata';
 
 import { Container } from 'inversify';
+import { UserController as AdminUserController } from '../controllers/admin/UserController';
+import { ProductController as AdminProductController } from '../controllers/admin/ProductController';
 
-import {
-  UserController,
-} from '../controllers';
-
+import { UserController, } from '../controllers';
 import TYPES from '../constant/types';
 import TAG from '../constant/tags';
 import { SearchController } from '../controllers/SearchController';
@@ -16,7 +15,7 @@ import { MailerService } from '../services/mailer.service';
 import { CheckTokenMiddleware } from '../middlewares/check-token';
 import { ProductController } from '../controllers/ProductController';
 import { ProductService } from '../services/product.service';
-import { ImageService } from "../services/image.service";
+import { ImageService } from '../services/image.service';
 
 const container = new Container();
 
@@ -24,6 +23,11 @@ const container = new Container();
 container.bind<UserController>(TYPES.UserController).to(UserController).whenTargetNamed(TAG.UserController);
 container.bind<ProductController>(TYPES.ProductController).to(ProductController).whenTargetNamed(TAG.ProductController);
 container.bind<SearchController>(TYPES.SearchController).to(SearchController);
+container.bind<SearchController>(TYPES.SearchController).to(SearchController);
+
+// Bind Admin Controller
+container.bind<AdminUserController>(TYPES.Admin.UserController).to(AdminUserController);
+container.bind<AdminProductController>(TYPES.Admin.ProductController).to(AdminProductController);
 
 // Bind Service
 container.bind<UserService>(TYPES.UserService).to(UserService);

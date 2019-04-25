@@ -11,7 +11,12 @@ const TYPES = {
   SearchService: Symbol.for('SearchService'),
   ImageService: Symbol.for('ImageService'),
 
-  CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware')
+  CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),
+
+  Admin: {
+    UserController: Symbol.for('AdminUserController'),
+    ProductController: Symbol.for('AdminProductController')
+  }
 };
 
 export default TYPES;
