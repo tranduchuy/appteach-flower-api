@@ -13,6 +13,7 @@ export namespace ResponseMessages {
       export const WRONG_PASSWORD = 'Sai mật khẩu';
       export const INACTIVE_USER = 'Tài khoản chưa được kí hoạt';
       export const LOGIN_SUCCESS = 'Đăng nhập thành công';
+      export const PERMISSION_DENIED = 'Không có quyền truy cập';
     }
     export namespace Confirm {
       export const INVALID_TOKEN = 'Token không hợp lệ';
