@@ -1,12 +1,12 @@
 import 'reflect-metadata';
 
 import { Container } from 'inversify';
-import { UserController as AdminUserController } from '../controllers/admin/UserController';
-import { ProductController as AdminProductController } from '../controllers/admin/ProductController';
 
 import { UserController, } from '../controllers';
 import TYPES from '../constant/types';
 import TAG from '../constant/tags';
+import { AdminProductController } from '../controllers/admin/ProductController';
+import { AdminUserController } from '../controllers/admin/UserController';
 import { SearchController } from '../controllers/SearchController';
 import { SearchService } from '../services/search.service';
 import { UserService } from '../services/user.service';

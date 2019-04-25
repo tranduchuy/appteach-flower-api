@@ -10,7 +10,7 @@ interface IResProducts {
 }
 
 @controller('/admin/product')
-export class ProductController {
+export class AdminProductController {
   @httpGet('/')
   public getList(): Promise<IRes<IResProducts>> {
     return new Promise<IRes<IResProducts>>((resolve) => {

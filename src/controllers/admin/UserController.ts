@@ -2,7 +2,6 @@ import { inject } from 'inversify';
 import { controller, httpGet, httpPost, httpPut } from 'inversify-express-utils';
 import * as HttpStatus from 'http-status-codes';
 import { Request } from 'express';
-import { General } from '../../constant/generals';
 import { ResponseMessages } from '../../constant/messages';
 import { Status } from '../../constant/status';
 import TYPES from '../../constant/types';
@@ -37,8 +36,8 @@ interface IResUserUpdateStatus {
 }
 
 @controller('/admin/user')
-export class UserController {
-  constructor(@inject(TYPES.Admin.UserController) private userService: UserService) {
+export class AdminUserController {
+  constructor(@inject(TYPES.UserService) private userService: UserService) {
 
   }
 
