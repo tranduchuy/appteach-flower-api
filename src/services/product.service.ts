@@ -15,9 +15,9 @@ export class ProductService {
       'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'seoImage', 'priceRange'];
 
   createProduct = async ({
-                           title, sku, description, topic, user, images, salePrice, originalPrice, tags,
-                           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
-                         }) => {
+    title, sku, description, topic, user, images, salePrice, originalPrice, tags,
+    design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
+  }) => {
     // TODO: map price ranges
     let priceRange = null;
     const range = PriceRanges.find(range => {
@@ -96,6 +96,8 @@ export class ProductService {
 
   };
 
+  findProduct = async (productId) => ProductModel.findOne({ _id: productId });
+
   updateProduct = async (product, {
     title, sku, description, topic, images, saleOff, originalPrice, tags,
     design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
@@ -153,11 +155,11 @@ export class ProductService {
     });
 
 
-    return await ProductModel.findOneAndUpdate({_id: productId}, newProduct);
+    return await ProductModel.findOneAndUpdate({ _id: productId }, newProduct);
   };
 
   updateProductStatus = async (product, status) => {
-    return await ProductModel.findOneAndUpdate({_id: product._id}, {
+    return await ProductModel.findOneAndUpdate({ _id: product._id }, {
       status: status || product.status,
       updatedAt: new Date()
     });
@@ -165,7 +167,7 @@ export class ProductService {
 
   updateViews = async (slug) => {
     try {
-      const product = await ProductModel.findOne({slug: slug});
+      const product = await ProductModel.findOne({ slug: slug });
       if (product) {
         product.view = product.view + 1;
         return await product.save();
@@ -189,7 +191,7 @@ export class ProductService {
 
   getSaleProducts = async () => {
     try {
-      const products = await ProductModel.find({'saleOff.active': true}, this.listProductFields).sort({
+      const products = await ProductModel.find({ 'saleOff.active': true }, this.listProductFields).sort({
         updatedAt: -1
       }).limit(General.HOME_PRODUCT_LIMIT);
 
@@ -201,7 +203,7 @@ export class ProductService {
 
   getProductDetail = async (slug) => {
     try {
-      return await ProductModel.findOne({slug: slug}, this.detailProductFields);
+      return await ProductModel.findOne({ slug: slug }, this.detailProductFields);
     } catch (e) {
       console.log(e);
     }
@@ -211,7 +213,7 @@ export class ProductService {
     try {
       const queryArr = [];
       const query = {
-        _id: {$ne: product._id},
+        _id: { $ne: product._id },
         topic: product.topic || null,
         specialOccasion: product.specialOccasion || null,
         floret: product.floret || null,
@@ -241,7 +243,7 @@ export class ProductService {
         queryArr.push(newObject);
       }
 
-      const relatedProducts = await ProductModel.find({$or: queryArr}, this.listProductFields).limit(General.RELATED_PRODUCT_LIMIT);
+      const relatedProducts = await ProductModel.find({ $or: queryArr }, this.listProductFields).limit(General.RELATED_PRODUCT_LIMIT);
       return relatedProducts;
     } catch (e) {
       console.log(e);

@@ -1,14 +1,6 @@
-// add to cart (create cart if not exist)
-// remove from cart
-// get cart
-
-// get user info - id
-// get product - id
 import * as HttpStatus from 'http-status-codes';
 
-import {
-  controller, httpGet, httpPost, httpPut, httpDelete
-} from 'inversify-express-utils';
+import { controller, httpPost } from 'inversify-express-utils';
 import { inject } from 'inversify';
 import { Request, Response } from 'express';
 
@@ -42,9 +34,9 @@ export class CartController {
         const user = request.user;
 
         let cart = await this.cartService.findCart(user.id);
-        if (!cart) cart = await this.cartService.createCart(user.id);
+        if (!cart) cart = await this.cartService.createCart(user);
 
-        const product = await this.productService.findProductByProductId(productId);
+        const product = await this.productService.findProduct(productId);
         if (!product) {
           const result: IRes<Cart> = {
             status: HttpStatus.NOT_FOUND,
