@@ -15,8 +15,10 @@ export const Status = {
   CHILD_NONE: 12,
   PAID_FORM_VIEW_ACTIVE: 40,
   PAID_FORM_VIEW_STOP: 50,
-  OUT_OF_STOCK: 60
+  OUT_OF_STOCK: 60,
 
+  NOTIFY_NEW: 200,
+  NOTIFY_READ: 201
 };
 
 export const StatusNm = {
@@ -33,7 +35,9 @@ export const StatusNm = {
   11: 'Bị xoá',
   12: 'Null',
   40: 'Kích hoạt',
-  50: 'Tạm dừng'
+  50: 'Tạm dừng',
+  200: 'Thông báo mới',
+  201: 'Thông báo đã đọc'
 };
 
 export const StatusCd2Nm = (cd: number): string => {
