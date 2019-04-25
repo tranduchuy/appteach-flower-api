@@ -13,6 +13,7 @@ import RegisterByTypes = General.RegisterByTypes;
 @injectable()
 export class UserService {
   sellerInProductDetailFields = ['_id', 'avatar', 'name', 'address'];
+
   createUser = async ({email, password, type, name, username, phone, address, city, district, ward, registerBy, gender, role}) => {
     const salt = bcrypt.genSaltSync(UserConstant.saltLength);
     const tokenEmailConfirm = RandomString.generate({
@@ -93,7 +94,6 @@ export class UserService {
     return await UserModel.findOne({googleId: googleId});
   };
 
-
   isValidHashPassword = (hashed, plainText) => {
     try {
       return bcrypt.compareSync(plainText, hashed);
@@ -104,6 +104,13 @@ export class UserService {
 
   getSellerInProductDetail = async (id) => {
     return await UserModel.findOne({_id: id}, this.sellerInProductDetailFields);
+  };
+
+  isRoleAdmin(role: number): boolean {
+    return [
+      UserRoles.USER_ROLE_ADMIN,
+      UserRoles.USER_ROLE_MASTER
+    ].some(r => r === role);
   }
 
 }

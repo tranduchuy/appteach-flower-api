@@ -16,7 +16,7 @@ import addProductSchema from '../validation-schemas/product/add-new.schema';
 import updateProductSchema from '../validation-schemas/product/update-one.schema';
 import updateStatusValidationSchema from '../validation-schemas/product/update-status.schema';
 import { ResponseMessages } from '../constant/messages';
-import { ImageService } from "../services/image.service";
+import { ImageService } from '../services/image.service';
 
 @controller('/product')
 export class ProductController {
@@ -58,7 +58,7 @@ export class ProductController {
           }
         };
         resolve(result);
-      }catch (e) {
+      } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
@@ -107,8 +107,8 @@ export class ProductController {
           return resolve(result);
         }
 
-        //check sale price vs original price.
-        if(salePrice > originalPrice){
+        // check sale price vs original price.
+        if (salePrice > originalPrice) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.Product.NOT_VALID_PRICE],
@@ -138,10 +138,10 @@ export class ProductController {
           seoImage: seoImage || null
         });
 
-        //confirm images
+        // confirm images
         const paths = newProduct.images || [];
 
-        if(paths.length > 0){
+        if (paths.length > 0) {
           this.imageService.confirmImages(newProduct.images);
         }
 
@@ -190,8 +190,8 @@ export class ProductController {
 
         const productId = request.params.id;
         const user = request.user;
-        let product = await this.productService.findProductById(productId, user._id);
-        if(!product){
+        const product = await this.productService.findProductById(productId, user._id);
+        if (!product) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
@@ -215,12 +215,12 @@ export class ProductController {
           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
         } = request.body;
 
-        const saleOffObject = saleOff || { price : null};
+        const saleOffObject = saleOff || {price: null};
 
         const salePrice = saleOffObject.price || product.saleOff.price;
         const price = originalPrice || product.originalPrice;
-        //check sale price vs original price.
-        if(salePrice > price){
+        // check sale price vs original price.
+        if (salePrice > price) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.Product.NOT_VALID_PRICE],
@@ -252,8 +252,8 @@ export class ProductController {
           seoImage
         });
 
-        //update images on static server
-        if(newImages){
+        // update images on static server
+        if (newImages) {
           this.imageService.updateImages(oldImages, newImages);
         }
 
@@ -302,8 +302,8 @@ export class ProductController {
 
         const productId = request.params.id;
         const user = request.user;
-        let product = await this.productService.findProductById(productId, user._id);
-        if(!product){
+        const product = await this.productService.findProductById(productId, user._id);
+        if (!product) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
@@ -321,7 +321,7 @@ export class ProductController {
           return resolve(result);
         }
 
-        const { status } = request.body;
+        const {status} = request.body;
 
         await this.productService.updateProductStatus(product, status);
 

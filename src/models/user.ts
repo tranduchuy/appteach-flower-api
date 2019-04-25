@@ -20,10 +20,10 @@ export class User extends Typegoose {
   phone: string;
 
   @prop()
-  passwordHash: string;
+  passwordHash?: string;
 
   @prop()
-  passwordSalt: string;
+  passwordSalt?: string;
 
   @prop({enum: Genders})
   gender: number;

@@ -2,12 +2,11 @@ import 'reflect-metadata';
 
 import { Container } from 'inversify';
 
-import {
-  UserController,
-} from '../controllers';
-
+import { UserController, } from '../controllers';
 import TYPES from '../constant/types';
 import TAG from '../constant/tags';
+import { AdminProductController } from '../controllers/admin/AdminProductController';
+import { AdminUserController } from '../controllers/admin/AdminUserController';
 import { SearchController } from '../controllers/SearchController';
 import { SearchService } from '../services/search.service';
 import { UserService } from '../services/user.service';
@@ -28,6 +27,11 @@ container.bind<UserController>(TYPES.UserController).to(UserController).whenTarg
 container.bind<ProductController>(TYPES.ProductController).to(ProductController).whenTargetNamed(TAG.ProductController);
 container.bind<SearchController>(TYPES.SearchController).to(SearchController);
 container.bind<CartController>(TYPES.CartController).to(CartController);
+container.bind<SearchController>(TYPES.SearchController).to(SearchController);
+
+// Bind Admin Controller
+container.bind<AdminUserController>(TYPES.Admin.UserController).to(AdminUserController);
+container.bind<AdminProductController>(TYPES.Admin.ProductController).to(AdminProductController);
 
 // Bind Service
 container.bind<UserService>(TYPES.UserService).to(UserService);
