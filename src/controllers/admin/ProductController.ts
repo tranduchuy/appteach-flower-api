@@ -1,7 +1,7 @@
 import { controller, httpGet } from 'inversify-express-utils';
 import { IRes } from '../../interfaces/i-res';
 import { Product } from '../../models/product';
-//import * as HttpStatus from 'http-status-codes';
+import * as HttpStatus from 'http-status-codes';
 
 interface IResProducts {
   meta: {

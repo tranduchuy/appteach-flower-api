@@ -30,6 +30,5 @@ export namespace General {
     ACTIVE: 1,
     BLOCKED: 3,
     OUT_OF_STOCK: 60
-  }
-
+  };
 }

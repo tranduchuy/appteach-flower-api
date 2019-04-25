@@ -70,9 +70,10 @@ export class UserController {
       try {
         const {error} = Joi.validate(request.body, registerSchema);
         if (error) {
-          let messages = error.details.map(detail => {
+          const messages = error.details.map(detail => {
             return detail.message;
           });
+
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
             messages: messages,
@@ -195,7 +196,7 @@ export class UserController {
       try {
         const {error} = Joi.validate(request.body, loginSchema);
         if (error) {
-          let messages = error.details.map(detail => {
+          const messages = error.details.map(detail => {
             return detail.message;
           });
           const result: IRes<{}> = {
@@ -288,9 +289,10 @@ export class UserController {
       try {
         const {error} = Joi.validate(request.body, loginGoogleSchema);
         if (error) {
-          let messages = error.details.map(detail => {
+          const messages = error.details.map(detail => {
             return detail.message;
           });
+
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
             messages: messages,

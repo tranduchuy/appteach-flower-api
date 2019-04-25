@@ -5,25 +5,25 @@ import { SearchSelector } from '../constant/search-selector.constant';
 import PriceRanges = SearchSelector.PriceRanges;
 
 import RandomString from 'randomstring';
-import { General } from "../constant/generals";
+import { General } from '../constant/generals';
 
 @injectable()
 export class ProductService {
   listProductFields = ['_id', 'status', 'title', 'image', 'originalPrice', 'saleOff', 'slug'];
   detailProductFields =
-      ['_id', 'status', 'title','description', 'user', 'image', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
-    'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'seoImage', 'priceRange'];
+    ['_id', 'status', 'title', 'description', 'user', 'image', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
+      'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'seoImage', 'priceRange'];
 
   createProduct = async ({
                            title, sku, description, topic, user, images, salePrice, originalPrice, tags,
                            design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
                          }) => {
-    //TODO: map price ranges
+    // TODO: map price ranges
     let priceRange = null;
     const range = PriceRanges.find(range => {
-      if(range.min && range.max){
+      if (range.min && range.max) {
         return (range.min <= originalPrice && originalPrice < range.max);
-      } else{
+      } else {
         return (range.min <= originalPrice);
       }
     });
@@ -31,9 +31,9 @@ export class ProductService {
       priceRange = range.value;
     }
 
-    //TODO: add tags
+    // TODO: add tags
 
-    //TODO: generate slug
+    // TODO: generate slug
     let slug = urlSlug(title);
 
     const duplicatedNumber = await ProductModel.count({
@@ -84,29 +84,29 @@ export class ProductService {
     return await newProduct.save();
   };
 
-  findProductById = async ( productId, userId ) => {
+  findProductById = async (productId, userId) => {
     try {
       return await ProductModel.findOne({
         _id: productId,
         user: userId
-      })
-    }catch (e) {
+      });
+    } catch (e) {
       console.log(e);
     }
 
   };
 
   updateProduct = async (product, {
-                           title, sku, description, topic, images, saleOff, originalPrice, tags,
-                           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
-                         }) => {
-    //TODO: map price ranges
-    let productId = product._id;
+    title, sku, description, topic, images, saleOff, originalPrice, tags,
+    design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
+  }) => {
+    // TODO: map price ranges
+    const productId = product._id;
     let priceRange = null;
     const range = PriceRanges.find(range => {
-      if(range.min && range.max){
+      if (range.min && range.max) {
         return (range.min <= originalPrice && originalPrice < range.max);
-      } else{
+      } else {
         return (range.min <= originalPrice);
       }
     });
@@ -114,14 +114,14 @@ export class ProductService {
       priceRange = range.value;
     }
 
-    //TODO: add tags
+    // TODO: add tags
 
     const defaultSaleOff = product.saleOff;
     Object.assign(defaultSaleOff, saleOff);
     let newOriginalPrice = 0;
-    if(originalPrice === 0){
+    if (originalPrice === 0) {
       newOriginalPrice = originalPrice;
-    } else{
+    } else {
       newOriginalPrice = originalPrice || null;
     }
 
@@ -146,8 +146,8 @@ export class ProductService {
       updatedAt: new Date()
     };
 
-    Object.keys(newProduct).map(key =>{
-      if(newProduct[key] === null){
+    Object.keys(newProduct).map(key => {
+      if (newProduct[key] === null) {
         delete newProduct[key];
       }
     });
@@ -156,14 +156,17 @@ export class ProductService {
     return await ProductModel.findOneAndUpdate({_id: productId}, newProduct);
   };
 
-  updateProductStatus = async (product, status) =>{
-    return await ProductModel.findOneAndUpdate({_id: product._id}, {status: status || product.status, updatedAt: new Date()});
+  updateProductStatus = async (product, status) => {
+    return await ProductModel.findOneAndUpdate({_id: product._id}, {
+      status: status || product.status,
+      updatedAt: new Date()
+    });
   };
 
   updateViews = async (slug) => {
     try {
-      let product = await ProductModel.findOne({slug: slug});
-      if(product){
+      const product = await ProductModel.findOne({slug: slug});
+      if (product) {
         product.view = product.view + 1;
         return await product.save();
       }
@@ -172,9 +175,9 @@ export class ProductService {
     }
   };
 
-  getFeaturedProducts = async ()=>{
+  getFeaturedProducts = async () => {
     try {
-      let products = await ProductModel.find({}, this.listProductFields).sort({
+      const products = await ProductModel.find({}, this.listProductFields).sort({
         view: -1
       }).limit(General.HOME_PRODUCT_LIMIT);
 
@@ -184,9 +187,9 @@ export class ProductService {
     }
   };
 
-  getSaleProducts = async ()=>{
+  getSaleProducts = async () => {
     try {
-      let products = await ProductModel.find({"saleOff.active": true}, this.listProductFields).sort({
+      const products = await ProductModel.find({'saleOff.active': true}, this.listProductFields).sort({
         updatedAt: -1
       }).limit(General.HOME_PRODUCT_LIMIT);
 
@@ -206,8 +209,8 @@ export class ProductService {
 
   getRelatedProducts = async (product) => {
     try {
-      let queryArr = [];
-      let query = {
+      const queryArr = [];
+      const query = {
         _id: {$ne: product._id},
         topic: product.topic || null,
         specialOccasion: product.specialOccasion || null,
@@ -219,32 +222,29 @@ export class ProductService {
         district: product.district || null
       };
 
-      Object.keys(query).map(key =>{
-        if(query[key] === null){
+      Object.keys(query).map(key => {
+        if (query[key] === null) {
           delete query[key];
         }
       });
 
       const newObject = Object.assign({}, query);
       queryArr.push(newObject);
-      let queryKeys= Object.keys(query);
+      let queryKeys = Object.keys(query);
       let queryLength = queryKeys.length;
 
-      while (queryLength > 2){
+      while (queryLength > 2) {
         delete query[queryKeys[queryLength - 1]];
-        queryKeys= Object.keys(query);
+        queryKeys = Object.keys(query);
         queryLength = queryKeys.length;
         const newObject = Object.assign({}, query);
         queryArr.push(newObject);
       }
 
-      let relatedProducts = await ProductModel.find({$or: queryArr}, this.listProductFields).limit(General.RELATED_PRODUCT_LIMIT);
-
+      const relatedProducts = await ProductModel.find({$or: queryArr}, this.listProductFields).limit(General.RELATED_PRODUCT_LIMIT);
       return relatedProducts;
     } catch (e) {
       console.log(e);
     }
   };
-
-
 }
