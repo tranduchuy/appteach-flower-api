@@ -16,7 +16,10 @@ import { MailerService } from '../services/mailer.service';
 import { CheckTokenMiddleware } from '../middlewares/check-token';
 import { ProductController } from '../controllers/ProductController';
 import { ProductService } from '../services/product.service';
-import { ImageService } from "../services/image.service";
+import { ImageService } from '../services/image.service';
+
+import { CartController } from '../controllers/CartController';
+import { CartService } from '../services/cart.service';
 
 const container = new Container();
 
@@ -24,6 +27,7 @@ const container = new Container();
 container.bind<UserController>(TYPES.UserController).to(UserController).whenTargetNamed(TAG.UserController);
 container.bind<ProductController>(TYPES.ProductController).to(ProductController).whenTargetNamed(TAG.ProductController);
 container.bind<SearchController>(TYPES.SearchController).to(SearchController);
+container.bind<CartController>(TYPES.CartController).to(CartController);
 
 // Bind Service
 container.bind<UserService>(TYPES.UserService).to(UserService);
@@ -31,6 +35,7 @@ container.bind<ProductService>(TYPES.ProductService).to(ProductService);
 container.bind<MailerService>(TYPES.MailerService).to(MailerService);
 container.bind<SearchService>(TYPES.SearchService).to(SearchService);
 container.bind<ImageService>(TYPES.ImageService).to(ImageService);
+container.bind<CartService>(TYPES.CartService).to(CartService);
 
 // Bind model
 
