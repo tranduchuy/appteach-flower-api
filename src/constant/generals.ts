@@ -17,6 +17,10 @@ export namespace General {
     TYPE_CUSTOMER: 1,
     TYPE_SELLER: 2
   };
+  export const AddressTypes = {
+    DELIVERY: 1,
+    POSSIBLE_DELIVERY: 2
+  };
   export const UserRoles = {
     USER_ROLE_MASTER: 1,
     USER_ROLE_ADMIN: 2,

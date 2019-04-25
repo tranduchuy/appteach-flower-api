@@ -1,6 +1,6 @@
 import { controller, httpGet, httpPost, httpPut } from 'inversify-express-utils';
-import * as HttpStatus from 'http-status-codes';
-import { Request, Response } from 'express';
+//import * as HttpStatus from 'http-status-codes';
+import { Request } from 'express';
 import { IRes } from '../../interfaces/i-res';
 import { User } from '../../models/user';
 

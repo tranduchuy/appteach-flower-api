@@ -1,0 +1,172 @@
+import {
+  controller, httpGet, httpPost
+} from 'inversify-express-utils';
+import { inject } from 'inversify';
+import TYPES from '../constant/types';
+import { Request, Response } from 'express';
+import { IRes } from '../interfaces/i-res';
+import * as HttpStatus from 'http-status-codes';
+import { Address } from '../models/address';
+import Joi from '@hapi/joi';
+// validate schema
+import addAddressSchema from '../validation-schemas/address/add-address.schema';
+import addPossibleDeliveryAddressSchema from '../validation-schemas/address/add-possible-delivery.schema';
+import { ResponseMessages } from '../constant/messages';
+import { AddressService } from "../services/address.service";
+import { General } from "../constant/generals";
+import UserTypes = General.UserTypes;
+
+@controller('/address')
+export class AddressController {
+  constructor(
+    @inject(TYPES.AddressService) private addressService: AddressService,
+  ) {
+  }
+
+  @httpGet('/delivery', TYPES.CheckTokenMiddleware)
+  public getAddress(request: Request, response: Response): Promise<IRes<Address[]>> {
+    return new Promise<IRes<Address[]>>(async (resolve, reject) => {
+      const user = request.user;
+      const addresses = await this.addressService.getDelieveryAddress(user);
+      const result: IRes<Address[]> = {
+        status: 1,
+        messages: [ResponseMessages.SUCCESS],
+        data: addresses
+      };
+
+      resolve(result);
+    });
+  }
+
+  @httpGet('/possible-delivery', TYPES.CheckTokenMiddleware)
+  public getPossibleDeliveryAddress(request: Request, response: Response): Promise<IRes<Address[]>> {
+    return new Promise<IRes<Address[]>>(async (resolve, reject) => {
+      const user = request.user;
+      const addresses = await this.addressService.getPossibleDelieveryAddress(user);
+      const result: IRes<Address[]> = {
+        status: 1,
+        messages: [ResponseMessages.SUCCESS],
+        data: addresses
+      };
+
+      resolve(result);
+    });
+  }
+
+
+  @httpPost('/delivery', TYPES.CheckTokenMiddleware)
+  public addOne(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const {error} = Joi.validate(request.body, addAddressSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const user = request.user;
+        const { name, phone, city, district, address} = request.body;
+
+        const newAddress= await this.addressService.createDeliveryAddress({
+          name,
+          phone,
+          city,
+          user,
+          district,
+          address
+        });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.Address.Add.ADD_ADDRESS_SUCCESS],
+          data: {
+            meta: {},
+            entries: [newAddress]
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+  @httpPost('/possible-delivery', TYPES.CheckTokenMiddleware)
+  public addPossibleDelivery(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const {error} = Joi.validate(request.body, addPossibleDeliveryAddressSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const user = request.user;
+        if (user.type !== UserTypes.TYPE_SELLER) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.Address.Add.NO_ADD_ADDRESS_PERMISSION],
+            data: {}
+          };
+          return resolve(result);
+        }
+        const { district, city} = request.body;
+
+        const newAddress= await this.addressService.createPossibleDeliveryAddress({
+          district,
+          city,
+          user
+        });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.Address.Add.ADD_ADDRESS_SUCCESS],
+          data: {
+            meta: {},
+            entries: [newAddress]
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
+
+}

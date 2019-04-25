@@ -31,4 +31,14 @@ export namespace ResponseMessages {
       export const NO_UPDATE_PRODUCT_PERMISSION = 'Chỉ có người bán được phép cập nhật sản phẩm';
     }
   }
+  export namespace Address {
+    export const ADDRESS_NOT_FOUND = 'Không tìm thấy địa chỉ này';
+    export namespace Add {
+      export const ADD_ADDRESS_SUCCESS = 'Thêm địa chỉ thành công';
+      export const NO_ADD_ADDRESS_PERMISSION = 'Chỉ có người bán được phép thêm địa chỉ có thể giao hàng';
+    }
+    export namespace Update {
+      export const UPDATE_ADDRESS_SUCCESS = 'Cập nhật địa chỉ thành công';
+    }
+  }
 }
