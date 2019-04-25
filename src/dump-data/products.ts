@@ -1,6 +1,6 @@
 import { SearchSelector } from '../constant/search-selector.constant';
 import ProductModel from '../models/product';
-import { ProductService } from '../services/product.service';
+// import { ProductService } from '../services/product.service';
 import mongoose from 'mongoose';
 
 /**
@@ -32,7 +32,7 @@ export const run = () => {
       city: SearchSelector.Cities[getRandomInt(0, 50)].code,
       design: SearchSelector.Designs[getRandomInt(0, 4)].value,
       color: SearchSelector.Colors[getRandomInt(0, 6)].value,
-      priceRange: ProductService.detectPriceRange(price),
+      // priceRange: ProductService.detectPriceRange(price),
       slug: 'demo-' + new Date().getTime(),
       code: 'DUMP_DATA_' + i,
       sku: 'SKU' + new Date().getTime() + getRandomInt(0, 10000),

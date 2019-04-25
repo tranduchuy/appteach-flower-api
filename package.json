@@ -17,8 +17,8 @@
     "build": "tslint -c tslint.json -p tsconfig.json",
     "debug": "nodemon --inspect dist/server.js",
     "start-ts": "ts-node -r dotenv/config src/server.ts",
-    "watch-ts": "./node_modules/.bin/ts-node-dev -r dotenv/config  -r tsconfig-paths/register src/server.ts",
-    "debug-ts": "./node_modules/.bin/ts-node-dev --inspect=0.0.0.0:3333 -r dotenv/config  -r tsconfig-paths/register src/server.ts"
+    "watch-ts": "./node_modules/.bin/ts-node-dev -r dotenv/config src/server.ts",
+    "debug-ts": "./node_modules/.bin/ts-node-dev --inspect=0.0.0.0:3333 -r dotenv/config src/server.ts"
   },
   "dependencies": {
     "@hapi/joi": "^15.0.0",

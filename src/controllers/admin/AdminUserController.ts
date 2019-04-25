@@ -36,8 +36,8 @@ interface IResUserUpdateStatus {
 }
 
 @controller('/admin/user')
-export class UserController {
-  constructor(@inject(TYPES.Admin.UserController) private userService: UserService) {
+export class AdminUserController {
+  constructor(@inject(TYPES.UserService) private userService: UserService) {
 
   }
 
