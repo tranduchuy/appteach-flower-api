@@ -11,8 +11,8 @@ import { SearchService } from '../services/search.service';
 import boxSchema from '../validation-schemas/search/box.schema';
 import searchSchema from '../validation-schemas/search/search.schema';
 import Url from 'url';
-import { ProductService } from "../services/product.service";
-import { UserService } from "../services/user.service";
+import { ProductService } from '../services/product.service';
+import { UserService } from '../services/user.service';
 
 interface ISearchBoxResponse {
   url: string;
@@ -101,7 +101,7 @@ export class SearchController {
         resultSuccess.data.relatedProducts = await this.productService.getRelatedProducts(resultSuccess.data.product);
         resultSuccess.data.sellerInfo = await this.userService.getSellerInProductDetail(resultSuccess.data.product.user);
         delete resultSuccess.data.product.user;
-        //update product view
+        // update product view
         await this.productService.updateViews(eles[1]);
       }
 

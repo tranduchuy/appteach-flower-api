@@ -1,7 +1,7 @@
 import { inject } from 'inversify';
 import { controller, httpGet, httpPost, httpPut } from 'inversify-express-utils';
 import * as HttpStatus from 'http-status-codes';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import { General } from '../../constant/generals';
 import { ResponseMessages } from '../../constant/messages';
 import { Status } from '../../constant/status';
@@ -13,7 +13,6 @@ import Joi from '@hapi/joi';
 
 // schemas
 import loginSchema from '../../validation-schemas/user/login.schema';
-import UserRoles = General.UserRoles;
 
 interface IResUserLogin {
   meta: {
@@ -136,7 +135,7 @@ export class UserController {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
-        
+
         const result: IRes<IResUserLogin> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages
