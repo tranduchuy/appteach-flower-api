@@ -323,14 +323,14 @@ export class ProductController {
 
         const { status } = request.body;
 
-        const Newproduct = await this.productService.updateProductStatus(product, status);
+        await this.productService.updateProductStatus(product, status);
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.Product.Update.UPDATE_PRODUCT_SUCCESS],
           data: {
             meta: {},
-            entries: [Newproduct]
+            entries: []
           }
         };
 

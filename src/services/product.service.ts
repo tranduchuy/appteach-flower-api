@@ -9,7 +9,10 @@ import { General } from "../constant/generals";
 
 @injectable()
 export class ProductService {
-  listProductFields = ['_id', 'status', 'title', 'image', 'originalPrice', 'saleOff', 'slug', 'view'];
+  listProductFields = ['_id', 'status', 'title', 'image', 'originalPrice', 'saleOff', 'slug'];
+  detailProductFields =
+      ['_id', 'status', 'title','description', 'user', 'image', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
+    'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'seoImage', 'priceRange'];
 
   createProduct = async ({
                            title, sku, description, topic, user, images, salePrice, originalPrice, tags,
@@ -157,8 +160,9 @@ export class ProductService {
     return await ProductModel.findOneAndUpdate({_id: product._id}, {status: status || product.status, updatedAt: new Date()});
   };
 
-  updateViews = async (product) => {
+  updateViews = async (slug) => {
     try {
+      let product = await ProductModel.findOne({slug: slug});
       if(product){
         product.view = product.view + 1;
         return await product.save();
@@ -166,22 +170,6 @@ export class ProductService {
     } catch (e) {
       console.log(e);
     }
-  };
-
-
-  mappingProductList = (products) => {
-    return products.map(product =>{
-      const {_id, status, title, images, originalPrice, saleOff, slug} = product;
-      return {
-        _id,
-        status,
-        title,
-        images,
-        originalPrice,
-        saleOff,
-        slug
-      }
-    })
   };
 
   getFeaturedProducts = async ()=>{
@@ -203,6 +191,56 @@ export class ProductService {
       }).limit(General.HOME_PRODUCT_LIMIT);
 
       return products;
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  getProductDetail = async (slug) => {
+    try {
+      return await ProductModel.findOne({slug: slug}, this.detailProductFields);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  getRelatedProducts = async (product) => {
+    try {
+      let queryArr = [];
+      let query = {
+        _id: {$ne: product._id},
+        topic: product.topic || null,
+        specialOccasion: product.specialOccasion || null,
+        floret: product.floret || null,
+        design: product.design || null,
+        color: product.color || null,
+        priceRange: product.priceRange || null,
+        city: product.city || null,
+        district: product.district || null
+      };
+
+      Object.keys(query).map(key =>{
+        if(query[key] === null){
+          delete query[key];
+        }
+      });
+
+      const newObject = Object.assign({}, query);
+      queryArr.push(newObject);
+      let queryKeys= Object.keys(query);
+      let queryLength = queryKeys.length;
+
+      while (queryLength > 2){
+        delete query[queryKeys[queryLength - 1]];
+        queryKeys= Object.keys(query);
+        queryLength = queryKeys.length;
+        const newObject = Object.assign({}, query);
+        queryArr.push(newObject);
+      }
+
+      let relatedProducts = await ProductModel.find({$or: queryArr}, this.listProductFields).limit(General.RELATED_PRODUCT_LIMIT);
+
+      return relatedProducts;
     } catch (e) {
       console.log(e);
     }

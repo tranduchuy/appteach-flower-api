@@ -5,13 +5,14 @@ import { HttpCodes } from '../constant/http-codes';
 import TYPES from '../constant/types';
 import { IRes } from '../interfaces/i-res';
 import Joi from '@hapi/joi';
-import ProductModel, { Product } from '../models/product';
+import { Product } from '../models/product';
 import { UrlParam } from '../models/url-param';
 import { SearchService } from '../services/search.service';
 import boxSchema from '../validation-schemas/search/box.schema';
 import searchSchema from '../validation-schemas/search/search.schema';
 import Url from 'url';
 import { ProductService } from "../services/product.service";
+import { UserService } from "../services/user.service";
 
 interface ISearchBoxResponse {
   url: string;
@@ -22,6 +23,8 @@ interface ISearchResponse {
   isDetail?: boolean;
   products?: Product[];
   product?: Product;
+  relatedProducts?: Product[];
+  sellerInfo?: any;
   totalItems?: number;
 }
 
@@ -31,6 +34,7 @@ const SLUG_DETAIL = 'chi-tiet-san-pham';
 @controller('/search')
 export class SearchController {
   constructor(@inject(TYPES.SearchService) private searchService: SearchService,
+              @inject(TYPES.UserService) private userService: UserService,
               @inject(TYPES.ProductService) private productService: ProductService) {
 
   }
@@ -93,9 +97,12 @@ export class SearchController {
       } else if (SLUG_DETAIL === eles[0]) {
         // case detail product
         resultSuccess.data.isDetail = true;
-        resultSuccess.data.product = await ProductModel.findOne({slug: eles[1]});
+        resultSuccess.data.product = await this.productService.getProductDetail(eles[1]);
+        resultSuccess.data.relatedProducts = await this.productService.getRelatedProducts(resultSuccess.data.product);
+        resultSuccess.data.sellerInfo = await this.userService.getSellerInProductDetail(resultSuccess.data.product.user);
+        delete resultSuccess.data.product.user;
         //update product view
-        await this.productService.updateViews(resultSuccess.data.product);
+        await this.productService.updateViews(eles[1]);
       }
 
       resolve(resultSuccess);
