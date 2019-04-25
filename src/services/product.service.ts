@@ -160,8 +160,9 @@ export class ProductService {
     return await ProductModel.findOneAndUpdate({_id: product._id}, {status: status || product.status, updatedAt: new Date()});
   };
 
-  updateViews = async (product) => {
+  updateViews = async (slug) => {
     try {
+      let product = await ProductModel.findOne({slug: slug});
       if(product){
         product.view = product.view + 1;
         return await product.save();

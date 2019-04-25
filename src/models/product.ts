@@ -67,7 +67,7 @@ export class Product extends Typegoose {
     active: boolean;
   };
 
-  @prop({required: true})
+  @prop({})
   code: string;
 
   @prop({default: new Date()})

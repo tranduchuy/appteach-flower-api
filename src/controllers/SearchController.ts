@@ -65,7 +65,6 @@ export class SearchController {
 
         return resolve(result);
       }
-      console.log(url);
 
       const eles = Url.parse(req.query.url).pathname.split('/');
       if (eles.length < 2) {
@@ -82,7 +81,6 @@ export class SearchController {
         messages: ['Success'],
         data: {}
       };
-      console.log(eles);
 
       if (SLUG_CAT === eles[0]) {
         // case search list
@@ -104,7 +102,7 @@ export class SearchController {
         resultSuccess.data.sellerInfo = await this.userService.getSellerInProductDetail(resultSuccess.data.product.user);
         delete resultSuccess.data.product.user;
         //update product view
-        await this.productService.updateViews(resultSuccess.data.product);
+        await this.productService.updateViews(eles[1]);
       }
 
       resolve(resultSuccess);
