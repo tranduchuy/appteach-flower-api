@@ -6,7 +6,6 @@ import TYPES from '../constant/types';
 import { Request, Response } from 'express';
 import { IRes } from '../interfaces/i-res';
 import * as HttpStatus from 'http-status-codes';
-import { Address } from '../models/address';
 import Joi from '@hapi/joi';
 // validate schema
 import addAddressSchema from '../validation-schemas/address/add-address.schema';
@@ -24,32 +23,62 @@ export class AddressController {
   }
 
   @httpGet('/delivery', TYPES.CheckTokenMiddleware)
-  public getAddress(request: Request, response: Response): Promise<IRes<Address[]>> {
-    return new Promise<IRes<Address[]>>(async (resolve, reject) => {
-      const user = request.user;
-      const addresses = await this.addressService.getDelieveryAddress(user);
-      const result: IRes<Address[]> = {
-        status: 1,
-        messages: [ResponseMessages.SUCCESS],
-        data: addresses
-      };
+  public getAddress(request: Request, response: Response): Promise<{}> {
+    return new Promise<{}>(async (resolve, reject) => {
+      try {
+        const user = request.user;
+        const addresses = await this.addressService.getDelieveryAddress(user);
+        const result = {
+          status: 1,
+          messages: [ResponseMessages.SUCCESS],
+          data: {
+            meta: {},
+            entries: addresses
+          }
+        };
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
 
-      resolve(result);
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
     });
   }
 
   @httpGet('/possible-delivery', TYPES.CheckTokenMiddleware)
-  public getPossibleDeliveryAddress(request: Request, response: Response): Promise<IRes<Address[]>> {
-    return new Promise<IRes<Address[]>>(async (resolve, reject) => {
-      const user = request.user;
-      const addresses = await this.addressService.getPossibleDelieveryAddress(user);
-      const result: IRes<Address[]> = {
-        status: 1,
-        messages: [ResponseMessages.SUCCESS],
-        data: addresses
-      };
+  public getPossibleDeliveryAddress(request: Request, response: Response): Promise<{}> {
+    return new Promise<{}>(async (resolve, reject) => {
+      try {
+        const user = request.user;
+        const addresses = await this.addressService.getPossibleDelieveryAddress(user);
+        const result = {
+          status: 1,
+          messages: [ResponseMessages.SUCCESS],
+          data: {
+            meta: {},
+            entries: addresses
+          }
+        };
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
 
-      resolve(result);
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
     });
   }
 
