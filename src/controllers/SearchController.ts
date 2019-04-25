@@ -5,7 +5,7 @@ import { HttpCodes } from '../constant/http-codes';
 import TYPES from '../constant/types';
 import { IRes } from '../interfaces/i-res';
 import Joi from '@hapi/joi';
-import ProductModel, { Product } from '../models/product';
+import { Product } from '../models/product';
 import { UrlParam } from '../models/url-param';
 import { SearchService } from '../services/search.service';
 import boxSchema from '../validation-schemas/search/box.schema';
@@ -22,6 +22,7 @@ interface ISearchResponse {
   isDetail?: boolean;
   products?: Product[];
   product?: Product;
+  relatedProducts?: Product[];
   totalItems?: number;
 }
 
@@ -61,6 +62,7 @@ export class SearchController {
 
         return resolve(result);
       }
+      console.log(url);
 
       const eles = Url.parse(req.query.url).pathname.split('/');
       if (eles.length < 2) {
@@ -77,6 +79,7 @@ export class SearchController {
         messages: ['Success'],
         data: {}
       };
+      console.log(eles);
 
       if (SLUG_CAT === eles[0]) {
         // case search list
@@ -93,7 +96,8 @@ export class SearchController {
       } else if (SLUG_DETAIL === eles[0]) {
         // case detail product
         resultSuccess.data.isDetail = true;
-        resultSuccess.data.product = await ProductModel.findOne({slug: eles[1]});
+        resultSuccess.data.product = await this.productService.getProductDetail(eles[1]);
+        resultSuccess.data.relatedProducts = await this.productService.getRelatedProducts(resultSuccess.data.product);
         //update product view
         await this.productService.updateViews(resultSuccess.data.product);
       }
