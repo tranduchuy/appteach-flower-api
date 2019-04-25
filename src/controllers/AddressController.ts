@@ -1,5 +1,5 @@
 import {
-  controller, httpGet, httpPost
+  controller, httpGet, httpPost, httpPut
 } from 'inversify-express-utils';
 import { inject } from 'inversify';
 import TYPES from '../constant/types';
@@ -14,6 +14,7 @@ import { ResponseMessages } from '../constant/messages';
 import { AddressService } from "../services/address.service";
 import { General } from "../constant/generals";
 import UserTypes = General.UserTypes;
+import updateDeliveryAddressSchema from "../validation-schemas/address/update-delivery-address.schema";
 
 @controller('/address')
 export class AddressController {
@@ -178,6 +179,72 @@ export class AddressController {
           data: {
             meta: {},
             entries: [newAddress]
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
+  @httpPut('/:id', TYPES.CheckTokenMiddleware)
+  public updateDelivery(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const {error} = Joi.validate(request.body, updateDeliveryAddressSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const addressId = request.params.id;
+        const user = request.user;
+        const deliveryAddress = await this.addressService.findDeliveryAddressById(addressId, user._id);
+        if (!deliveryAddress) {
+          const result: IRes<{}> = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Address.ADDRESS_NOT_FOUND],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const {name, phone, city, district, address} = request.body;
+
+        await this.addressService.updateDeliveryAddress(deliveryAddress._id, {
+          name,
+          phone,
+          city,
+          district,
+          address
+        });
+
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.Address.Update.UPDATE_ADDRESS_SUCCESS],
+          data: {
+            meta: {},
+            entries: []
           }
         };
 

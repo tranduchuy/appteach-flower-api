@@ -44,9 +44,41 @@ export class AddressService {
     }, this.listPossibleDeliveryAddressFields)
   };
 
-  updateAddress = () => {
+  updateDeliveryAddress = async (addressId, {
+    name,
+    phone,
+    city,
+    district,
+    address
+  }) => {
+    const newAddress = {
+      name: name || null,
+      city: city || null,
+      district: district || null,
+      phone: phone || null,
+      address: address || null
+    };
 
+    Object.keys(newAddress).map(key => {
+      if (newAddress[key] === null) {
+        delete newAddress[key];
+      }
+    });
+
+    return await AddressModel.findOneAndUpdate({_id: addressId}, newAddress);
   }
+
+  findDeliveryAddressById = async (addressId, userId) => {
+    try {
+      return await AddressModel.findOne({
+        _id: addressId,
+        user: userId
+      });
+    } catch (e) {
+      console.log(e);
+    }
+
+  };
 
 
 }
