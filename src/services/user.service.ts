@@ -12,6 +12,7 @@ import RegisterByTypes = General.RegisterByTypes;
 
 @injectable()
 export class UserService {
+  sellerInProductDetailFields = ['_id', 'avatar', 'name', 'address'];
   createUser = async ({email, password, type, name, username, phone, address, city, district, ward, registerBy, gender, role}) => {
     const salt = bcrypt.genSaltSync(UserConstant.saltLength);
     const tokenEmailConfirm = RandomString.generate({
@@ -100,5 +101,9 @@ export class UserService {
       return false;
     }
   };
+
+  getSellerInProductDetail = async (id) => {
+    return await UserModel.findOne({_id: id}, this.sellerInProductDetailFields);
+  }
 
 }

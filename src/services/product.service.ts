@@ -11,7 +11,7 @@ import { General } from "../constant/generals";
 export class ProductService {
   listProductFields = ['_id', 'status', 'title', 'image', 'originalPrice', 'saleOff', 'slug'];
   detailProductFields =
-      ['_id', 'status', 'title','description', 'image', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
+      ['_id', 'status', 'title','description', 'user', 'image', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
     'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'seoImage', 'priceRange'];
 
   createProduct = async ({
@@ -201,7 +201,7 @@ export class ProductService {
     } catch (e) {
       console.log(e);
     }
-  }
+  };
 
   getRelatedProducts = async (product) => {
     try {
@@ -224,7 +224,6 @@ export class ProductService {
         }
       });
 
-
       const newObject = Object.assign({}, query);
       queryArr.push(newObject);
       let queryKeys= Object.keys(query);
@@ -237,7 +236,6 @@ export class ProductService {
         const newObject = Object.assign({}, query);
         queryArr.push(newObject);
       }
-      console.log(queryArr);
 
       let relatedProducts = await ProductModel.find({$or: queryArr}, this.listProductFields).limit(General.RELATED_PRODUCT_LIMIT);
 
@@ -245,7 +243,7 @@ export class ProductService {
     } catch (e) {
       console.log(e);
     }
-  }
+  };
 
 
 }
