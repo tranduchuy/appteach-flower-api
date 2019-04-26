@@ -7,7 +7,7 @@ import { ResponseMessages } from '../../constant/messages';
 import { Status } from '../../constant/status';
 import TYPES from '../../constant/types';
 import { IRes } from '../../interfaces/i-res';
-import { User } from '../../models/user';
+import UserModel, { User } from '../../models/user';
 import { ShopService } from '../../services/shop.service';
 import { UserService } from '../../services/user.service';
 import ShopModel from '../../models/shop';
@@ -17,6 +17,7 @@ import Joi from '@hapi/joi';
 import loginSchema from '../../validation-schemas/user/login.schema';
 import ShopWaitingConfirmSchema from '../../validation-schemas/user/admin-shop-waiting.schema';
 import AcceptShopSchema from '../../validation-schemas/user/admin-accept-shop.schema';
+import ListUserSchema from '../../validation-schemas/user/admin-list-user.schema';
 
 interface IResUserLogin {
   meta: {
@@ -242,10 +243,51 @@ export class AdminUserController {
     });
   }
 
-  @httpGet('/')
+  @httpGet('/', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
   public getListUser(req: Request): Promise<IRes<IUsers>> {
-    return new Promise<IRes<IUsers>>((resolve) => {
-      // TODO: list user
+    return new Promise<IRes<IUsers>>(async (resolve) => {
+      const {error} = Joi.validate(req.query, ListUserSchema);
+      if (error) {
+        const messages = error.details.map(detail => {
+          return detail.message;
+        });
+
+        const result: IRes<IUsers> = {
+          status: HttpStatus.BAD_REQUEST,
+          messages: messages
+        };
+
+        return resolve(result);
+      }
+
+      const {limit, page, sb, sd, user_id, email, username, facebook_id, google_id, gender, status, role} = req.query;
+      const stages: any[] = this.userService.buildStageGetListUser({
+        limit: parseInt((limit || 10).toString()),
+        page: parseInt((page || 1).toString()),
+        sortBy: sb,
+        sortDirection: sd,
+        userId: user_id,
+        email: email,
+        username: username,
+        facebookId: facebook_id,
+        googleId: google_id,
+        role: role ? parseInt(role) : null,
+        status: status ? parseInt(status) : null,
+        gender: gender ? parseInt(gender) : null
+      });
+      const result: any = await UserModel.aggregate(stages);
+      const response: IRes<IUsers> = {
+        status: HttpStatus.OK,
+        messages: [ResponseMessages.SUCCESS],
+        data: {
+          meta: {
+            totalItems: result.meta[0] ? result.meta[0].totalItems : 0
+          },
+          users: result.entries
+        }
+      };
+
+      resolve(response);
     });
   }
 
