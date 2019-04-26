@@ -5,6 +5,7 @@ const AddAddressValidationSchema = Joi.object().keys({
       phone: Joi.string().min(10).max(11).regex(/^[0-9]*$/),
       city: Joi.string(),
       district: Joi.number(),
+      ward: Joi.number(),
       address: Joi.string()
     }
 );

@@ -1,5 +1,5 @@
 import {
-  controller, httpGet, httpPost, httpPut
+  controller, httpGet, httpPost, httpPut, httpDelete
 } from 'inversify-express-utils';
 import { inject } from 'inversify';
 import TYPES from '../constant/types';
@@ -58,6 +58,14 @@ export class AddressController {
     return new Promise<{}>(async (resolve, reject) => {
       try {
         const user = request.user;
+        if (user.type !== UserTypes.TYPE_SELLER) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.Address.List.NO_POSSIBLE_ADDRESS_PERMISSION],
+            data: {}
+          };
+          return resolve(result);
+        }
         const addresses = await this.addressService.getPossibleDelieveryAddress(user);
         const result = {
           status: 1,
@@ -103,7 +111,7 @@ export class AddressController {
         }
 
         const user = request.user;
-        const { name, phone, city, district, address} = request.body;
+        const { name, phone, city, ward, district, address} = request.body;
 
         const newAddress= await this.addressService.createDeliveryAddress({
           name,
@@ -111,6 +119,7 @@ export class AddressController {
           city,
           user,
           district,
+          ward,
           address
         });
 
@@ -167,6 +176,17 @@ export class AddressController {
         }
         const { district, city} = request.body;
 
+        const possibleDeliveryAddress = await this.addressService.findPossibleDeliveryAddress({district, city, user});
+
+        if (possibleDeliveryAddress) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.Address.Add.ADDRESS_EXSIST],
+            data: {}
+          };
+          return resolve(result);
+        }
+
         const newAddress= await this.addressService.createPossibleDeliveryAddress({
           district,
           city,
@@ -217,10 +237,8 @@ export class AddressController {
         }
 
         const addressId = request.params.id;
-        console.log(addressId);
         const user = request.user;
         const deliveryAddress = await this.addressService.findDeliveryAddressById(addressId, user._id);
-        console.log(deliveryAddress);
         if (!deliveryAddress) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
@@ -230,13 +248,14 @@ export class AddressController {
           return resolve(result);
         }
 
-        const {name, phone, city, district, address} = request.body;
+        const {name, phone, city, district, ward, address} = request.body;
 
         await this.addressService.updateDeliveryAddress(deliveryAddress._id, {
           name,
           phone,
           city,
           district,
+          ward,
           address
         });
 
@@ -244,6 +263,50 @@ export class AddressController {
         const result: IRes<{}> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.Address.Update.UPDATE_ADDRESS_SUCCESS],
+          data: {
+            meta: {},
+            entries: []
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
+  @httpDelete('/:id', TYPES.CheckTokenMiddleware)
+  public deleteAddress(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+
+        const addressId = request.params.id;
+        const user = request.user;
+        const address = await this.addressService.findAddressById(addressId, user._id);
+        if (!address) {
+          const result: IRes<{}> = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Address.ADDRESS_NOT_FOUND],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        await this.addressService.deleteAddress(addressId);
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.Address.Delete.DELETE_ADDRESS_SUCCESS],
           data: {
             meta: {},
             entries: []

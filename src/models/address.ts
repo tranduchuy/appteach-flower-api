@@ -19,6 +19,9 @@ export class Address extends Typegoose {
   district: number;
 
   @prop({})
+  ward: number;
+
+  @prop({})
   type: number;
 
   @prop({})
