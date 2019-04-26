@@ -10,6 +10,21 @@ import UserRoles = General.UserRoles;
 import UserTypes = General.UserTypes;
 import RegisterByTypes = General.RegisterByTypes;
 
+export interface IQueryUser {
+  limit: number;
+  page: number;
+  sortBy?: string;
+  sortDirection?: string;
+  userId?: string;
+  email?: string;
+  username?: string;
+  googleId?: string;
+  facebookId?: string;
+  role?: number;
+  status?: number;
+  gender?: number;
+}
+
 @injectable()
 export class UserService {
   sellerInProductDetailFields = ['_id', 'avatar', 'name', 'address'];
@@ -113,4 +128,69 @@ export class UserService {
     ].some(r => r === role);
   }
 
+  buildStageGetListUser(queryCondition: IQueryUser): any[] {
+    const stages = [];
+    const matchStage: any = {};
+
+    if (queryCondition.userId) {
+      matchStage['_id'] = queryCondition.userId;
+    }
+
+    if (queryCondition.username) {
+      matchStage['username'] = queryCondition.username;
+    }
+
+    if (queryCondition.email) {
+      matchStage['email'] = {
+        $regex: queryCondition.email,
+        $options: 'i'
+      };
+    }
+
+    if (queryCondition.googleId) {
+      matchStage['googleId'] = queryCondition.googleId;
+    }
+
+    if (queryCondition.facebookId) {
+      matchStage['facebookId'] = queryCondition.facebookId;
+    }
+
+    if (queryCondition.gender) {
+      matchStage['gender'] = queryCondition.gender;
+    }
+
+    if (queryCondition.role) {
+      matchStage['role'] = queryCondition.role;
+    }
+
+    if (queryCondition.status) {
+      matchStage['status'] = queryCondition.status;
+    }
+
+    if (Object.keys(matchStage).length > 0) {
+      stages.push({$match: matchStage});
+    }
+
+    if (queryCondition.sortBy) {
+      stages.push({
+        $sort: {
+          [queryCondition.sortBy]: queryCondition.sortDirection || 'ASC'
+        }
+      });
+    }
+
+    stages.push({
+      $facet: {
+        entries: [
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}},
+        ],
+      }
+    });
+
+    return stages;
+  }
 }
