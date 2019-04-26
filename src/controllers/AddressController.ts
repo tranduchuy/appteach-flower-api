@@ -198,7 +198,7 @@ export class AddressController {
     });
   }
 
-  @httpPut('/:id', TYPES.CheckTokenMiddleware)
+  @httpPut('/delivery/:id', TYPES.CheckTokenMiddleware)
   public updateDelivery(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
@@ -217,8 +217,10 @@ export class AddressController {
         }
 
         const addressId = request.params.id;
+        console.log(addressId);
         const user = request.user;
         const deliveryAddress = await this.addressService.findDeliveryAddressById(addressId, user._id);
+        console.log(deliveryAddress);
         if (!deliveryAddress) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
