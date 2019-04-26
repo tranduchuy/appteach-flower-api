@@ -16,6 +16,7 @@ import Joi from '@hapi/joi';
 // schemas
 import loginSchema from '../../validation-schemas/user/login.schema';
 import ShopWaitingConfirmSchema from '../../validation-schemas/user/admin-shop-waiting.schema';
+import AcceptShopSchema from '../../validation-schemas/user/admin-accept-shop.schema';
 
 interface IResUserLogin {
   meta: {
@@ -164,8 +165,38 @@ export class AdminUserController {
 
   @httpPost('/accept-shop', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
   public acceptToBeShop(req: Request): Promise<IRes<IResUserAcceptedTobeShop>> {
-    return new Promise<IRes<IResUserAcceptedTobeShop>>((resolve) => {
-      // TODO: accept user to be shop
+    return new Promise<IRes<IResUserAcceptedTobeShop>>(async (resolve) => {
+      const {error} = Joi.validate(req.query, AcceptShopSchema);
+      if (error) {
+        const messages = error.details.map(detail => {
+          return detail.message;
+        });
+
+        const result: IRes<IResUserAcceptedTobeShop> = {
+          status: HttpCodes.ERROR,
+          messages: messages
+        };
+
+        return resolve(result);
+      }
+
+      const shop = await ShopModel.findOne({_id: req.body.shopId});
+      if (!shop) {
+        const result: IRes<IResUserAcceptedTobeShop> = {
+          status: HttpStatus.NOT_FOUND,
+          messages: [ResponseMessages.Shop.SHOP_NOT_FOUND]
+        };
+
+        return resolve(result);
+      }
+
+      shop.status = Status.ACTIVE;
+      await shop.save();
+
+      return resolve({
+        status: HttpStatus.OK,
+        messages: [ResponseMessages.SUCCESS]
+      });
     });
   }
 
@@ -179,7 +210,7 @@ export class AdminUserController {
         });
 
         const result: IRes<IResShops> = {
-          status: HttpCodes.ERROR,
+          status: HttpStatus.BAD_REQUEST,
           messages: messages
         };
 
@@ -198,7 +229,7 @@ export class AdminUserController {
       const result: any = await ShopModel.aggregate(stages);
       const response: IRes<IResShops> = {
         status: HttpStatus.OK,
-        messages: ['Successfully'],
+        messages: [ResponseMessages.SUCCESS],
         data: {
           meta: {
             totalItems: result.meta[0] ? result.meta[0].totalItems : 0

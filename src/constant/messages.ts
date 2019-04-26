@@ -20,6 +20,7 @@ export namespace ResponseMessages {
       export const CONFIRM_SUCCESS = 'Kích hoạt tài khoản thành công';
     }
   }
+
   export namespace Product {
     export const PRODUCT_NOT_FOUND = 'Không tìm thấy sản phẩm';
     export const NOT_VALID_PRICE = 'Giá khuyến mãi phải nhỏ hơn giá bình thường';
@@ -31,5 +32,9 @@ export namespace ResponseMessages {
       export const UPDATE_PRODUCT_SUCCESS = 'Cập nhật sản phẩm thành công';
       export const NO_UPDATE_PRODUCT_PERMISSION = 'Chỉ có người bán được phép cập nhật sản phẩm';
     }
+  }
+
+  export namespace Shop {
+    export const SHOP_NOT_FOUND = 'Không tìm thấy thông tin shop';
   }
 }
