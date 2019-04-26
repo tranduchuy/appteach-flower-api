@@ -30,7 +30,7 @@ export class AddressController {
         const user = request.user;
         const addresses = await this.addressService.getDelieveryAddress(user);
         const result = {
-          status: 1,
+          status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: {
             meta: {},
@@ -68,7 +68,7 @@ export class AddressController {
         }
         const addresses = await this.addressService.getPossibleDelieveryAddress(user);
         const result = {
-          status: 1,
+          status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: {
             meta: {},
