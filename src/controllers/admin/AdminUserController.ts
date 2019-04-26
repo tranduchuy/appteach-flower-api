@@ -2,16 +2,20 @@ import { inject } from 'inversify';
 import { controller, httpGet, httpPost, httpPut } from 'inversify-express-utils';
 import * as HttpStatus from 'http-status-codes';
 import { Request } from 'express';
+import { HttpCodes } from '../../constant/http-codes';
 import { ResponseMessages } from '../../constant/messages';
 import { Status } from '../../constant/status';
 import TYPES from '../../constant/types';
 import { IRes } from '../../interfaces/i-res';
 import { User } from '../../models/user';
+import { ShopService } from '../../services/shop.service';
 import { UserService } from '../../services/user.service';
+import ShopModel from '../../models/shop';
 import Joi from '@hapi/joi';
 
 // schemas
 import loginSchema from '../../validation-schemas/user/login.schema';
+import ShopWaitingConfirmSchema from '../../validation-schemas/user/admin-shop-waiting.schema';
 
 interface IResUserLogin {
   meta: {
@@ -27,6 +31,18 @@ interface IUsers {
   users: User[];
 }
 
+interface IResShops {
+  meta: {
+    totalItems: number;
+  };
+  shops: {
+    name: string,
+    user: any,
+    images: string[],
+    createdAt: Date,
+  }[];
+}
+
 interface IResUserAcceptedTobeShop {
 
 }
@@ -37,7 +53,8 @@ interface IResUserUpdateStatus {
 
 @controller('/admin/user')
 export class AdminUserController {
-  constructor(@inject(TYPES.UserService) private userService: UserService) {
+  constructor(@inject(TYPES.UserService) private userService: UserService,
+              @inject(TYPES.ShopService) private shopService: ShopService) {
 
   }
 
@@ -145,17 +162,52 @@ export class AdminUserController {
     });
   }
 
-  @httpPost('/accept-shop')
+  @httpPost('/accept-shop', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
   public acceptToBeShop(req: Request): Promise<IRes<IResUserAcceptedTobeShop>> {
     return new Promise<IRes<IResUserAcceptedTobeShop>>((resolve) => {
       // TODO: accept user to be shop
     });
   }
 
-  @httpGet('/waiting-confirm-shop')
-  public getListUserWaitingToBeShop(req: Request): Promise<IRes<IUsers>> {
-    return new Promise<IRes<IUsers>>((resolve) => {
-      // TODO: list user waiting to be shop
+  @httpGet('/waiting-confirm-shop', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
+  public getListUserWaitingToBeShop(req: Request): Promise<IRes<IResShops>> {
+    return new Promise<IRes<IResShops>>(async (resolve) => {
+      const {error} = Joi.validate(req.query, ShopWaitingConfirmSchema);
+      if (error) {
+        const messages = error.details.map(detail => {
+          return detail.message;
+        });
+
+        const result: IRes<IResShops> = {
+          status: HttpCodes.ERROR,
+          messages: messages
+        };
+
+        return resolve(result);
+      }
+
+      const {limit, page, sb, sd, user_id} = req.query;
+      const stages: any[] = this.shopService.buildStageQueryShopWaiting({
+        limit: parseInt((limit || 10).toString()),
+        page: parseInt((page || 1).toString()),
+        sortBy: sb || null,
+        sortDirection: sd || null,
+        userId: user_id || null
+      });
+
+      const result: any = await ShopModel.aggregate(stages);
+      const response: IRes<IResShops> = {
+        status: HttpStatus.OK,
+        messages: ['Successfully'],
+        data: {
+          meta: {
+            totalItems: result.meta[0] ? result.meta[0].totalItems : 0
+          },
+          shops: result.entries
+        }
+      };
+
+      resolve(response);
     });
   }
 
