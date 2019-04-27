@@ -8,6 +8,7 @@ import TAG from '../constant/tags';
 import { AdminProductController } from '../controllers/admin/AdminProductController';
 import { AdminUserController } from '../controllers/admin/AdminUserController';
 import { SearchController } from '../controllers/SearchController';
+import { ShopController } from '../controllers/ShopController';
 import { CheckAdminMiddleware } from '../middlewares/check-admin';
 import { CheckMasterMiddleware } from '../middlewares/check-master';
 import { SearchService } from '../services/search.service';
@@ -18,8 +19,8 @@ import { CheckTokenMiddleware } from '../middlewares/check-token';
 import { ProductController } from '../controllers/ProductController';
 import { ProductService } from '../services/product.service';
 import { ImageService } from '../services/image.service';
-import { AddressController } from "../controllers/AddressController";
-import { AddressService } from "../services/address.service";
+import { AddressController } from '../controllers/AddressController';
+import { AddressService } from '../services/address.service';
 
 const container = new Container();
 
@@ -28,6 +29,7 @@ container.bind<UserController>(TYPES.UserController).to(UserController).whenTarg
 container.bind<ProductController>(TYPES.ProductController).to(ProductController).whenTargetNamed(TAG.ProductController);
 container.bind<SearchController>(TYPES.SearchController).to(SearchController);
 container.bind<AddressController>(TYPES.AddressController).to(AddressController);
+container.bind<ShopController>(TYPES.ShopController).to(ShopController);
 
 // Bind Admin Controller
 container.bind<AdminUserController>(TYPES.Admin.UserController).to(AdminUserController);

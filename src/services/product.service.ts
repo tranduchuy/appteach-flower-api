@@ -15,22 +15,27 @@ export class ProductService {
     ['_id', 'status', 'title', 'description', 'user', 'image', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
       'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'seoImage', 'priceRange'];
 
-  createProduct = async ({
-                           title, sku, description, topic, shopId, images, salePrice, originalPrice, tags,
-                           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
-                         }) => {
-    // TODO: map price ranges
+  static detectPriceRange(price: number): number {
     let priceRange = null;
     const range = PriceRanges.find(range => {
       if (range.min && range.max) {
-        return (range.min <= originalPrice && originalPrice < range.max);
+        return (range.min <= price && price < range.max);
       } else {
-        return (range.min <= originalPrice);
+        return (range.min <= price);
       }
     });
     if (range) {
       priceRange = range.value;
     }
+
+    return priceRange;
+  }
+
+  createProduct = async ({
+                           title, sku, description, topic, shopId, images, salePrice, originalPrice, tags,
+                           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
+                         }) => {
+    const priceRange = ProductService.detectPriceRange(originalPrice);
 
     // TODO: add tags
 

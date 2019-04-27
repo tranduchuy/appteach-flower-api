@@ -10,7 +10,7 @@ export class Shop extends Typegoose {
   @prop({required: true})
   name: string;
 
-  @prop({required: true})
+  @prop({required: true, unique: true})
   slug: string;
 
   @prop({required: true})
