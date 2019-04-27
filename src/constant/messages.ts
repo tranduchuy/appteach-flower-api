@@ -36,5 +36,6 @@ export namespace ResponseMessages {
 
   export namespace Shop {
     export const SHOP_NOT_FOUND = 'Không tìm thấy thông tin shop';
+    export const DUPLICATE_SLUG = 'Bị trùng url với một shop khác';
   }
 }

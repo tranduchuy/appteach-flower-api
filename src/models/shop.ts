@@ -1,4 +1,5 @@
 import { pre, prop, Ref, Typegoose } from 'typegoose';
+import { Status } from '../constant/status';
 import { User } from './user';
 
 @pre<Shop>('save', function (next) {
@@ -10,7 +11,7 @@ export class Shop extends Typegoose {
   name: string;
 
   @prop({required: true})
-  url: string;
+  slug: string;
 
   @prop({required: true})
   user: Ref<User>;
@@ -18,7 +19,7 @@ export class Shop extends Typegoose {
   @prop()
   images: string[];
 
-  @prop({required: true})
+  @prop({required: true, default: Status.PENDING_OR_WAIT_COMFIRM})
   status: number;
 
   @prop({default: false})

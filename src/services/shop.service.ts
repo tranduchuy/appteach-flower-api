@@ -1,4 +1,6 @@
 import { injectable } from 'inversify';
+import mongoose from 'mongoose';
+import ShopModel, { Shop } from '../models/shop';
 
 export interface IQueryWaitingShop {
   limit: number;
@@ -10,6 +12,20 @@ export interface IQueryWaitingShop {
 
 @injectable()
 export class ShopService {
+  async createNewShop(userId: string, name: string, slug: string, images: string[], availableShipCountry: boolean): Promise<Shop> {
+    const shop = new ShopModel({
+      name,
+      slug,
+      images,
+      availableShipCountry,
+      user: new mongoose.Types.ObjectId('5cb9a7c8aad2582d60ea5cbe'),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    return await shop.save();
+  }
+
   buildStageQueryShopWaiting(queryCondition: IQueryWaitingShop): any[] {
     const stages = [];
 
