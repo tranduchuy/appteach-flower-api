@@ -57,5 +57,6 @@ export namespace ResponseMessages {
     export const SHOP_NOT_FOUND = 'Không tìm thấy thông tin shop';
     export const DUPLICATE_SLUG = 'Bị trùng url với một shop khác';
     export const SHOP_OF_USER_NOT_FOUND = 'Không tìm thấy thông tin shop của user';
+    export const EXIST_SHOP_OF_USER = 'Bạn đã mở shop rồi';
   }
 }

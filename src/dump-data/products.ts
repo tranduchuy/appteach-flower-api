@@ -1,7 +1,7 @@
 import { SearchSelector } from '../constant/search-selector.constant';
 import ProductModel from '../models/product';
-// import { ProductService } from '../services/product.service';
-// import mongoose from 'mongoose';
+import { ProductService } from '../services/product.service';
+import mongoose from 'mongoose';
 
 /**
  * Returns a random integer between min (inclusive) and max (inclusive).
@@ -32,7 +32,7 @@ export const run = () => {
       city: SearchSelector.Cities[getRandomInt(0, 50)].code,
       design: SearchSelector.Designs[getRandomInt(0, 4)].value,
       color: SearchSelector.Colors[getRandomInt(0, 6)].value,
-      // priceRange: ProductService.detectPriceRange(price),
+      priceRange: ProductService.detectPriceRange(price),
       slug: 'demo-' + new Date().getTime(),
       code: 'DUMP_DATA_' + i,
       sku: 'SKU' + new Date().getTime() + getRandomInt(0, 10000),
@@ -43,7 +43,7 @@ export const run = () => {
         price: 0
       },
       createdAt: new Date(),
-      // user: new mongoose.Types.ObjectId('5cb9a7c8aad2582d60ea5cbe')
+      shop: new mongoose.Types.ObjectId('5cc3d7da3537dd1f6181e383')
     });
 
 
