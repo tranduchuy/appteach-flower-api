@@ -2,6 +2,7 @@ import { inject } from 'inversify';
 import { controller, httpGet, httpPost, httpPut } from 'inversify-express-utils';
 import * as HttpStatus from 'http-status-codes';
 import { Request } from 'express';
+import { General } from '../../constant/generals';
 import { HttpCodes } from '../../constant/http-codes';
 import { ResponseMessages } from '../../constant/messages';
 import { Status } from '../../constant/status';
@@ -18,6 +19,7 @@ import loginSchema from '../../validation-schemas/user/login.schema';
 import ShopWaitingConfirmSchema from '../../validation-schemas/user/admin-shop-waiting.schema';
 import AcceptShopSchema from '../../validation-schemas/user/admin-accept-shop.schema';
 import ListUserSchema from '../../validation-schemas/user/admin-list-user.schema';
+import UserTypes = General.UserTypes;
 
 interface IResUserLogin {
   meta: {
@@ -84,7 +86,7 @@ export class AdminUserController {
         if (!user) {
           const result: IRes<IResUserLogin> = {
             status: HttpStatus.NOT_FOUND,
-            messages: [ResponseMessages.User.Login.USER_NOT_FOUND]
+            messages: [ResponseMessages.User.USER_NOT_FOUND]
           };
 
           return resolve(result);
@@ -190,6 +192,20 @@ export class AdminUserController {
 
         return resolve(result);
       }
+
+      const user = await UserModel.findById(shop.user.toString());
+      if (!user) {
+        const result: IRes<IResUserAcceptedTobeShop> = {
+          status: HttpStatus.NOT_FOUND,
+          messages: [ResponseMessages.User.USER_NOT_FOUND]
+        };
+
+        return resolve(result);
+      }
+
+      // change type of user
+      user.type = UserTypes.TYPE_SELLER;
+      await user.save();
 
       // status from PENDING_OR_WAIT_CONFIRM to be ACTIVE
       shop.status = Status.ACTIVE;

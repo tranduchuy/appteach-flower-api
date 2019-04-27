@@ -1,5 +1,5 @@
 import { injectable } from 'inversify';
-import UserModel from '../models/user';
+import UserModel, { User } from '../models/user';
 import { UserConstant } from '../constant/users';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -100,6 +100,10 @@ export class UserService {
     user.googleId = googleId;
     return await user.save();
   };
+
+  async findById(id: string): Promise<User> {
+    return await UserModel.findById(id);
+  }
 
   findByEmail = async (email) => {
     return await UserModel.findOne({email: email});

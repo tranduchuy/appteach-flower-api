@@ -213,7 +213,7 @@ export class UserController {
         if (!user) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
-            messages: [ResponseMessages.User.Login.USER_NOT_FOUND],
+            messages: [ResponseMessages.User.USER_NOT_FOUND],
             data: {}
           };
           return resolve(result);

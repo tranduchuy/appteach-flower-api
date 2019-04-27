@@ -1,6 +1,8 @@
 export namespace ResponseMessages {
   export const SUCCESS = 'Thành công';
   export namespace User {
+    export const USER_NOT_FOUND = 'Tài khoản không tồn tại';
+
     export namespace Register {
       export const PHONE_DUPLICATED = 'Số điện thoại đã được đăng kí';
       export const EMAIL_DUPLICATED = 'Email đã được đăng kí';
