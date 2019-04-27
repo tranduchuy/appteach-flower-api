@@ -12,6 +12,10 @@ export interface IQueryWaitingShop {
 
 @injectable()
 export class ShopService {
+  async findShopOfUser(userId: string): Promise<Shop> {
+    return await ShopModel.findOne({user: userId});
+  }
+
   async createNewShop(userId: string, name: string, slug: string, images: string[], availableShipCountry: boolean): Promise<Shop> {
     const shop = new ShopModel({
       name,

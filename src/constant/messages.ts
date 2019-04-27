@@ -41,7 +41,7 @@ export namespace ResponseMessages {
     export namespace Add {
       export const ADD_ADDRESS_SUCCESS = 'Thêm địa chỉ thành công';
       export const NO_ADD_ADDRESS_PERMISSION = 'Chỉ có người bán được phép thêm địa chỉ có thể giao hàng';
-      export const ADDRESS_EXSIST = "Địa chỉ đã tồn tại";
+      export const ADDRESS_EXSIST = 'Địa chỉ đã tồn tại';
     }
     export namespace Update {
       export const UPDATE_ADDRESS_SUCCESS = 'Cập nhật địa chỉ thành công';
@@ -54,5 +54,6 @@ export namespace ResponseMessages {
   export namespace Shop {
     export const SHOP_NOT_FOUND = 'Không tìm thấy thông tin shop';
     export const DUPLICATE_SLUG = 'Bị trùng url với một shop khác';
+    export const SHOP_OF_USER_NOT_FOUND = 'Không tìm thấy thông tin shop của user';
   }
 }

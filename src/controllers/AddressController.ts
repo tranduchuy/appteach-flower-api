@@ -7,19 +7,21 @@ import { Request, Response } from 'express';
 import { IRes } from '../interfaces/i-res';
 import * as HttpStatus from 'http-status-codes';
 import Joi from '@hapi/joi';
+import { ShopService } from '../services/shop.service';
 // validate schema
 import addAddressSchema from '../validation-schemas/address/add-address.schema';
 import addPossibleDeliveryAddressSchema from '../validation-schemas/address/add-possible-delivery.schema';
 import { ResponseMessages } from '../constant/messages';
-import { AddressService } from "../services/address.service";
-import { General } from "../constant/generals";
+import { AddressService } from '../services/address.service';
+import { General } from '../constant/generals';
 import UserTypes = General.UserTypes;
-import updateDeliveryAddressSchema from "../validation-schemas/address/update-delivery-address.schema";
+import updateDeliveryAddressSchema from '../validation-schemas/address/update-delivery-address.schema';
 
 @controller('/address')
 export class AddressController {
   constructor(
     @inject(TYPES.AddressService) private addressService: AddressService,
+    @inject(TYPES.ShopService) private shopService: ShopService
   ) {
   }
 
@@ -111,9 +113,9 @@ export class AddressController {
         }
 
         const user = request.user;
-        const { name, phone, city, ward, district, address} = request.body;
+        const {name, phone, city, ward, district, address} = request.body;
 
-        const newAddress= await this.addressService.createDeliveryAddress({
+        const newAddress = await this.addressService.createDeliveryAddress({
           name,
           phone,
           city,
@@ -147,6 +149,7 @@ export class AddressController {
       }
     });
   }
+
   @httpPost('/possible-delivery', TYPES.CheckTokenMiddleware)
   public addPossibleDelivery(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
@@ -174,7 +177,7 @@ export class AddressController {
           };
           return resolve(result);
         }
-        const { district, city} = request.body;
+        const {district, city} = request.body;
 
         const possibleDeliveryAddress = await this.addressService.findPossibleDeliveryAddress({district, city, user});
 
@@ -184,13 +187,24 @@ export class AddressController {
             messages: [ResponseMessages.Address.Add.ADDRESS_EXSIST],
             data: {}
           };
+
           return resolve(result);
         }
 
-        const newAddress= await this.addressService.createPossibleDeliveryAddress({
+        const shop: any = await this.shopService.findShopOfUser(user._id.toString());
+        if (!shop) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.Shop.SHOP_OF_USER_NOT_FOUND]
+          };
+
+          return resolve(result);
+        }
+
+        const newAddress = await this.addressService.createPossibleDeliveryAddress({
           district,
           city,
-          user
+          shopId: shop._id.toString()
         });
 
         const result: IRes<{}> = {

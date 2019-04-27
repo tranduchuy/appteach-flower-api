@@ -1,4 +1,5 @@
 import { pre, prop, Ref, Typegoose } from 'typegoose';
+import { Shop } from './shop';
 import { User } from './user';
 
 @pre<Address>('save', function (next) {
@@ -33,8 +34,11 @@ export class Address extends Typegoose {
   @prop({default: new Date()})
   createdAt: Date;
 
-  @prop({required: true})
+  @prop()
   user: Ref<User>;
+
+  @prop()
+  shop: Ref<Shop>;
 }
 
 export default new Address().getModelForClass(Address);

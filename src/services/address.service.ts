@@ -1,6 +1,7 @@
-import { injectable } from "inversify";
-import AddressModel from "../models/address";
-import { General } from "../constant/generals";
+import { injectable } from 'inversify';
+import mongoose from 'mongoose';
+import AddressModel from '../models/address';
+import { General } from '../constant/generals';
 import AddressTypes = General.AddressTypes;
 
 @injectable()
@@ -21,11 +22,12 @@ export class AddressService {
 
     return await newAddress.save();
   };
-  createPossibleDeliveryAddress = async ({city, user, district}) => {
+
+  createPossibleDeliveryAddress = async (addressData: { city: string; shopId: string; district: number }) => {
     const newAddress = new AddressModel({
-      city,
-      district,
-      user: user._id,
+      city: addressData.city,
+      district: addressData.district,
+      shop: new mongoose.Types.ObjectId(addressData.shopId),
       type: AddressTypes.POSSIBLE_DELIVERY
     });
 
@@ -36,14 +38,14 @@ export class AddressService {
     return await AddressModel.find({
       user: user._id,
       type: AddressTypes.DELIVERY
-    }, this.listDeliveryAddressFields).sort({updatedAt: -1})
+    }, this.listDeliveryAddressFields).sort({updatedAt: -1});
   };
 
   getPossibleDelieveryAddress = async (user) => {
     return await AddressModel.find({
       user: user._id,
       type: AddressTypes.POSSIBLE_DELIVERY
-    }, this.listPossibleDeliveryAddressFields).sort({updatedAt: -1})
+    }, this.listPossibleDeliveryAddressFields).sort({updatedAt: -1});
   };
 
   updateDeliveryAddress = async (addressId, {
@@ -109,13 +111,13 @@ export class AddressService {
     }
   };
 
-  deleteAddress = async (id) =>{
+  deleteAddress = async (id) => {
     try {
       return await AddressModel.findByIdAndRemove(id);
     } catch (e) {
       console.log(e);
     }
-  }
+  };
 
 
 }
