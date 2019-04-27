@@ -33,6 +33,23 @@ export namespace ResponseMessages {
       export const NO_UPDATE_PRODUCT_PERMISSION = 'Chỉ có người bán được phép cập nhật sản phẩm';
     }
   }
+  export namespace Address {
+    export const ADDRESS_NOT_FOUND = 'Không tìm thấy địa chỉ này';
+    export namespace List {
+      export const NO_POSSIBLE_ADDRESS_PERMISSION = 'Chỉ có người bán có địa chỉ có thể giao hàng';
+    }
+    export namespace Add {
+      export const ADD_ADDRESS_SUCCESS = 'Thêm địa chỉ thành công';
+      export const NO_ADD_ADDRESS_PERMISSION = 'Chỉ có người bán được phép thêm địa chỉ có thể giao hàng';
+      export const ADDRESS_EXSIST = "Địa chỉ đã tồn tại";
+    }
+    export namespace Update {
+      export const UPDATE_ADDRESS_SUCCESS = 'Cập nhật địa chỉ thành công';
+    }
+    export namespace Delete {
+      export const DELETE_ADDRESS_SUCCESS = 'Xóa địa chỉ thành công';
+    }
+  }
 
   export namespace Shop {
     export const SHOP_NOT_FOUND = 'Không tìm thấy thông tin shop';
