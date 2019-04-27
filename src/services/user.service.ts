@@ -46,7 +46,7 @@ export class UserService {
       phone,
       tokenEmailConfirm,
       registerBy,
-      status: Status.PENDING_OR_WAIT_COMFIRM,
+      status: Status.PENDING_OR_WAIT_CONFIRM,
       address: address || '',
       city: city || null,
       district: district || null,

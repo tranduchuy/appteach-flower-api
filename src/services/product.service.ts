@@ -3,6 +3,7 @@ import ProductModel from '../models/product';
 import urlSlug from 'url-slug';
 import { SearchSelector } from '../constant/search-selector.constant';
 import PriceRanges = SearchSelector.PriceRanges;
+import mongoose from 'mongoose';
 
 import RandomString from 'randomstring';
 import { General } from '../constant/generals';
@@ -15,7 +16,7 @@ export class ProductService {
       'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'seoImage', 'priceRange'];
 
   createProduct = async ({
-                           title, sku, description, topic, user, images, salePrice, originalPrice, tags,
+                           title, sku, description, topic, shopId, images, salePrice, originalPrice, tags,
                            design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
                          }) => {
     // TODO: map price ranges
@@ -67,7 +68,7 @@ export class ProductService {
       slug,
       code,
       originalPrice,
-      user: user._id,
+      shop: new mongoose.Types.ObjectId(shopId),
       images: images || [],
       design: design || null,
       specialOccasion: specialOccasion || null,
@@ -84,16 +85,8 @@ export class ProductService {
     return await newProduct.save();
   };
 
-  findProductById = async (productId, userId) => {
-    try {
-      return await ProductModel.findOne({
-        _id: productId,
-        user: userId
-      });
-    } catch (e) {
-      console.log(e);
-    }
-
+  findProductById = async (productId) => {
+    return await ProductModel.findOne({_id: productId });
   };
 
   updateProduct = async (product, {

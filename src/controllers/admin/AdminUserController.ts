@@ -191,6 +191,7 @@ export class AdminUserController {
         return resolve(result);
       }
 
+      // status from PENDING_OR_WAIT_CONFIRM to be ACTIVE
       shop.status = Status.ACTIVE;
       await shop.save();
 

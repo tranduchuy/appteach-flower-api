@@ -1,6 +1,6 @@
 export const Status = {
   ACTIVE: 1,
-  PENDING_OR_WAIT_COMFIRM: 2,
+  PENDING_OR_WAIT_CONFIRM: 2,
   BLOCKED: 3,
   DELETE: 4,
 
