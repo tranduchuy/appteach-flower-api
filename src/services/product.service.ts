@@ -86,7 +86,8 @@ export class ProductService {
   };
 
   findProductById = async (productId) => {
-    return await ProductModel.findOne({_id: productId });
+    return await ProductModel.findOne({_id: productId})
+      .populate('shop');
   };
 
   updateProduct = async (product, {

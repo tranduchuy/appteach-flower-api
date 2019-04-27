@@ -194,8 +194,8 @@ export class ProductController {
 
         const productId = request.params.id;
         const user = request.user;
-        const product = await this.productService.findProductById(productId);
-        if (!product) {
+        const product: any = await this.productService.findProductById(productId);
+        if (!product || product.shop.user.toString() !== request.user._id.toString()) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
@@ -307,13 +307,14 @@ export class ProductController {
 
         const productId = request.params.id;
         const user = request.user;
-        const product = await this.productService.findProductById(productId);
-        if (!product) {
+        const product: any = await this.productService.findProductById(productId);
+        if (!product || product.shop.user.toString() !== request.user._id.toString()) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
             data: {}
           };
+
           return resolve(result);
         }
 
@@ -327,9 +328,7 @@ export class ProductController {
         }
 
         const {status} = request.body;
-
         await this.productService.updateProductStatus(product, status);
-
         const result: IRes<{}> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.Product.Update.UPDATE_PRODUCT_SUCCESS],

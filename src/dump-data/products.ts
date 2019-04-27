@@ -1,7 +1,7 @@
 import { SearchSelector } from '../constant/search-selector.constant';
 import ProductModel from '../models/product';
 // import { ProductService } from '../services/product.service';
-import mongoose from 'mongoose';
+// import mongoose from 'mongoose';
 
 /**
  * Returns a random integer between min (inclusive) and max (inclusive).
@@ -43,7 +43,7 @@ export const run = () => {
         price: 0
       },
       createdAt: new Date(),
-      user: new mongoose.Types.ObjectId('5cb9a7c8aad2582d60ea5cbe')
+      // user: new mongoose.Types.ObjectId('5cb9a7c8aad2582d60ea5cbe')
     });
 
 
