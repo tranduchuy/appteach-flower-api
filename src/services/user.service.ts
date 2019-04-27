@@ -90,10 +90,16 @@ export class UserService {
     });
   };
 
+  findByUsername = async (username: string) => {
+    return await UserModel.findOne({username});
+  };
+
   findByEmailOrUsername = async (email, username) => {
-    return await UserModel.findOne({
-      $or: [{email: email}, {username: username}]
-    });
+    if (email) {
+      return await this.findByEmail(email);
+    }
+
+    return await this.findByUsername(username);
   };
 
   updateGoogleId = async (user, googleId) => {
@@ -113,7 +119,7 @@ export class UserService {
     return await UserModel.findOne({googleId: googleId});
   };
 
-  isValidHashPassword = (hashed, plainText) => {
+  isValidHashPassword = (hashed: string, plainText: string) => {
     try {
       return bcrypt.compareSync(plainText, hashed);
     } catch (e) {

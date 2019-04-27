@@ -208,6 +208,7 @@ export class UserController {
         }
 
         const {email, username, password} = request.body;
+        console.log({email, username, password});
         const user = await this.userService.findByEmailOrUsername(email, username);
 
         if (!user) {
@@ -218,6 +219,8 @@ export class UserController {
           };
           return resolve(result);
         }
+
+        console.log(JSON.stringify(user));
 
         if (!this.userService.isValidHashPassword(user.passwordHash, password)) {
           const result: IRes<{}> = {
