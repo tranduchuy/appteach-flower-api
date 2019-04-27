@@ -4,12 +4,14 @@ const TYPES = {
   UserController: Symbol.for('UserController'),
   ProductController: Symbol.for('ProductController'),
   SearchController: Symbol.for('SearchController'),
+  AddressController: Symbol.for('AddressController'),
 
   MailerService: Symbol.for('MailerService'),
   UserService: Symbol.for('UserService'),
   ProductService: Symbol.for('ProductService'),
   SearchService: Symbol.for('SearchService'),
   ImageService: Symbol.for('ImageService'),
+  AddressService: Symbol.for('AddressService'),
   ShopService: Symbol.for('ShopService'),
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),

@@ -18,6 +18,8 @@ import { CheckTokenMiddleware } from '../middlewares/check-token';
 import { ProductController } from '../controllers/ProductController';
 import { ProductService } from '../services/product.service';
 import { ImageService } from '../services/image.service';
+import { AddressController } from "../controllers/AddressController";
+import { AddressService } from "../services/address.service";
 
 const container = new Container();
 
@@ -25,7 +27,7 @@ const container = new Container();
 container.bind<UserController>(TYPES.UserController).to(UserController).whenTargetNamed(TAG.UserController);
 container.bind<ProductController>(TYPES.ProductController).to(ProductController).whenTargetNamed(TAG.ProductController);
 container.bind<SearchController>(TYPES.SearchController).to(SearchController);
-container.bind<SearchController>(TYPES.SearchController).to(SearchController);
+container.bind<AddressController>(TYPES.AddressController).to(AddressController);
 
 // Bind Admin Controller
 container.bind<AdminUserController>(TYPES.Admin.UserController).to(AdminUserController);
@@ -37,6 +39,7 @@ container.bind<ProductService>(TYPES.ProductService).to(ProductService);
 container.bind<MailerService>(TYPES.MailerService).to(MailerService);
 container.bind<SearchService>(TYPES.SearchService).to(SearchService);
 container.bind<ImageService>(TYPES.ImageService).to(ImageService);
+container.bind<AddressService>(TYPES.AddressService).to(AddressService);
 container.bind<ShopService>(TYPES.ShopService).to(ShopService);
 
 // Bind model
