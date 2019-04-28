@@ -21,6 +21,8 @@ import loginSchema from '../validation-schemas/user/login.schema';
 import loginGoogleSchema from '../validation-schemas/user/login-google.schema';
 import registerSchema from '../validation-schemas/user/register.schema';
 import { ResponseMessages } from '../constant/messages';
+import forgetPasswordValidationSchema from "../validation-schemas/user/forget-password.schema";
+import resetPasswordValidationSchema from "../validation-schemas/user/reset-password.schema";
 
 @controller('/user')
 export class UserController {
@@ -415,4 +417,147 @@ export class UserController {
       }
     });
   }
+
+
+  @httpGet('/forget-password')
+  public forgetPassword(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const {error} = Joi.validate(request.query, forgetPasswordValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const {email} = request.query;
+        const user = await this.userService.findByEmail(email);
+        if(!user){
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.Login.USER_NOT_FOUND],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        if(user.registerBy !== RegisterByTypes.NORMAL) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.ForgetPassword.INVALID_REGISTER_TYPE],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        await this.userService.generateForgetPasswordToken(user);
+        await this.mailerService.sendResetPassword(user.email, user.passwordReminderToken);
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.User.ForgetPassword.FORGET_PASSWORD_SUCCESS],
+          data: {
+            meta: {
+            },
+            entries: []
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
+  @httpPost('/reset-password')
+  public resetPassword(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const {error} = Joi.validate(request.body, resetPasswordValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const {token, password, confirmedPassword} = request.body;
+        if (password !== confirmedPassword) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.Register.PASSWORD_DONT_MATCH],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const user = await this.userService.findUserByPasswordReminderToken(token);
+
+        if (!user) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.USER_NOT_FOUND],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        if (this.userService.isExpiredTokenResetPassword(user.passwordReminderExpire)) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.ResetPassword.EXPIRED_TOKEN],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        await this.userService.resetPassword(password, user);
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.User.ResetPassword.RESET_PASSWORD_SUCCESS],
+          data: {
+            meta: {
+            },
+            entries: []
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
 }

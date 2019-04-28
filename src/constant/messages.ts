@@ -21,6 +21,14 @@ export namespace ResponseMessages {
       export const INVALID_TOKEN = 'Token không hợp lệ';
       export const CONFIRM_SUCCESS = 'Kích hoạt tài khoản thành công';
     }
+    export namespace ForgetPassword {
+      export const INVALID_REGISTER_TYPE = 'Tài khoản đăng kí bằng mạng xã hội hoặc google không thể reset mật khẩu.';
+      export const FORGET_PASSWORD_SUCCESS = 'Gửi yêu cầu khôi phục mật khẩu thành công, vui lòng kiểm tra email của bạn';
+    }
+    export namespace ResetPassword {
+      export const EXPIRED_TOKEN = 'Token reset mật khẩu hết hạn, vui lòng tạo yêu cầu mới.';
+      export const RESET_PASSWORD_SUCCESS = 'Khôi phục mật tài khoản thành công';
+    }
   }
 
   export namespace Product {
