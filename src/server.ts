@@ -1,5 +1,6 @@
 import errorHandler from 'errorhandler';
 import * as dumpUser from './dump-data/user';
+// import * as dumpProduct from './dump-data/products';
 
 import app from './app';
 
@@ -13,6 +14,7 @@ const server = app.listen(app.get('port'), () => {
   );
   console.log('  Press CTRL-C to stop\n');
   dumpUser.run();
+  // dumpProduct.run();
 });
 
 export default server;
