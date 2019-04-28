@@ -3,6 +3,7 @@ import UserModel, { User } from '../models/user';
 import { UserConstant } from '../constant/users';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import moment from "moment";
 import RandomString from 'randomstring';
 import { Status } from '../constant/status';
 import { General } from '../constant/generals';
@@ -203,4 +204,32 @@ export class UserService {
 
     return stages;
   }
+
+  generateForgetPasswordToken = async (user) => {
+    const reminderToken = RandomString.generate();
+    const reminderExpired = moment().add(2, 'hours');
+
+    user.passwordReminderToken = reminderToken;
+    user.passwordReminderExpire = reminderExpired;
+
+    return await user.save();
+  };
+
+  isExpiredTokenResetPassword = (expiredOn) => {
+    return moment(expiredOn).isBefore(moment());
+  };
+
+  resetPassword = async (newPassword, user) => {
+    user.passwordHash = bcrypt.hashSync(newPassword, user.passwordSalt);
+    user.passwordReminderToken = '';
+    return await user.save();
+  }
+
+  findUserByPasswordReminderToken = async (passwordReminderToken) =>{
+    return await UserModel.findOne({
+      passwordReminderToken: passwordReminderToken
+    });
+  }
+
+
 }
