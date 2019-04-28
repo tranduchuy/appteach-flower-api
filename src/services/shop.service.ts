@@ -10,6 +10,16 @@ export interface IQueryWaitingShop {
   userId?: string;
 }
 
+export interface IQueryProductsOfShop {
+  limit: number;
+  page: number;
+  sortBy?: string;
+  sortDirection?: string;
+  status?: number;
+  name?: string;
+  userId: string;
+}
+
 @injectable()
 export class ShopService {
 
@@ -48,6 +58,47 @@ export class ShopService {
           user: queryCondition.userId
         }
       });
+    }
+
+    if (queryCondition.sortBy) {
+      stages.push({
+        $sort: {
+          [queryCondition.sortBy]: queryCondition.sortDirection || 'ASC'
+        }
+      });
+    }
+
+    stages.push({
+      $facet: {
+        entries: [
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}},
+        ],
+      }
+    });
+
+    return stages;
+  }
+
+  buildStageQueryProductOfShop(queryCondition: IQueryProductsOfShop): any[] {
+    const stages = [];
+
+    const matchStage = {
+      user: queryCondition.userId
+    };
+
+    if (queryCondition.status) {
+      matchStage['status'] = queryCondition.status;
+    }
+
+    if (queryCondition.name) {
+      matchStage['name'] = {
+        $regex: queryCondition.name,
+        $options: 'i'
+      };
     }
 
     if (queryCondition.sortBy) {

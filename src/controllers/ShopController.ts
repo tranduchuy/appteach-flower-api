@@ -9,8 +9,10 @@ import { ShopService } from '../services/shop.service';
 import * as HttpStatus from 'http-status-codes';
 import registerShopSchema from '../validation-schemas/shop/shop-register.schema';
 import checkShopSlugSchema from '../validation-schemas/shop/check-shop-slug.schema';
+import listProductsOfShopSchema from '../validation-schemas/shop/list-product-of-shop.schema';
 import Joi from '@hapi/joi';
 import ShopModel, { Shop } from '../models/shop';
+import ProductModel, { Product } from '../models/product';
 
 interface IResRegisterShop {
   shop: Shop;
@@ -18,6 +20,13 @@ interface IResRegisterShop {
 
 interface IResCheckValidSlug {
 
+}
+
+interface IResProductOfShop {
+  meta: {
+    totalItems: number;
+  };
+  products: Product[];
 }
 
 @controller('/shop')
@@ -116,6 +125,50 @@ export class ShopController {
       return resolve({
         status: HttpStatus.OK,
         messages: [ResponseMessages.SUCCESS]
+      });
+    });
+  }
+
+  @httpGet('/products', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
+  public getShopProductsForControlling(req: Request): Promise<IRes<IResProductOfShop>> {
+    return new Promise<IRes<IResProductOfShop>>(async resolve => {
+      const {error} = Joi.validate(req.body, listProductsOfShopSchema);
+
+      if (error) {
+        const messages = error.details.map(detail => {
+          return detail.message;
+        });
+
+        const result: IRes<IResProductOfShop> = {
+          status: HttpStatus.BAD_REQUEST,
+          messages: messages
+        };
+
+        return resolve(result);
+      }
+
+      const {limit, page, name, status, sb, sd} = req.query;
+      const stages: any[] = this.shopService.buildStageQueryProductOfShop({
+        limit: parseInt((limit || 10).toString()),
+        page: parseInt((page || 1).toString()),
+        userId: req.user._id.toString(),
+        name: name || null,
+        status: status ? parseInt(status.toString()) : null,
+        sortBy: sb || null,
+        sortDirection: sd || null
+      });
+      console.log(JSON.stringify(stages));
+      const result: any = await ProductModel.aggregate(stages);
+
+      resolve({
+        status: HttpStatus.OK,
+        messages: [ResponseMessages.SUCCESS],
+        data: {
+          meta: {
+            totalItems: result.meta[0] ? result.meta[0].totalItems : 0
+          },
+          products: result.entries
+        }
       });
     });
   }

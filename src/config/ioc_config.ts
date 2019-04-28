@@ -11,6 +11,7 @@ import { SearchController } from '../controllers/SearchController';
 import { ShopController } from '../controllers/ShopController';
 import { CheckAdminMiddleware } from '../middlewares/check-admin';
 import { CheckMasterMiddleware } from '../middlewares/check-master';
+import { CheckSellerMiddleware } from '../middlewares/check-seller';
 import { SearchService } from '../services/search.service';
 import { ShopService } from '../services/shop.service';
 import { UserService } from '../services/user.service';
@@ -50,5 +51,6 @@ container.bind<ShopService>(TYPES.ShopService).to(ShopService);
 container.bind<CheckTokenMiddleware>(TYPES.CheckTokenMiddleware).to(CheckTokenMiddleware);
 container.bind<CheckAdminMiddleware>(TYPES.CheckAdminMiddleware).to(CheckAdminMiddleware);
 container.bind<CheckMasterMiddleware>(TYPES.CheckMasterMiddleware).to(CheckMasterMiddleware);
+container.bind<CheckSellerMiddleware>(TYPES.CheckUserTypeSellerMiddleware).to(CheckSellerMiddleware);
 
 export default container;

@@ -18,6 +18,7 @@ const TYPES = {
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),
   CheckAdminMiddleware: Symbol.for('CheckAdminMiddleware'),
   CheckMasterMiddleware: Symbol.for('CheckMasterMiddleware'),
+  CheckUserTypeSellerMiddleware: Symbol.for('CheckUserTypeSellerMiddleware'),
 
   Admin: {
     UserController: Symbol.for('AdminUserController'),
