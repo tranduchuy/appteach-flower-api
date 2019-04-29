@@ -1,8 +1,9 @@
 import { injectable } from 'inversify';
-import UserModel from '../models/user';
+import UserModel, { User } from '../models/user';
 import { UserConstant } from '../constant/users';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import moment from "moment";
 import RandomString from 'randomstring';
 import { Status } from '../constant/status';
 import { General } from '../constant/generals';
@@ -10,8 +11,25 @@ import UserRoles = General.UserRoles;
 import UserTypes = General.UserTypes;
 import RegisterByTypes = General.RegisterByTypes;
 
+export interface IQueryUser {
+  limit: number;
+  page: number;
+  sortBy?: string;
+  sortDirection?: string;
+  userId?: string;
+  email?: string;
+  username?: string;
+  googleId?: string;
+  facebookId?: string;
+  role?: number;
+  status?: number;
+  gender?: number;
+}
+
 @injectable()
 export class UserService {
+  sellerInProductDetailFields = ['_id', 'avatar', 'name', 'address'];
+
   createUser = async ({email, password, type, name, username, phone, address, city, district, ward, registerBy, gender, role}) => {
     const salt = bcrypt.genSaltSync(UserConstant.saltLength);
     const tokenEmailConfirm = RandomString.generate({
@@ -29,7 +47,7 @@ export class UserService {
       phone,
       tokenEmailConfirm,
       registerBy,
-      status: Status.PENDING_OR_WAIT_COMFIRM,
+      status: Status.PENDING_OR_WAIT_CONFIRM,
       address: address || '',
       city: city || null,
       district: district || null,
@@ -73,16 +91,26 @@ export class UserService {
     });
   };
 
+  findByUsername = async (username: string) => {
+    return await UserModel.findOne({username});
+  };
+
   findByEmailOrUsername = async (email, username) => {
-    return await UserModel.findOne({
-      $or: [{email: email}, {username: username}]
-    });
+    if (email) {
+      return await this.findByEmail(email);
+    }
+
+    return await this.findByUsername(username);
   };
 
   updateGoogleId = async (user, googleId) => {
     user.googleId = googleId;
     return await user.save();
   };
+
+  async findById(id: string): Promise<User> {
+    return await UserModel.findById(id);
+  }
 
   findByEmail = async (email) => {
     return await UserModel.findOne({email: email});
@@ -92,13 +120,116 @@ export class UserService {
     return await UserModel.findOne({googleId: googleId});
   };
 
-
-  isValidHashPassword = (hashed, plainText) => {
+  isValidHashPassword = (hashed: string, plainText: string) => {
     try {
       return bcrypt.compareSync(plainText, hashed);
     } catch (e) {
       return false;
     }
   };
+
+  getSellerInProductDetail = async (id) => {
+    return await UserModel.findOne({_id: id}, this.sellerInProductDetailFields);
+  };
+
+  isRoleAdmin(role: number): boolean {
+    return [
+      UserRoles.USER_ROLE_ADMIN,
+      UserRoles.USER_ROLE_MASTER
+    ].some(r => r === role);
+  }
+
+  buildStageGetListUser(queryCondition: IQueryUser): any[] {
+    const stages = [];
+    const matchStage: any = {};
+
+    if (queryCondition.userId) {
+      matchStage['_id'] = queryCondition.userId;
+    }
+
+    if (queryCondition.username) {
+      matchStage['username'] = queryCondition.username;
+    }
+
+    if (queryCondition.email) {
+      matchStage['email'] = {
+        $regex: queryCondition.email,
+        $options: 'i'
+      };
+    }
+
+    if (queryCondition.googleId) {
+      matchStage['googleId'] = queryCondition.googleId;
+    }
+
+    if (queryCondition.facebookId) {
+      matchStage['facebookId'] = queryCondition.facebookId;
+    }
+
+    if (queryCondition.gender) {
+      matchStage['gender'] = queryCondition.gender;
+    }
+
+    if (queryCondition.role) {
+      matchStage['role'] = queryCondition.role;
+    }
+
+    if (queryCondition.status) {
+      matchStage['status'] = queryCondition.status;
+    }
+
+    if (Object.keys(matchStage).length > 0) {
+      stages.push({$match: matchStage});
+    }
+
+    if (queryCondition.sortBy) {
+      stages.push({
+        $sort: {
+          [queryCondition.sortBy]: queryCondition.sortDirection || 'ASC'
+        }
+      });
+    }
+
+    stages.push({
+      $facet: {
+        entries: [
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}},
+        ],
+      }
+    });
+
+    return stages;
+  }
+
+  generateForgetPasswordToken = async (user) => {
+    const reminderToken = RandomString.generate();
+    const reminderExpired = moment().add(2, 'hours');
+
+    user.passwordReminderToken = reminderToken;
+    user.passwordReminderExpire = reminderExpired;
+
+    return await user.save();
+  };
+
+  isExpiredTokenResetPassword = (expiredOn) => {
+    return moment(expiredOn).isBefore(moment());
+  };
+
+  resetPassword = async (newPassword, user) => {
+    user.passwordHash = bcrypt.hashSync(newPassword, user.passwordSalt);
+    user.passwordReminderToken = '';
+    return await user.save();
+  }
+
+  findUserByPasswordReminderToken = async (passwordReminderToken) =>{
+    return await UserModel.findOne({
+      passwordReminderToken: passwordReminderToken
+    });
+  }
+
 
 }

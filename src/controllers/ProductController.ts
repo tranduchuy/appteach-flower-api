@@ -11,18 +11,20 @@ import ProductModel, { Product } from '../models/product';
 import { General } from '../constant/generals';
 import UserTypes = General.UserTypes;
 import Joi from '@hapi/joi';
+import { ShopService } from '../services/shop.service';
 // validate schema
 import addProductSchema from '../validation-schemas/product/add-new.schema';
 import updateProductSchema from '../validation-schemas/product/update-one.schema';
 import updateStatusValidationSchema from '../validation-schemas/product/update-status.schema';
 import { ResponseMessages } from '../constant/messages';
-import { ImageService } from "../services/image.service";
+import { ImageService } from '../services/image.service';
 
 @controller('/product')
 export class ProductController {
   constructor(
     @inject(TYPES.ProductService) private productService: ProductService,
-    @inject(TYPES.ImageService) private imageService: ImageService
+    @inject(TYPES.ImageService) private imageService: ImageService,
+    @inject(TYPES.ShopService) private shopService: ShopService
   ) {
   }
 
@@ -58,7 +60,7 @@ export class ProductController {
           }
         };
         resolve(result);
-      }catch (e) {
+      } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
@@ -107,8 +109,8 @@ export class ProductController {
           return resolve(result);
         }
 
-        //check sale price vs original price.
-        if(salePrice > originalPrice){
+        // check sale price vs original price.
+        if (salePrice > originalPrice) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.Product.NOT_VALID_PRICE],
@@ -117,13 +119,15 @@ export class ProductController {
           return resolve(result);
         }
 
+        const shop: any = await this.shopService.findShopOfUser(request.user._id.toString());
+
         const newProduct = await this.productService.createProduct({
           title,
           sku,
           description,
           topic,
           originalPrice,
-          user,
+          shopId: shop._id.toString(),
           tags: tags || [],
           salePrice: salePrice || null,
           images: images || [],
@@ -138,10 +142,10 @@ export class ProductController {
           seoImage: seoImage || null
         });
 
-        //confirm images
+        // confirm images
         const paths = newProduct.images || [];
 
-        if(paths.length > 0){
+        if (paths.length > 0) {
           this.imageService.confirmImages(newProduct.images);
         }
 
@@ -190,13 +194,14 @@ export class ProductController {
 
         const productId = request.params.id;
         const user = request.user;
-        let product = await this.productService.findProductById(productId, user._id);
-        if(!product){
+        const product: any = await this.productService.findProductById(productId);
+        if (!product || product.shop.user.toString() !== request.user._id.toString()) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
             data: {}
           };
+
           return resolve(result);
         }
 
@@ -215,12 +220,12 @@ export class ProductController {
           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
         } = request.body;
 
-        const saleOffObject = saleOff || { price : null};
+        const saleOffObject = saleOff || {price: null};
 
         const salePrice = saleOffObject.price || product.saleOff.price;
         const price = originalPrice || product.originalPrice;
-        //check sale price vs original price.
-        if(salePrice > price){
+        // check sale price vs original price.
+        if (salePrice > price) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.Product.NOT_VALID_PRICE],
@@ -252,8 +257,8 @@ export class ProductController {
           seoImage
         });
 
-        //update images on static server
-        if(newImages){
+        // update images on static server
+        if (newImages) {
           this.imageService.updateImages(oldImages, newImages);
         }
 
@@ -302,13 +307,14 @@ export class ProductController {
 
         const productId = request.params.id;
         const user = request.user;
-        let product = await this.productService.findProductById(productId, user._id);
-        if(!product){
+        const product: any = await this.productService.findProductById(productId);
+        if (!product || product.shop.user.toString() !== request.user._id.toString()) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
             data: {}
           };
+
           return resolve(result);
         }
 
@@ -321,16 +327,14 @@ export class ProductController {
           return resolve(result);
         }
 
-        const { status } = request.body;
-
-        const Newproduct = await this.productService.updateProductStatus(product, status);
-
+        const {status} = request.body;
+        await this.productService.updateProductStatus(product, status);
         const result: IRes<{}> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.Product.Update.UPDATE_PRODUCT_SUCCESS],
           data: {
             meta: {},
-            entries: [Newproduct]
+            entries: []
           }
         };
 

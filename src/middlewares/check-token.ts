@@ -10,7 +10,6 @@ const WhiteList = require('./user-white-list');
 
 @injectable()
 export class CheckTokenMiddleware extends BaseMiddleware {
-
   responseAccessDenied = {
     status: HttpStatus.UNAUTHORIZED,
     messages: ['Access denied'],
@@ -19,6 +18,7 @@ export class CheckTokenMiddleware extends BaseMiddleware {
       entries: []
     }
   };
+
   checkExistInWhiteList = (path) => {
     return WhiteList.some(p => {
       return path.indexOf(p) !== -1;
@@ -37,7 +37,6 @@ export class CheckTokenMiddleware extends BaseMiddleware {
     }
 
     if (!token) {
-      // logger.info('CheckUserLogin::error::token is required');
       return res.json(this.responseAccessDenied);
     }
 
@@ -48,15 +47,12 @@ export class CheckTokenMiddleware extends BaseMiddleware {
       });
 
       if (!user || user.status !== Status.ACTIVE) {
-        // logger.error('CheckUserLogin::error. Access denied. User not found or status not active', JSON.stringify(userInfo));
         return res.json(this.responseAccessDenied);
       }
 
       req.user = user;
       return next();
     } catch (err) {
-      // logger.error('CheckUserLogin::error. Cannot verify access token', err);
-
       return res.json(this.responseAccessDenied);
     }
   }

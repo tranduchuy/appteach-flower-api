@@ -1,7 +1,7 @@
-import { injectable } from "inversify";
-import { General } from "../constant/generals";
-import * as _ from "lodash";
-import request from "request";
+import { injectable } from 'inversify';
+import { General } from '../constant/generals';
+import * as _ from 'lodash';
+import request from 'request';
 
 @injectable()
 export class ImageService {
@@ -10,7 +10,7 @@ export class ImageService {
       const url = General.API_COMFIRM_IMAGE;
 
       const option = {
-        "rejectUnauthorized": false,
+        'rejectUnauthorized': false,
         uri: url,
         json: {paths},
         method: 'POST'
@@ -29,7 +29,7 @@ export class ImageService {
     } catch (e) {
       console.log(e);
     }
-  }
+  };
 
   updateImages = (oldImages, newImages) => {
     const url = General.API_COMFIRM_IMAGE;
@@ -44,7 +44,7 @@ export class ImageService {
     const imagesAdd = _.difference(newImages, oldImages);
 
     const option = {
-      "rejectUnauthorized": false,
+      'rejectUnauthorized': false,
       uri: url,
       method: 'PUT',
       json: {oldImages: imagesDelete, newImages: imagesAdd}
@@ -57,12 +57,11 @@ export class ImageService {
         } else {
           console.log(['PUST UPDATE IMAGE info', url, option]);
         }
-      })
-    }
-    catch (e) {
+      });
+    } catch (e) {
       console.log(`POST CONFIRM IMAGE error: ${JSON.stringify(e)}. Params: ${JSON.stringify(option)}`);
     }
-  }
+  };
 
 
 }

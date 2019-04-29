@@ -32,18 +32,18 @@ export const run = () => {
       city: SearchSelector.Cities[getRandomInt(0, 50)].code,
       design: SearchSelector.Designs[getRandomInt(0, 4)].value,
       color: SearchSelector.Colors[getRandomInt(0, 6)].value,
-      priceRange: ProductService.detectPriceRange(price),
+      priceRange: ProductService.detectPriceRange(0.6 * price),
       slug: 'demo-' + new Date().getTime(),
       code: 'DUMP_DATA_' + i,
       sku: 'SKU' + new Date().getTime() + getRandomInt(0, 10000),
       saleOff: {
-        active: false,
-        startDate: null,
-        endDate: null,
-        price: 0
+        active: true,
+        startDate: new Date(2019, 1, 1),
+        endDate: new Date(2019, 16, 1),
+        price: 0.6 * price
       },
       createdAt: new Date(),
-      user: new mongoose.Types.ObjectId('5cb9a7c8aad2582d60ea5cbe')
+      shop: new mongoose.Types.ObjectId('5cc3d7da3537dd1f6181e383')
     });
 
 

@@ -1,7 +1,7 @@
 export namespace General {
   export const API_COMFIRM_IMAGE = 'http://157.230.248.161:3100/images/confirmation';
   export const HOME_PRODUCT_LIMIT = 8;
-
+  export const RELATED_PRODUCT_LIMIT = 8;
   export const ApiTokenName = 'accesstoken';
   export const jwtSecret = 'Hello';
   export const Genders = {
@@ -17,6 +17,10 @@ export namespace General {
     TYPE_CUSTOMER: 1,
     TYPE_SELLER: 2
   };
+  export const AddressTypes = {
+    DELIVERY: 1,
+    POSSIBLE_DELIVERY: 2
+  };
   export const UserRoles = {
     USER_ROLE_MASTER: 1,
     USER_ROLE_ADMIN: 2,
@@ -26,6 +30,5 @@ export namespace General {
     ACTIVE: 1,
     BLOCKED: 3,
     OUT_OF_STOCK: 60
-  }
-
+  };
 }
