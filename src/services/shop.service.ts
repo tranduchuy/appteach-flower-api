@@ -1,5 +1,6 @@
 import { injectable } from 'inversify';
 import mongoose from 'mongoose';
+import { Status } from '../constant/status';
 import ShopModel, { Shop } from '../models/shop';
 
 export interface IQueryWaitingShop {
@@ -92,6 +93,10 @@ export class ShopService {
 
     if (queryCondition.status) {
       matchStage['status'] = queryCondition.status;
+    } else {
+      matchStage['status'] = {
+        $ne: [Status.DELETE]
+      };
     }
 
     if (queryCondition.title) {
