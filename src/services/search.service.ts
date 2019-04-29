@@ -1,6 +1,9 @@
 import { injectable } from 'inversify';
 import UrlParamModel, { UrlParam } from '../models/url-param';
 import ProductModel, { Product } from '../models/product';
+import { SelectorService } from './selector.service';
+import { SearchSelector } from '../constant/search-selector.constant';
+import urlSlug from 'url-slug';
 
 @injectable()
 export class SearchService {
@@ -17,15 +20,52 @@ export class SearchService {
   }
 
   createUrlByQuery(query: any): string {
-    // TODO
-    const queryFields = [
-      'topic', 'specialOccasion', 'floret', 'design', 'color', 'priceRange', 'city', 'district'
-    ];
+    const _query = {...query};
+    const url = urlSlug(this.createTitleByQuery(_query).trim());
 
-    return queryFields
-      .filter(f => query[f])
-      .map(f => query[f])
-      .join('-');
+    return url;
+  }
+
+  createTitleByQuery(query: any): string {
+    let title = '';
+    const {
+      topic, specialOccasion, floret, design, color, priceRange, city, district
+    } = query;
+
+    let titleEles = [];
+    if (design)
+      titleEles.push(SelectorService.getTextByValue(SearchSelector.Designs, design));
+
+    if (floret)
+      titleEles.push(SelectorService.getTextByValue(SearchSelector.Florets, floret));
+
+    if (color)
+      titleEles.push(SelectorService.getTextByValue(SearchSelector.Colors, color));
+
+    if (specialOccasion)
+      titleEles.push(SelectorService.getTextByValue(SearchSelector.SpecialOccasions, specialOccasion));
+    else if (topic)
+      titleEles.push(SelectorService.getTextByValue(SearchSelector.Topics, topic));
+
+    if (city) {
+      const objCity = SelectorService.getCityByCode(city);
+      if (objCity && objCity.name) {
+        const objDistrict = SelectorService.getDistrictByValue(objCity, district);
+        if (objDistrict && objDistrict.name)
+          titleEles.push('tại', objDistrict.name, objCity.name);
+        else
+          titleEles.push('tại', objCity.name);
+      }
+    }
+
+    if (priceRange)
+      titleEles.push('giá', SelectorService.getTextByValue(SearchSelector.PriceRanges, priceRange));
+
+    titleEles = titleEles.filter(e => e !== null);
+    title = titleEles.join(' ');
+    title = title.replace('hoa Hoa','hoa');
+
+    return title;
   }
 
   async searchListByUrlParam(condition: { url: string, limit: number, page: number, sortBy?: string, sortDirection?: string }): Promise<{ total: number, products: Product[] }> {
@@ -48,13 +88,11 @@ export class SearchService {
       }
     });
 
-
     const stages: any[] = [
       {
         $match: queryObj
       }
     ];
-
 
     if (condition.sortBy) {
       const sortStage = {
@@ -71,8 +109,8 @@ export class SearchService {
           {$limit: condition.limit}
         ],
         meta: [
-          {$group: {_id: null, totalItems: {$sum: 1}}},
-        ],
+          {$group: {_id: null, totalItems: {$sum: 1}}}
+        ]
       }
     });
 
