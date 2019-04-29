@@ -16,8 +16,8 @@ export interface IQueryProductsOfShop {
   sortBy?: string;
   sortDirection?: string;
   status?: number;
-  name?: string;
-  userId: string;
+  title?: string;
+  shopId: string;
 }
 
 @injectable()
@@ -28,7 +28,7 @@ export class ShopService {
   }
 
   async findShopOfUser(userId: string): Promise<Shop> {
-    return await ShopModel.findOne({user: userId});
+    return await ShopModel.findOne({user: new mongoose.Types.ObjectId(userId)});
   }
 
   async findShopBySlug(slug: string): Promise<Shop> {
@@ -41,7 +41,7 @@ export class ShopService {
       slug,
       images,
       availableShipCountry,
-      user: new mongoose.Types.ObjectId('5cb9a7c8aad2582d60ea5cbe'),
+      user: new mongoose.Types.ObjectId(userId),
       createdAt: new Date(),
       updatedAt: new Date()
     });
@@ -87,19 +87,23 @@ export class ShopService {
     const stages = [];
 
     const matchStage = {
-      user: queryCondition.userId
+      shop: new mongoose.Types.ObjectId(queryCondition.shopId)
     };
 
     if (queryCondition.status) {
       matchStage['status'] = queryCondition.status;
     }
 
-    if (queryCondition.name) {
-      matchStage['name'] = {
-        $regex: queryCondition.name,
+    if (queryCondition.title) {
+      matchStage['title'] = {
+        $regex: queryCondition.title,
         $options: 'i'
       };
     }
+
+    stages.push({
+      $match: matchStage
+    });
 
     if (queryCondition.sortBy) {
       stages.push({

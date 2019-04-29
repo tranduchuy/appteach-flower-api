@@ -5,7 +5,7 @@ import TYPES from '../constant/types';
 import { Request } from 'express';
 import { IRes } from '../interfaces/i-res';
 import { AddressService } from '../services/address.service';
-import { ShopService } from '../services/shop.service';
+import { IQueryProductsOfShop, ShopService } from '../services/shop.service';
 import * as HttpStatus from 'http-status-codes';
 import registerShopSchema from '../validation-schemas/shop/shop-register.schema';
 import checkShopSlugSchema from '../validation-schemas/shop/check-shop-slug.schema';
@@ -25,6 +25,9 @@ interface IResCheckValidSlug {
 interface IResProductOfShop {
   meta: {
     totalItems: number;
+    limit: number;
+    item: number;
+    page: number;
   };
   products: Product[];
 }
@@ -147,27 +150,39 @@ export class ShopController {
         return resolve(result);
       }
 
-      const {limit, page, name, status, sb, sd} = req.query;
-      const stages: any[] = this.shopService.buildStageQueryProductOfShop({
+      const shop: any = await this.shopService.findShopOfUser(req.user._id.toString());
+      if (!shop) {
+        return resolve({
+          status: HttpStatus.BAD_REQUEST,
+          messages: [ResponseMessages.Shop.SHOP_OF_USER_NOT_FOUND]
+        });
+      }
+
+      const {limit, page, title, status, sb, sd} = req.query;
+      const queryCondition: IQueryProductsOfShop = {
         limit: parseInt((limit || 10).toString()),
         page: parseInt((page || 1).toString()),
-        userId: req.user._id.toString(),
-        name: name || null,
+        shopId: shop._id.toString(),
+        title: title || null,
         status: status ? parseInt(status.toString()) : null,
         sortBy: sb || null,
         sortDirection: sd || null
-      });
-      console.log(JSON.stringify(stages));
+      };
+      const stages: any[] = this.shopService.buildStageQueryProductOfShop(queryCondition);
+      console.log('stages query search', JSON.stringify(stages));
       const result: any = await ProductModel.aggregate(stages);
 
-      resolve({
+      return resolve({
         status: HttpStatus.OK,
         messages: [ResponseMessages.SUCCESS],
         data: {
           meta: {
-            totalItems: result.meta[0] ? result.meta[0].totalItems : 0
+            totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0,
+            item: result[0].entries.length,
+            limit: queryCondition.limit,
+            page: queryCondition.page,
           },
-          products: result.entries
+          products: result[0].entries
         }
       });
     });
