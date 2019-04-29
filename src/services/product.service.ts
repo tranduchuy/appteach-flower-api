@@ -8,6 +8,16 @@ import mongoose from 'mongoose';
 import RandomString from 'randomstring';
 import { General } from '../constant/generals';
 
+export interface IQueryProduct {
+  shop_id: string;
+  product_name: string;
+  limit: number;
+  page: number;
+  status: number;
+  sb?: string;
+  sd?: string;
+}
+
 @injectable()
 export class ProductService {
   listProductFields = ['_id', 'status', 'title', 'image', 'originalPrice', 'saleOff', 'slug'];
@@ -246,4 +256,46 @@ export class ProductService {
       console.log(e);
     }
   };
+
+  buildStageGetListProduct(queryCondition: IQueryProduct): any[] {
+    const stages = [];
+    const matchStage: any = {};
+    if (queryCondition.shop_id) {
+      matchStage['shop'] = queryCondition.shop_id;
+    }
+
+    if (queryCondition.status) {
+      matchStage['active'] = queryCondition.status;
+    }
+
+    if (Object.keys(matchStage).length > 0) {
+      stages.push({$match: matchStage});
+    }
+
+    if (queryCondition.product_name) {
+      stages.push({ 'title': { "$regex": queryCondition.product_name, "$options": "i" }});
+    }
+
+    if (queryCondition.sb) {
+      stages.push({
+        $sort: {
+          [queryCondition.sb]: queryCondition.sd || 'ASC'
+        }
+      });
+    }
+
+    stages.push({
+      $facet: {
+        entries: [
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}},
+        ],
+      }
+    });
+
+    return stages;
+  }
 }
