@@ -1,6 +1,7 @@
 import { inject } from 'inversify';
 import { controller, httpGet, httpPost, httpPut } from 'inversify-express-utils';
 import * as HttpStatus from 'http-status-codes';
+import mongoose from 'mongoose';
 import { Request } from 'express';
 import { General } from '../../constant/generals';
 import { HttpCodes } from '../../constant/http-codes';
@@ -11,7 +12,7 @@ import { IRes } from '../../interfaces/i-res';
 import UserModel, { User } from '../../models/user';
 import { ShopService } from '../../services/shop.service';
 import { UserService } from '../../services/user.service';
-import ShopModel from '../../models/shop';
+import ShopModel, { Shop } from '../../models/shop';
 import Joi from '@hapi/joi';
 
 // schemas
@@ -19,6 +20,7 @@ import loginSchema from '../../validation-schemas/user/login.schema';
 import ShopWaitingConfirmSchema from '../../validation-schemas/user/admin-shop-waiting.schema';
 import AcceptShopSchema from '../../validation-schemas/user/admin-accept-shop.schema';
 import ListUserSchema from '../../validation-schemas/user/admin-list-user.schema';
+import AdminUserChangeStatus from '../../validation-schemas/user/admin-user-change-status.schema';
 import UserTypes = General.UserTypes;
 
 interface IResUserLogin {
@@ -52,6 +54,8 @@ interface IResUserAcceptedTobeShop {
 }
 
 interface IResUserUpdateStatus {
+  user?: User,
+  shop?: Shop
 
 }
 
@@ -310,8 +314,65 @@ export class AdminUserController {
 
   @httpPut('/status')
   public updateStatusUser(req: Request): Promise<IRes<IResUserUpdateStatus>> {
-    return new Promise<IRes<IResUserUpdateStatus>>((resolve) => {
-      // TODO: Update status of user
+    return new Promise<IRes<IResUserUpdateStatus>>(async (resolve) => {
+      try {
+        const {error} = Joi.validate(req.body, AdminUserChangeStatus);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<IResUserUpdateStatus> = {
+            status: HttpCodes.ERROR,
+            messages: messages
+          };
+
+          return resolve(result);
+        }
+
+        const {userId, status} = req.body;
+
+        const user = await UserModel.findById(userId);
+        if (!user) {
+          const result: IRes<IResUserUpdateStatus> = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.User.USER_NOT_FOUND]
+          };
+
+          return resolve(result);
+        }
+
+        // change status of user
+        user.status = status;
+        await user.save();
+
+        const shop = await ShopModel.findOne({user: new mongoose.Types.ObjectId(userId)});
+        if (shop) {
+          // change status of shop if user have shop
+          shop.status = status;
+          await shop.save();
+        }
+
+        return resolve({
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: {
+            user: user,
+            shop: shop
+          }
+        });
+      }
+
+      catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<IResUserUpdateStatus> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages
+        };
+        return resolve(result);
+      }
     });
   }
 }

@@ -1,7 +1,8 @@
 import { Request } from 'express';
 import * as HttpStatus from 'http-status-codes';
 import { inject } from 'inversify';
-import { controller, httpGet } from 'inversify-express-utils';
+import { controller, httpGet, httpPut } from 'inversify-express-utils';
+import { HttpCodes } from '../../constant/http-codes';
 import { ResponseMessages } from '../../constant/messages';
 import TYPES from '../../constant/types';
 import { IRes } from '../../interfaces/i-res';
@@ -11,12 +12,17 @@ import Joi from '@hapi/joi';
 
 // schemas
 import ListShopSchema from '../../validation-schemas/user/admin-list-shop.schema';
+import AdminShopChangeStatus from '../../validation-schemas/user/admin-shop-change-status.schema';
 
 interface IResShops {
   meta: {
     totalItems: number
   };
   shops: Shop[];
+}
+
+interface IResShopUpdateStatus {
+  shop?: Shop
 }
 
 @controller('/admin/shop')
@@ -76,6 +82,62 @@ export class AdminShopController {
           messages: messages
         };
         resolve(result);
+      }
+    });
+  }
+
+  @httpPut('/status')
+  public updateStatusShop(req: Request): Promise<IRes<IResShopUpdateStatus>> {
+    return new Promise<IRes<IResShopUpdateStatus>>(async (resolve) => {
+      try {
+        const {error} = Joi.validate(req.body, AdminShopChangeStatus);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<IResShopUpdateStatus> = {
+            status: HttpCodes.ERROR,
+            messages: messages
+          };
+
+          return resolve(result);
+        }
+
+        const {shopId, status} = req.body;
+
+        const shop = await ShopModel.findById(shopId);
+        if (!shop) {
+          const result: IRes<IResShopUpdateStatus> = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Shop.SHOP_NOT_FOUND]
+          };
+
+          return resolve(result);
+        }
+
+        // change status of shop
+        shop.status = status;
+        await shop.save();
+
+        return resolve({
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: {
+            shop: shop
+          }
+        });
+      }
+
+      catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<IResShopUpdateStatus> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages
+        };
+        return resolve(result);
       }
     });
   }
