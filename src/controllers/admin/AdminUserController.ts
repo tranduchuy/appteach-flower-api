@@ -298,9 +298,9 @@ export class AdminUserController {
         messages: [ResponseMessages.SUCCESS],
         data: {
           meta: {
-            totalItems: result.meta[0] ? result.meta[0].totalItems : 0
+            totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0
           },
-          users: result.entries
+          users: result[0].entries
         }
       };
 

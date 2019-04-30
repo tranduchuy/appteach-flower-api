@@ -21,6 +21,15 @@ export interface IQueryProductsOfShop {
   shopId: string;
 }
 
+export interface IQueryListShop {
+  name: string;
+  limit: number;
+  page: number;
+  status: number;
+  sb?: string;
+  sd?: string;
+}
+
 @injectable()
 export class ShopService {
 
@@ -114,6 +123,45 @@ export class ShopService {
       stages.push({
         $sort: {
           [queryCondition.sortBy]: queryCondition.sortDirection || 'ASC'
+        }
+      });
+    }
+
+    stages.push({
+      $facet: {
+        entries: [
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}},
+        ],
+      }
+    });
+
+    return stages;
+  }
+
+  buildStageGetListShop(queryCondition: IQueryListShop): any[] {
+    const stages = [];
+    const matchStage: any = {};
+
+    if (queryCondition.name) {
+      matchStage['name'] = {"$regex": queryCondition.name, "$options": "i" };
+    }
+
+    if (queryCondition.status) {
+      matchStage['status'] = queryCondition.status;
+    }
+
+    if (Object.keys(matchStage).length > 0) {
+      stages.push({$match: matchStage});
+    }
+
+    if (queryCondition.sb) {
+      stages.push({
+        $sort: {
+          [queryCondition.sb]: queryCondition.sd === 'ASC' ? 1 : -1
         }
       });
     }

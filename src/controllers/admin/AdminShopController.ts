@@ -5,47 +5,46 @@ import { controller, httpGet } from 'inversify-express-utils';
 import { ResponseMessages } from '../../constant/messages';
 import TYPES from '../../constant/types';
 import { IRes } from '../../interfaces/i-res';
-import ProductModel, {Product} from '../../models/product';
-import { ProductService } from '../../services/product.service';
+import ShopModel, { Shop } from '../../models/shop';
+import { ShopService } from '../../services/shop.service';
 import Joi from '@hapi/joi';
 
 // schemas
-import ListProductSchema from '../../validation-schemas/user/admin-list-product.schema';
+import ListShopSchema from '../../validation-schemas/user/admin-list-shop.schema';
 
-interface IResProducts {
+interface IResShops {
   meta: {
     totalItems: number
   };
-  products: Product[];
+  shops: Shop[];
 }
 
-@controller('/admin/product')
-export class AdminProductController {
-  constructor(@inject(TYPES.ProductService) private productService: ProductService){
+@controller('/admin/shop')
+export class AdminShopController {
+  constructor(@inject(TYPES.ShopService) private shopService: ShopService){
 
   }
 
   @httpGet('/', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
-  public getList(req: Request): Promise<IRes<IResProducts>> {
-    return new Promise<IRes<IResProducts>>(async (resolve) => {
+  public getList(req: Request): Promise<IRes<IResShops>> {
+    return new Promise<IRes<IResShops>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(req.query, ListProductSchema);
+        const {error} = Joi.validate(req.query, ListShopSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
           });
 
-          const result: IRes<IResProducts> = {
+          const result: IRes<IResShops> = {
             status: HttpStatus.BAD_REQUEST,
             messages: messages
           };
           return resolve(result);
         }
 
-        const {shop_id, product_name, limit, page, status, sb, sd} = req.query;
-        const stages: any[] = this.productService.buildStageGetListProduct({
-          shop_id: shop_id ? shop_id : null,
-          product_name: product_name ? product_name : null,
+        const {name, limit, page, status, sb, sd} = req.query;
+        const stages: any[] = this.shopService.buildStageGetListShop({
+          name: name ? name : null,
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
           status: status ? parseInt(status) : null,
@@ -53,15 +52,15 @@ export class AdminProductController {
           sd: sd,
         });
 
-        const result: any = await ProductModel.aggregate(stages);
-        const response: IRes<IResProducts> = {
+        const result: any = await ShopModel.aggregate(stages);
+        const response: IRes<IResShops> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: {
             meta: {
               totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0
             },
-            products: result[0].entries
+            shops: result[0].entries
           }
         };
 
@@ -72,7 +71,7 @@ export class AdminProductController {
           return e.errors[key].message;
         });
 
-        const result: IRes<IResProducts> = {
+        const result: IRes<IResShops> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages
         };

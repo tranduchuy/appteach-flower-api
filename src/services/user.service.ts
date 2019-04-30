@@ -185,7 +185,7 @@ export class UserService {
     if (queryCondition.sortBy) {
       stages.push({
         $sort: {
-          [queryCondition.sortBy]: queryCondition.sortDirection || 'ASC'
+          [queryCondition.sortBy]: queryCondition.sortDirection === 'ASC' ? 1 : -1
         }
       });
     }

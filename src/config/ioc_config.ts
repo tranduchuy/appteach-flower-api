@@ -7,6 +7,7 @@ import TYPES from '../constant/types';
 import TAG from '../constant/tags';
 import { AdminProductController } from '../controllers/admin/AdminProductController';
 import { AdminUserController } from '../controllers/admin/AdminUserController';
+import { AdminShopController } from '../controllers/admin/AdminShopController';
 import { SearchController } from '../controllers/SearchController';
 import { ShopController } from '../controllers/ShopController';
 import { CheckAdminMiddleware } from '../middlewares/check-admin';
@@ -35,6 +36,7 @@ container.bind<ShopController>(TYPES.ShopController).to(ShopController);
 // Bind Admin Controller
 container.bind<AdminUserController>(TYPES.Admin.UserController).to(AdminUserController);
 container.bind<AdminProductController>(TYPES.Admin.ProductController).to(AdminProductController);
+container.bind<AdminShopController>(TYPES.Admin.ShopController).to(AdminShopController);
 
 // Bind Service
 container.bind<UserService>(TYPES.UserService).to(UserService);

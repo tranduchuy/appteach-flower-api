@@ -22,7 +22,8 @@ const TYPES = {
 
   Admin: {
     UserController: Symbol.for('AdminUserController'),
-    ProductController: Symbol.for('AdminProductController')
+    ProductController: Symbol.for('AdminProductController'),
+    ShopController: Symbol.for('AdminShopController')
   }
 };
 
