@@ -312,7 +312,7 @@ export class AdminUserController {
     });
   }
 
-  @httpPut('/status')
+  @httpPut('/status', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
   public updateStatusUser(req: Request): Promise<IRes<IResUserUpdateStatus>> {
     return new Promise<IRes<IResUserUpdateStatus>>(async (resolve) => {
       try {

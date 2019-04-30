@@ -86,7 +86,7 @@ export class AdminShopController {
     });
   }
 
-  @httpPut('/status')
+  @httpPut('/status',TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
   public updateStatusShop(req: Request): Promise<IRes<IResShopUpdateStatus>> {
     return new Promise<IRes<IResShopUpdateStatus>>(async (resolve) => {
       try {
