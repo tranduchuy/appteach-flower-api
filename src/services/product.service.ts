@@ -268,18 +268,18 @@ export class ProductService {
       matchStage['active'] = queryCondition.status;
     }
 
-    if (Object.keys(matchStage).length > 0) {
-      stages.push({$match: matchStage});
+    if (queryCondition.product_name) {
+      matchStage['title'] = {"$regex": queryCondition.product_name, "$options": "i" };
     }
 
-    if (queryCondition.product_name) {
-      stages.push({ 'title': { "$regex": queryCondition.product_name, "$options": "i" }});
+    if (Object.keys(matchStage).length > 0) {
+      stages.push({$match: matchStage});
     }
 
     if (queryCondition.sb) {
       stages.push({
         $sort: {
-          [queryCondition.sb]: queryCondition.sd || 'ASC'
+          [queryCondition.sb]: queryCondition.sd === 'ASC' ? 1 : -1
         }
       });
     }

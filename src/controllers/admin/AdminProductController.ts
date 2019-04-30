@@ -59,9 +59,9 @@ export class AdminProductController {
           messages: [ResponseMessages.SUCCESS],
           data: {
             meta: {
-              totalItems: result.meta[0] ? result.meta[0].totalItems : 0
+              totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0
             },
-            products: result.entries
+            products: result[0].entries
           }
         };
 
