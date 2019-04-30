@@ -265,7 +265,7 @@ export class ProductService {
     }
 
     if (queryCondition.status) {
-      matchStage['active'] = queryCondition.status;
+      matchStage['status'] = queryCondition.status;
     }
 
     if (queryCondition.product_name) {
