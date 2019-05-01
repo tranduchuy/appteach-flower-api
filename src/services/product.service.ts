@@ -1,4 +1,5 @@
 import { injectable } from 'inversify';
+import { Status } from '../constant/status';
 import ProductModel from '../models/product';
 import urlSlug from 'url-slug';
 import { SearchSelector } from '../constant/search-selector.constant';
@@ -186,25 +187,33 @@ export class ProductService {
 
   getFeaturedProducts = async () => {
     try {
-      const products = await ProductModel.find({}, this.listProductFields).sort({
-        view: -1
-      }).limit(General.HOME_PRODUCT_LIMIT);
-
-      return products;
+      return await ProductModel.find({
+        status: Status.ACTIVE
+      }, this.listProductFields)
+        .sort({
+          view: -1
+        })
+        .limit(General.HOME_PRODUCT_LIMIT);
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      return [];
     }
   };
 
   getSaleProducts = async () => {
     try {
-      const products = await ProductModel.find({'saleOff.active': true}, this.listProductFields).sort({
+      const products = await ProductModel.find({
+        status: Status.ACTIVE,
+        'saleOff.active': true
+      }, this.listProductFields).sort({
         updatedAt: -1
-      }).limit(General.HOME_PRODUCT_LIMIT);
+      })
+        .limit(General.HOME_PRODUCT_LIMIT);
 
       return products;
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      return [];
     }
   };
 
@@ -269,7 +278,7 @@ export class ProductService {
     }
 
     if (queryCondition.product_name) {
-      matchStage['title'] = {"$regex": queryCondition.product_name, "$options": "i" };
+      matchStage['title'] = {'$regex': queryCondition.product_name, '$options': 'i'};
     }
 
     if (Object.keys(matchStage).length > 0) {

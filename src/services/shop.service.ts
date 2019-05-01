@@ -38,7 +38,10 @@ export class ShopService {
   }
 
   async findShopOfUser(userId: string): Promise<Shop> {
-    return await ShopModel.findOne({user: new mongoose.Types.ObjectId(userId)});
+    return await ShopModel.findOne({
+      user: new mongoose.Types.ObjectId(userId),
+      status: Status.ACTIVE
+    });
   }
 
   async findShopBySlug(slug: string): Promise<Shop> {

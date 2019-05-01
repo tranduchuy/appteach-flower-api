@@ -3,7 +3,7 @@ import {
 } from 'inversify-express-utils';
 import { inject } from 'inversify';
 import TYPES from '../constant/types';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import { IRes } from '../interfaces/i-res';
 import { ProductService } from '../services/product.service';
 import * as HttpStatus from 'http-status-codes';
@@ -11,6 +11,7 @@ import ProductModel, { Product } from '../models/product';
 import { General } from '../constant/generals';
 import UserTypes = General.UserTypes;
 import Joi from '@hapi/joi';
+import mongoose from 'mongoose';
 import { ShopService } from '../services/shop.service';
 // validate schema
 import addProductSchema from '../validation-schemas/product/add-new.schema';
@@ -18,6 +19,10 @@ import updateProductSchema from '../validation-schemas/product/update-one.schema
 import updateStatusValidationSchema from '../validation-schemas/product/update-status.schema';
 import { ResponseMessages } from '../constant/messages';
 import { ImageService } from '../services/image.service';
+
+interface IResUpdateProductsStatus {
+  notFoundProducts?: string[];
+}
 
 @controller('/product')
 export class ProductController {
@@ -29,8 +34,8 @@ export class ProductController {
   }
 
   @httpGet('/')
-  public getProducts(request: Request, response: Response): Promise<IRes<Product[]>> {
-    return new Promise<IRes<Product[]>>(async (resolve, reject) => {
+  public getProducts(): Promise<IRes<Product[]>> {
+    return new Promise<IRes<Product[]>>(async (resolve) => {
       const result: IRes<Product[]> = {
         status: 1,
         messages: [ResponseMessages.SUCCESS],
@@ -42,8 +47,8 @@ export class ProductController {
   }
 
   @httpGet('/home')
-  public getHomeProducts(request: Request, response: Response): Promise<IRes<{}>> {
-    return new Promise<IRes<{}>>(async (resolve, reject) => {
+  public getHomeProducts(): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve) => {
       try {
         const featuredProducts = await this.productService.getFeaturedProducts();
         const saleProducts = await this.productService.getSaleProducts();
@@ -76,8 +81,8 @@ export class ProductController {
   }
 
   @httpPost('/', TYPES.CheckTokenMiddleware)
-  public addOne(request: Request, response: Response): Promise<IRes<{}>> {
-    return new Promise<IRes<{}>>(async (resolve, reject) => {
+  public addOne(request: Request): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve) => {
       try {
         const {error} = Joi.validate(request.body, addProductSchema);
         if (error) {
@@ -175,8 +180,8 @@ export class ProductController {
   }
 
   @httpPut('/:id', TYPES.CheckTokenMiddleware)
-  public updateOne(request: Request, response: Response): Promise<IRes<{}>> {
-    return new Promise<IRes<{}>>(async (resolve, reject) => {
+  public updateOne(request: Request): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve) => {
       try {
         const {error} = Joi.validate(request.body, updateProductSchema);
         if (error) {
@@ -287,9 +292,9 @@ export class ProductController {
     });
   }
 
-  @httpPut('/:id/status', TYPES.CheckTokenMiddleware)
-  public updateStatus(request: Request, response: Response): Promise<IRes<{}>> {
-    return new Promise<IRes<{}>>(async (resolve, reject) => {
+  @httpPost('/status', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
+  public updateStatus(request: Request): Promise<IRes<IResUpdateProductsStatus>> {
+    return new Promise<IRes<{}>>(async (resolve) => {
       try {
         const {error} = Joi.validate(request.body, updateStatusValidationSchema);
         if (error) {
@@ -297,45 +302,53 @@ export class ProductController {
             return detail.message;
           });
 
-          const result: IRes<{}> = {
+          const result: IRes<IResUpdateProductsStatus> = {
             status: HttpStatus.BAD_REQUEST,
-            messages: messages,
-            data: {}
+            messages: messages
           };
           return resolve(result);
         }
 
-        const productId = request.params.id;
-        const user = request.user;
-        const product: any = await this.productService.findProductById(productId);
-        if (!product || product.shop.user.toString() !== request.user._id.toString()) {
+        const {productIds, status} = request.body;
+        const shop = await this.shopService.findShopOfUser(request.user._id.toString());
+        if (!shop) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Shop.SHOP_OF_USER_NOT_FOUND],
+          };
+
+          return resolve(result);
+        }
+
+        const notFoundProducts: string[] = [];
+        await Promise.all(productIds.map(async (productId: string) => {
+          const product = await ProductModel.findOne({
+            _id: new mongoose.Types.ObjectId(productId),
+            shop: new mongoose.Types.ObjectId(shop._id.toString())
+          });
+
+          if (!product) {
+            notFoundProducts.push(productId);
+          } else {
+            product.status = status;
+            await product.save();
+          }
+        }));
+
+        if (notFoundProducts.length !== 0) {
+          const result: IRes<IResUpdateProductsStatus> = {
+            status: HttpStatus.OK,
             messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
-            data: {}
+            data: {notFoundProducts}
           };
 
           return resolve(result);
         }
 
-        if (user.type !== UserTypes.TYPE_SELLER) {
-          const result: IRes<{}> = {
-            status: HttpStatus.BAD_REQUEST,
-            messages: [ResponseMessages.Product.Update.NO_UPDATE_PRODUCT_PERMISSION],
-            data: {}
-          };
-          return resolve(result);
-        }
-
-        const {status} = request.body;
-        await this.productService.updateProductStatus(product, status);
-        const result: IRes<{}> = {
+        const result: IRes<IResUpdateProductsStatus> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.Product.Update.UPDATE_PRODUCT_SUCCESS],
-          data: {
-            meta: {},
-            entries: []
-          }
+          data: {}
         };
 
         resolve(result);
@@ -349,7 +362,8 @@ export class ProductController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+
+        return resolve(result);
       }
     });
   }
