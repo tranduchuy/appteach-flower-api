@@ -14,6 +14,7 @@ const TYPES = {
   ImageService: Symbol.for('ImageService'),
   AddressService: Symbol.for('AddressService'),
   ShopService: Symbol.for('ShopService'),
+  SystemConfigService: Symbol.for('SystemConfigService'),
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),
   CheckAdminMiddleware: Symbol.for('CheckAdminMiddleware'),
@@ -24,7 +25,8 @@ const TYPES = {
     UserController: Symbol.for('AdminUserController'),
     ProductController: Symbol.for('AdminProductController'),
     ShopController: Symbol.for('AdminShopController'),
-    StatisticController: Symbol.for('AdminStatisticController')
+    StatisticController: Symbol.for('AdminStatisticController'),
+    SystemConfigController: Symbol.for('SystemConfigController')
   }
 };
 
