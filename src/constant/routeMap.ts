@@ -1,6 +1,15 @@
-export enum CartRoute {
-    Name = '/cart',
-    Root = '/',
-    AddProduct = '/product/:productId',
-    RemoveProduct = '/product/:productId',
+export enum OrderRoute {
+    Name = '/order',
+    // GET
+    GetOrder = '/',
+    GetOrderItem = '/:orderId/item',
+
+    // UPDATE
+    SubmitOrder = '/',
+
+    // CREATE
+    AddItem = '/',
+
+    // DELETE
+    DeleteItem = '/item/:itemId',
 }

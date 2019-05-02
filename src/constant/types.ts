@@ -4,7 +4,7 @@ const TYPES = {
   UserController: Symbol.for('UserController'),
   ProductController: Symbol.for('ProductController'),
   SearchController: Symbol.for('SearchController'),
-  CartController: Symbol.for('CartController'),
+  OrderController: Symbol.for('OrderController'),
   ShopController: Symbol.for('ShopController'),
   AddressController: Symbol.for('AddressController'),
 
@@ -13,7 +13,7 @@ const TYPES = {
   ProductService: Symbol.for('ProductService'),
   SearchService: Symbol.for('SearchService'),
   ImageService: Symbol.for('ImageService'),
-  CartService: Symbol.for('CartService'),
+  OrderService: Symbol.for('OrderService'),
   AddressService: Symbol.for('AddressService'),
   ShopService: Symbol.for('ShopService'),
 
