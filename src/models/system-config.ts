@@ -15,7 +15,7 @@ export class SystemConfig extends Typegoose {
   homeBannerImage: string;
 
   @prop({default: []})
-  propertyImages: [string];
+  criteriaImages: [string];
 
   @prop()
   createdAt: Date;

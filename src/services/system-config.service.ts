@@ -12,8 +12,20 @@ export class SystemConfigService {
     return await SystemConfigModel.findOne({});
   }
 
-  updateLogo = async (logo) =>{
-    return await SystemConfigModel.findOneAndUpdate({},{logo: logo});
+  updateLogoImage = async (logo) =>{
+    return await SystemConfigModel.findOneAndUpdate({},{logoImage: logo});
+  }
+
+  updateTopBarBannerImage = async (image) =>{
+    return await SystemConfigModel.findOneAndUpdate({},{topBarBannerImage: image});
+  }
+
+  updateHomeBannerImage = async (image) =>{
+    return await SystemConfigModel.findOneAndUpdate({},{homeBannerImage: image});
+  }
+
+  updateCriteriaImages = async (images) =>{
+    return await SystemConfigModel.findOneAndUpdate({},{criteriaImages: images});
   }
 
 }
