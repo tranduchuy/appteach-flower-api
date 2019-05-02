@@ -21,6 +21,8 @@ import loginSchema from '../validation-schemas/user/login.schema';
 import loginGoogleSchema from '../validation-schemas/user/login-google.schema';
 import registerSchema from '../validation-schemas/user/register.schema';
 import { ResponseMessages } from '../constant/messages';
+import forgetPasswordValidationSchema from '../validation-schemas/user/forget-password.schema';
+import resetPasswordValidationSchema from '../validation-schemas/user/reset-password.schema';
 
 @controller('/user')
 export class UserController {
@@ -68,7 +70,7 @@ export class UserController {
   public registerNewUser(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const {error} = Joi.validate(request.body, registerSchema);
+        const { error } = Joi.validate(request.body, registerSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -86,7 +88,7 @@ export class UserController {
           name, username, phone, address, gender, city, district, ward
         } = request.body;
 
-        const duplicatedPhones = await UserModel.find({phone: phone});
+        const duplicatedPhones = await UserModel.find({ phone: phone });
         if (duplicatedPhones.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -105,7 +107,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const duplicatedUsers = await UserModel.find({email: email});
+        const duplicatedUsers = await UserModel.find({ email: email });
         if (duplicatedUsers.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -115,7 +117,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const duplicatedUsernames = await UserModel.find({username: username});
+        const duplicatedUsernames = await UserModel.find({ username: username });
         if (duplicatedUsernames.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -168,7 +170,7 @@ export class UserController {
           messages: [ResponseMessages.User.Register.REGISTER_SUCCESS],
           data: {
             meta: {},
-            entries: [{email, name, username, phone, address, gender, city, district, ward}]
+            entries: [{ email, name, username, phone, address, gender, city, district, ward }]
           }
         };
 
@@ -194,7 +196,7 @@ export class UserController {
   public login(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const {error} = Joi.validate(request.body, loginSchema);
+        const { error } = Joi.validate(request.body, loginSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -207,17 +209,20 @@ export class UserController {
           return resolve(result);
         }
 
-        const {email, username, password} = request.body;
+        const { email, username, password } = request.body;
+        console.log({ email, username, password });
         const user = await this.userService.findByEmailOrUsername(email, username);
 
         if (!user) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
-            messages: [ResponseMessages.User.Login.USER_NOT_FOUND],
+            messages: [ResponseMessages.User.USER_NOT_FOUND],
             data: {}
           };
           return resolve(result);
         }
+
+        console.log(JSON.stringify(user));
 
         if (!this.userService.isValidHashPassword(user.passwordHash, password)) {
           const result: IRes<{}> = {
@@ -238,24 +243,24 @@ export class UserController {
         }
 
         const userInfoResponse = {
-            id: user.id,
-            role: user.role,
-            email: user.email,
-            username: user.username,
-            name: user.name,
-            phone: user.phone,
-            address: user.address,
-            type: user.type,
-            status: user.status,
-            avatar: user.avatar,
-            gender: user.gender,
-            city: user.city,
-            district: user.district,
-            ward: user.ward,
-            registerBy: user.registerBy
-          }
-        ;
-        const token = this.userService.generateToken({email: user.email});
+          id: user.id,
+          role: user.role,
+          email: user.email,
+          username: user.username,
+          name: user.name,
+          phone: user.phone,
+          address: user.address,
+          type: user.type,
+          status: user.status,
+          avatar: user.avatar,
+          gender: user.gender,
+          city: user.city,
+          district: user.district,
+          ward: user.ward,
+          registerBy: user.registerBy
+        }
+          ;
+        const token = this.userService.generateToken({ email: user.email });
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -287,7 +292,7 @@ export class UserController {
   public loginByGoogle(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const {error} = Joi.validate(request.body, loginGoogleSchema);
+        const { error } = Joi.validate(request.body, loginGoogleSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -301,7 +306,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const {email, googleId, name} = request.body;
+        const { email, googleId, name } = request.body;
         let user = await this.userService.findByGoogleId(googleId);
 
 
@@ -337,7 +342,7 @@ export class UserController {
           registerBy: user.registerBy,
           googleId: user.googleId
         };
-        const token = this.userService.generateToken({email: user.email});
+        const token = this.userService.generateToken({ email: user.email });
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -369,7 +374,7 @@ export class UserController {
   public confirm(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const {token} = request.query;
+        const { token } = request.query;
 
         const user = await UserModel.findOne({
           tokenEmailConfirm: token
@@ -412,4 +417,147 @@ export class UserController {
       }
     });
   }
+
+
+  @httpGet('/forget-password')
+  public forgetPassword(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const { error } = Joi.validate(request.query, forgetPasswordValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const { email } = request.query;
+        const user = await this.userService.findByEmail(email);
+        if (!user) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.Login.USER_NOT_FOUND],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        if (user.registerBy !== RegisterByTypes.NORMAL) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.ForgetPassword.INVALID_REGISTER_TYPE],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        await this.userService.generateForgetPasswordToken(user);
+        await this.mailerService.sendResetPassword(user.email, user.passwordReminderToken);
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.User.ForgetPassword.FORGET_PASSWORD_SUCCESS],
+          data: {
+            meta: {
+            },
+            entries: []
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
+  @httpPost('/reset-password')
+  public resetPassword(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const { error } = Joi.validate(request.body, resetPasswordValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const { token, password, confirmedPassword } = request.body;
+        if (password !== confirmedPassword) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.Register.PASSWORD_DONT_MATCH],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const user = await this.userService.findUserByPasswordReminderToken(token);
+
+        if (!user) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.USER_NOT_FOUND],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        if (this.userService.isExpiredTokenResetPassword(user.passwordReminderExpire)) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.ResetPassword.EXPIRED_TOKEN],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        await this.userService.resetPassword(password, user);
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.User.ResetPassword.RESET_PASSWORD_SUCCESS],
+          data: {
+            meta: {
+            },
+            entries: []
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
 }

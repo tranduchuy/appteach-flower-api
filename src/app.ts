@@ -5,6 +5,7 @@ import * as bodyParser from 'body-parser';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import cors from 'cors';
 
 import { MONGODB_URI } from './utils/secrets';
 
@@ -31,6 +32,7 @@ if (process.env.NODE_ENV === 'development') {
 // start the server
 const server = new InversifyExpressServer(container);
 server.setConfig((app) => {
+  app.use(cors());
   app.use(bodyParser.urlencoded({
     extended: true
   }));

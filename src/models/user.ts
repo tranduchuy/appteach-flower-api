@@ -43,7 +43,7 @@ export class User extends Typegoose {
   @prop({enum: UserTypes})
   type: number;
 
-  @prop({required: true, enum: Status, default: Status.PENDING_OR_WAIT_COMFIRM})
+  @prop({required: true, enum: Status, default: Status.PENDING_OR_WAIT_CONFIRM})
   status: number;
 
   @prop({required: true, enum: UserRoles, default: UserRoles.USER_ROLE_ENDUSER})

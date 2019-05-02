@@ -3,9 +3,20 @@ import ProductModel from '../models/product';
 import urlSlug from 'url-slug';
 import { SearchSelector } from '../constant/search-selector.constant';
 import PriceRanges = SearchSelector.PriceRanges;
+import mongoose from 'mongoose';
 
 import RandomString from 'randomstring';
 import { General } from '../constant/generals';
+
+export interface IQueryProduct {
+  shop_id: string;
+  product_name: string;
+  limit: number;
+  page: number;
+  status: number;
+  sb?: string;
+  sd?: string;
+}
 
 @injectable()
 export class ProductService {
@@ -14,22 +25,27 @@ export class ProductService {
     ['_id', 'status', 'title', 'description', 'user', 'image', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
       'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'seoImage', 'priceRange'];
 
-  createProduct = async ({
-    title, sku, description, topic, user, images, salePrice, originalPrice, tags,
-    design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
-  }) => {
-    // TODO: map price ranges
+  static detectPriceRange(price: number): number {
     let priceRange = null;
     const range = PriceRanges.find(range => {
       if (range.min && range.max) {
-        return (range.min <= originalPrice && originalPrice < range.max);
+        return (range.min <= price && price < range.max);
       } else {
-        return (range.min <= originalPrice);
+        return (range.min <= price);
       }
     });
     if (range) {
       priceRange = range.value;
     }
+
+    return priceRange;
+  }
+
+  createProduct = async ({
+                           title, sku, description, topic, shopId, images, salePrice, originalPrice, tags,
+                           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
+                         }) => {
+    const priceRange = ProductService.detectPriceRange(originalPrice);
 
     // TODO: add tags
 
@@ -67,7 +83,7 @@ export class ProductService {
       slug,
       code,
       originalPrice,
-      user: user._id,
+      shop: new mongoose.Types.ObjectId(shopId),
       images: images || [],
       design: design || null,
       specialOccasion: specialOccasion || null,
@@ -84,19 +100,10 @@ export class ProductService {
     return await newProduct.save();
   };
 
-  findProductById = async (productId, userId) => {
-    try {
-      return await ProductModel.findOne({
-        _id: productId,
-        user: userId
-      });
-    } catch (e) {
-      console.log(e);
-    }
-
+  findProductById = async (productId) => {
+    return await ProductModel.findOne({_id: productId})
+      .populate('shop');
   };
-
-  findProduct = async (productId) => ProductModel.findOne({ _id: productId });
 
   updateProduct = async (product, {
     title, sku, description, topic, images, saleOff, originalPrice, tags,
@@ -249,4 +256,46 @@ export class ProductService {
       console.log(e);
     }
   };
+
+  buildStageGetListProduct(queryCondition: IQueryProduct): any[] {
+    const stages = [];
+    const matchStage: any = {};
+    if (queryCondition.shop_id) {
+      matchStage['shop'] = queryCondition.shop_id;
+    }
+
+    if (queryCondition.status) {
+      matchStage['status'] = queryCondition.status;
+    }
+
+    if (queryCondition.product_name) {
+      matchStage['title'] = {'$regex': queryCondition.product_name, '$options': 'i' };
+    }
+
+    if (Object.keys(matchStage).length > 0) {
+      stages.push({$match: matchStage});
+    }
+
+    if (queryCondition.sb) {
+      stages.push({
+        $sort: {
+          [queryCondition.sb]: queryCondition.sd === 'ASC' ? 1 : -1
+        }
+      });
+    }
+
+    stages.push({
+      $facet: {
+        entries: [
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}},
+        ],
+      }
+    });
+
+    return stages;
+  }
 }

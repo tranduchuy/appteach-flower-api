@@ -11,6 +11,7 @@ import ProductModel, { Product } from '../models/product';
 import { General } from '../constant/generals';
 import UserTypes = General.UserTypes;
 import Joi from '@hapi/joi';
+import { ShopService } from '../services/shop.service';
 // validate schema
 import addProductSchema from '../validation-schemas/product/add-new.schema';
 import updateProductSchema from '../validation-schemas/product/update-one.schema';
@@ -22,7 +23,8 @@ import { ImageService } from '../services/image.service';
 export class ProductController {
   constructor(
     @inject(TYPES.ProductService) private productService: ProductService,
-    @inject(TYPES.ImageService) private imageService: ImageService
+    @inject(TYPES.ImageService) private imageService: ImageService,
+    @inject(TYPES.ShopService) private shopService: ShopService
   ) {
   }
 
@@ -117,13 +119,15 @@ export class ProductController {
           return resolve(result);
         }
 
+        const shop: any = await this.shopService.findShopOfUser(request.user._id.toString());
+
         const newProduct = await this.productService.createProduct({
           title,
           sku,
           description,
           topic,
           originalPrice,
-          user,
+          shopId: shop._id.toString(),
           tags: tags || [],
           salePrice: salePrice || null,
           images: images || [],
@@ -190,13 +194,14 @@ export class ProductController {
 
         const productId = request.params.id;
         const user = request.user;
-        const product = await this.productService.findProductById(productId, user._id);
-        if (!product) {
+        const product: any = await this.productService.findProductById(productId);
+        if (!product || product.shop.user.toString() !== request.user._id.toString()) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
             data: {}
           };
+
           return resolve(result);
         }
 
@@ -302,13 +307,14 @@ export class ProductController {
 
         const productId = request.params.id;
         const user = request.user;
-        const product = await this.productService.findProductById(productId, user._id);
-        if (!product) {
+        const product: any = await this.productService.findProductById(productId);
+        if (!product || product.shop.user.toString() !== request.user._id.toString()) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
             data: {}
           };
+
           return resolve(result);
         }
 
@@ -322,9 +328,7 @@ export class ProductController {
         }
 
         const {status} = request.body;
-
         await this.productService.updateProductStatus(product, status);
-
         const result: IRes<{}> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.Product.Update.UPDATE_PRODUCT_SUCCESS],

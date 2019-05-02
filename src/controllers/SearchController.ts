@@ -8,11 +8,11 @@ import Joi from '@hapi/joi';
 import { Product } from '../models/product';
 import { UrlParam } from '../models/url-param';
 import { SearchService } from '../services/search.service';
+import { ShopService } from '../services/shop.service';
 import boxSchema from '../validation-schemas/search/box.schema';
 import searchSchema from '../validation-schemas/search/search.schema';
 import Url from 'url';
 import { ProductService } from '../services/product.service';
-import { UserService } from '../services/user.service';
 
 interface ISearchBoxResponse {
   url: string;
@@ -24,7 +24,7 @@ interface ISearchResponse {
   products?: Product[];
   product?: Product;
   relatedProducts?: Product[];
-  sellerInfo?: any;
+  shopInfo?: any;
   totalItems?: number;
 }
 
@@ -34,7 +34,7 @@ const SLUG_DETAIL = 'chi-tiet-san-pham';
 @controller('/search')
 export class SearchController {
   constructor(@inject(TYPES.SearchService) private searchService: SearchService,
-              @inject(TYPES.UserService) private userService: UserService,
+              @inject(TYPES.ShopService) private shopService: ShopService,
               @inject(TYPES.ProductService) private productService: ProductService) {
 
   }
@@ -99,8 +99,8 @@ export class SearchController {
         resultSuccess.data.isDetail = true;
         resultSuccess.data.product = await this.productService.getProductDetail(eles[1]);
         resultSuccess.data.relatedProducts = await this.productService.getRelatedProducts(resultSuccess.data.product);
-        resultSuccess.data.sellerInfo = await this.userService.getSellerInProductDetail(resultSuccess.data.product.user);
-        delete resultSuccess.data.product.user;
+        resultSuccess.data.shopInfo = await this.shopService.findShopById(resultSuccess.data.product.shop.toString());
+        delete resultSuccess.data.product.shop;
         // update product view
         await this.productService.updateViews(eles[1]);
       }

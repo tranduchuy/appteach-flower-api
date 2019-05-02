@@ -5,6 +5,8 @@ const TYPES = {
   ProductController: Symbol.for('ProductController'),
   SearchController: Symbol.for('SearchController'),
   CartController: Symbol.for('CartController'),
+  ShopController: Symbol.for('ShopController'),
+  AddressController: Symbol.for('AddressController'),
 
   MailerService: Symbol.for('MailerService'),
   UserService: Symbol.for('UserService'),
@@ -12,12 +14,19 @@ const TYPES = {
   SearchService: Symbol.for('SearchService'),
   ImageService: Symbol.for('ImageService'),
   CartService: Symbol.for('CartService'),
+  AddressService: Symbol.for('AddressService'),
+  ShopService: Symbol.for('ShopService'),
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),
+  CheckAdminMiddleware: Symbol.for('CheckAdminMiddleware'),
+  CheckMasterMiddleware: Symbol.for('CheckMasterMiddleware'),
+  CheckUserTypeSellerMiddleware: Symbol.for('CheckUserTypeSellerMiddleware'),
 
   Admin: {
     UserController: Symbol.for('AdminUserController'),
-    ProductController: Symbol.for('AdminProductController')
+    ProductController: Symbol.for('AdminProductController'),
+    ShopController: Symbol.for('AdminShopController'),
+    StatisticController: Symbol.for('AdminStatisticController')
   }
 };
 
