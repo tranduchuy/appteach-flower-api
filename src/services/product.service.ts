@@ -314,4 +314,18 @@ export class ProductService {
 
     return stages;
   }
+
+  updateMultipleProducts(shopId: string, productIds: string[], status: number) {
+    return ProductModel.updateMany(
+      {
+        _id: {$in: productIds.map(pId => new mongoose.Types.ObjectId(pId))},
+        shop: new mongoose.Types.ObjectId(shopId)
+      },
+      {
+        $set: {
+          status
+        }
+      }
+    );
+  }
 }

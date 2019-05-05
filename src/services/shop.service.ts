@@ -107,7 +107,7 @@ export class ShopService {
       matchStage['status'] = queryCondition.status;
     } else {
       matchStage['status'] = {
-        $ne: [Status.DELETE]
+        $ne: Status.DELETE
       };
     }
 
