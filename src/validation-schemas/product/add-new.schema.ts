@@ -17,7 +17,8 @@ const AddNewValidationSchema = Joi.object().keys({
       seoUrl: Joi.string(),
       seoDescription: Joi.string(),
       seoImage: Joi.string(),
-      keywordList: Joi.array()
+      keywordList: Joi.array(),
+      status: Joi.number()
     }
 );
 

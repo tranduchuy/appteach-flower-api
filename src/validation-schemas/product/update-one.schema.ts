@@ -7,6 +7,7 @@ const UpdateOneValidationSchema = Joi.object().keys({
       description: Joi.string().min(3).max(3000),
       topic: Joi.number(),
       originalPrice: Joi.number().min(0),
+      salePrice: Joi.number().min(0),
       saleOff: Joi.object().keys({
         price: Joi.number().min(0),
         startDate: Joi.date(),
@@ -19,9 +20,11 @@ const UpdateOneValidationSchema = Joi.object().keys({
       city: Joi.string(),
       district: Joi.number(),
       color: Joi.number(),
+      keywordList: Joi.array(),
       seoUrl: Joi.string(),
       seoDescription: Joi.string(),
-      seoImage: Joi.string()
+      seoImage: Joi.string(),
+      status: Joi.number()
     }
 );
 
