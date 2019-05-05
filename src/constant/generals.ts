@@ -29,6 +29,7 @@ export namespace General {
   export const ProductStatus = {
     ACTIVE: 1,
     BLOCKED: 3,
-    OUT_OF_STOCK: 60
+    OUT_OF_STOCK: 60,
+    HIDDEN: 65
   };
 }

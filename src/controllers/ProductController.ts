@@ -28,13 +28,17 @@ export class ProductController {
   ) {
   }
 
-  @httpGet('/')
+  @httpGet('/', TYPES.CheckTokenMiddleware)
   public getProducts(request: Request, response: Response): Promise<IRes<Product[]>> {
     return new Promise<IRes<Product[]>>(async (resolve, reject) => {
+      const user = request.user;
+      const shop: any = await this.shopService.findShopOfUser(user._id.toString());
       const result: IRes<Product[]> = {
         status: 1,
         messages: [ResponseMessages.SUCCESS],
-        data: await ProductModel.find()
+        data: await ProductModel.find({
+          shop: shop._id
+        }).limit(20)
       };
 
       resolve(result);
@@ -96,8 +100,8 @@ export class ProductController {
         const user = request.user;
         const {
           title, sku, description, images, topic, salePrice, originalPrice,
-          tags,
-          design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
+          keywordList,
+          design, specialOccasion, floret, status, city, district, color, seoUrl, seoDescription, seoImage
         } = request.body;
 
         if (user.type !== UserTypes.TYPE_SELLER) {
@@ -127,8 +131,9 @@ export class ProductController {
           description,
           topic,
           originalPrice,
+          status,
           shopId: shop._id.toString(),
-          tags: tags || [],
+          keywordList: keywordList || [],
           salePrice: salePrice || null,
           images: images || [],
           design: design || null,
@@ -216,7 +221,7 @@ export class ProductController {
 
         const {
           title, sku, description, images, topic, saleOff, originalPrice,
-          tags,
+          keywordList,
           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
         } = request.body;
 
@@ -243,7 +248,7 @@ export class ProductController {
           description,
           topic,
           originalPrice,
-          tags,
+          keywordList,
           saleOff,
           images,
           design,

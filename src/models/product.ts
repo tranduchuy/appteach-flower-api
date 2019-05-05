@@ -84,6 +84,9 @@ export class Product extends Typegoose {
 
   @prop({default: 0})
   view: number;
+
+  @prop({default: []})
+  tags: Array<string>;
 }
 
 export default new Product().getModelForClass(Product);

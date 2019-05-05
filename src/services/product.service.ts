@@ -1,5 +1,7 @@
 import { injectable } from 'inversify';
 import ProductModel from '../models/product';
+import TagModel from '../models/tag';
+
 import urlSlug from 'url-slug';
 import { SearchSelector } from '../constant/search-selector.constant';
 import PriceRanges = SearchSelector.PriceRanges;
@@ -7,6 +9,8 @@ import mongoose from 'mongoose';
 
 import RandomString from 'randomstring';
 import { General } from '../constant/generals';
+import ProductStatus = General.ProductStatus;
+import { Status } from "../constant/status";
 
 export interface IQueryProduct {
   shop_id: string;
@@ -42,12 +46,12 @@ export class ProductService {
   }
 
   createProduct = async ({
-                           title, sku, description, topic, shopId, images, salePrice, originalPrice, tags,
+                           title, sku, status, description, topic, shopId, images, salePrice, originalPrice, keywordList,
                            design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
                          }) => {
     const priceRange = ProductService.detectPriceRange(originalPrice);
 
-    // TODO: add tags
+
 
     // TODO: generate slug
     let slug = urlSlug(title);
@@ -83,6 +87,7 @@ export class ProductService {
       slug,
       code,
       originalPrice,
+      status: status || ProductStatus.ACTIVE,
       shop: new mongoose.Types.ObjectId(shopId),
       images: images || [],
       design: design || null,
@@ -97,6 +102,30 @@ export class ProductService {
       saleOff: saleOff
     });
 
+    // TODO: add tags
+    if (keywordList && keywordList.length > 0) {
+      for (let i = 0; i < keywordList.length; i++) {
+        let key = keywordList[i];
+
+        let slug = urlSlug(key);
+
+        if (!slug) {
+          continue;
+        }
+
+        let tag = await TagModel.findOne({status: Status.ACTIVE, slug: slug});
+
+        if (!tag) {
+          tag = new TagModel({
+            slug: slug,
+            keyword: key,
+          });
+          tag = await tag.save();
+        }
+        newProduct.tags.push(tag._id);
+      }
+    }
+
     return await newProduct.save();
   };
 
@@ -106,7 +135,7 @@ export class ProductService {
   };
 
   updateProduct = async (product, {
-    title, sku, description, topic, images, saleOff, originalPrice, tags,
+    title, sku, description, topic, images, saleOff, originalPrice, keywordList,
     design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
   }) => {
     // TODO: map price ranges
