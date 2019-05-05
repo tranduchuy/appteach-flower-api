@@ -42,9 +42,9 @@ export class ProductService {
   }
 
   createProduct = async ({
-                           title, sku, description, topic, shopId, images, salePrice, originalPrice, tags,
-                           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
-                         }) => {
+    title, sku, description, topic, shopId, images, salePrice, originalPrice, tags,
+    design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
+  }) => {
     const priceRange = ProductService.detectPriceRange(originalPrice);
 
     // TODO: add tags
@@ -101,9 +101,11 @@ export class ProductService {
   };
 
   findProductById = async (productId) => {
-    return await ProductModel.findOne({_id: productId})
+    return await ProductModel.findOne({ _id: productId })
       .populate('shop');
   };
+
+  findListProductByIds = async (productIds) => ProductModel.find({ _id: { $in: productIds } });
 
   updateProduct = async (product, {
     title, sku, description, topic, images, saleOff, originalPrice, tags,
@@ -269,11 +271,11 @@ export class ProductService {
     }
 
     if (queryCondition.product_name) {
-      matchStage['title'] = {'$regex': queryCondition.product_name, '$options': 'i' };
+      matchStage['title'] = { '$regex': queryCondition.product_name, '$options': 'i' };
     }
 
     if (Object.keys(matchStage).length > 0) {
-      stages.push({$match: matchStage});
+      stages.push({ $match: matchStage });
     }
 
     if (queryCondition.sb) {
@@ -287,11 +289,11 @@ export class ProductService {
     stages.push({
       $facet: {
         entries: [
-          {$skip: (queryCondition.page - 1) * queryCondition.limit},
-          {$limit: queryCondition.limit}
+          { $skip: (queryCondition.page - 1) * queryCondition.limit },
+          { $limit: queryCondition.limit }
         ],
         meta: [
-          {$group: {_id: null, totalItems: {$sum: 1}}},
+          { $group: { _id: null, totalItems: { $sum: 1 } } },
         ],
       }
     });
