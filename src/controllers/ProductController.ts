@@ -33,18 +33,64 @@ export class ProductController {
   ) {
   }
 
-  @httpGet('/')
-  public getProducts(): Promise<IRes<Product[]>> {
-    return new Promise<IRes<Product[]>>(async (resolve) => {
+  @httpGet('/', TYPES.CheckTokenMiddleware)
+  public getProducts(request: Request, response: Response): Promise<IRes<Product[]>> {
+    return new Promise<IRes<Product[]>>(async (resolve, reject) => {
+      const user = request.user;
+      const shop: any = await this.shopService.findShopOfUser(user._id.toString());
       const result: IRes<Product[]> = {
         status: 1,
         messages: [ResponseMessages.SUCCESS],
-        data: await ProductModel.find()
+        data: await ProductModel.find({
+          shop: shop._id
+        }).limit(20)
       };
 
       resolve(result);
     });
   }
+
+
+  @httpGet('/detail/:id', TYPES.CheckTokenMiddleware)
+  public getProductDetail(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const id = request.params.id;
+        const product = await this.productService.getProductDetailById(id);
+
+        const shop = await this.shopService.findShopById(product.shop.toString());
+
+        if (!product || shop.user.toString() !== request.user._id.toString()) {
+          const result: IRes<{}> = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
+            data: {}
+          };
+
+          return resolve(result);
+        }
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: product
+        };
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
 
   @httpGet('/home')
   public getHomeProducts(): Promise<IRes<{}>> {
@@ -101,8 +147,8 @@ export class ProductController {
         const user = request.user;
         const {
           title, sku, description, images, topic, salePrice, originalPrice,
-          tags,
-          design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
+          keywordList,
+          design, specialOccasion, floret, status, city, district, color, seoUrl, seoDescription, seoImage
         } = request.body;
 
         if (user.type !== UserTypes.TYPE_SELLER) {
@@ -132,8 +178,9 @@ export class ProductController {
           description,
           topic,
           originalPrice,
+          status,
           shopId: shop._id.toString(),
-          tags: tags || [],
+          keywordList: keywordList || [],
           salePrice: salePrice || null,
           images: images || [],
           design: design || null,
@@ -162,6 +209,7 @@ export class ProductController {
             entries: [newProduct]
           }
         };
+
 
         resolve(result);
       } catch (e) {
@@ -197,10 +245,10 @@ export class ProductController {
           return resolve(result);
         }
 
-        const productId = request.params.id;
-        const user = request.user;
-        const product: any = await this.productService.findProductById(productId);
-        if (!product || product.shop.user.toString() !== request.user._id.toString()) {
+        const id = request.params.id;
+        const product = await this.productService.getProductDetailById(id);
+        const shop = await this.shopService.findShopById(product.shop.toString());
+        if (!product || shop.user.toString() !== request.user._id.toString()) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
@@ -210,7 +258,7 @@ export class ProductController {
           return resolve(result);
         }
 
-        if (user.type !== UserTypes.TYPE_SELLER) {
+        if (request.user.type !== UserTypes.TYPE_SELLER) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.Product.Update.NO_UPDATE_PRODUCT_PERMISSION],
@@ -220,17 +268,22 @@ export class ProductController {
         }
 
         const {
-          title, sku, description, images, topic, saleOff, originalPrice,
-          tags,
+          title, sku, description, images, topic, salePrice, originalPrice,
+          keywordList,
           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
         } = request.body;
 
-        const saleOffObject = saleOff || {price: null};
+        let {saleOff} = request.body;
 
-        const salePrice = saleOffObject.price || product.saleOff.price;
+        const saleOffObject = {
+          price: salePrice || null
+        };
+        saleOff = saleOff ? saleOff : saleOffObject;
+
+        const salePriceCheck = saleOffObject.price || product.saleOff.price;
         const price = originalPrice || product.originalPrice;
         // check sale price vs original price.
-        if (salePrice > price) {
+        if (salePriceCheck > price) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.Product.NOT_VALID_PRICE],
@@ -248,7 +301,7 @@ export class ProductController {
           description,
           topic,
           originalPrice,
-          tags,
+          keywordList,
           saleOff,
           images,
           design,
@@ -276,7 +329,7 @@ export class ProductController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -287,7 +340,7 @@ export class ProductController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
