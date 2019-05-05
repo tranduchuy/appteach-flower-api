@@ -1,21 +1,8 @@
-// import winston from 'winston';
-// import { Logger } from 'winston';
 import fs from 'fs';
 
 import * as winston from 'winston';
 
 if (!fs.existsSync('log/')) fs.mkdirSync('log/');
-
-/* const logger = new (Logger)({
-  format: (winston.format.combine)(
-    (winston.format.colorize)(),
-    (winston.format.timestamp)(),
-  ),
-  transports: [
-    new (winston.transports.Console)({level: process.env.NODE_ENV === 'production' ? 'error' : 'debug'}),
-    new (winston.transports.File)({filename: 'log/debug.log', level: 'debug'})
-  ]
-}); */
 
 const todayDir = () => {
   const today = new Date();
@@ -27,7 +14,7 @@ const todayDir = () => {
 };
 
 const logger = winston.createLogger({
-  level: 'error',
+  level: 'debug',
   format: winston.format.combine(
       winston.format.colorize(),
       winston.format.timestamp(),
@@ -37,7 +24,7 @@ const logger = winston.createLogger({
   ),
   transports: [
       new winston.transports.Console(),
-      new winston.transports.File({ filename: `log/${todayDir()}error.log` }),
+      new winston.transports.File({ filename: `log/${todayDir()}debug.log` }),
   ]
 });
 

@@ -96,7 +96,7 @@ export class OrderController {
         };
         resolve(result);
       } catch (error) {
-        console.log(error);
+        logger.debug(error);
 
         const result: IRes<OrderItem[]> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -135,7 +135,7 @@ export class OrderController {
         };
         resolve(result);
       } catch (error) {
-        console.log(error);
+        logger.debug(error);
         let result: IRes<Order> = null;
 
         if (error == 'Product not found') {
@@ -200,7 +200,7 @@ export class OrderController {
         };
         resolve(result);
       } catch (error) {
-        console.log(error);
+        logger.debug(error);
         let result: IRes<Order> = null;
 
         if (error == 'Order not found') {
@@ -236,7 +236,7 @@ export class OrderController {
         };
         resolve(result);
       } catch (error) {
-        console.log(error);
+        logger.debug(error);
 
         const result: IRes<OrderItem> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
