@@ -24,7 +24,7 @@ export class ProductService {
   listProductFields = ['_id', 'status', 'title', 'image', 'originalPrice', 'saleOff', 'slug'];
   detailProductFields =
     ['_id', 'status', 'title', 'description', 'user', 'image', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
-      'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'seoImage', 'priceRange'];
+      'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'seoImage', 'priceRange', 'shop'];
 
   static detectPriceRange(price: number): number {
     let priceRange = null;
@@ -218,11 +218,7 @@ export class ProductService {
   };
 
   getProductDetail = async (slug) => {
-    try {
-      return await ProductModel.findOne({slug: slug}, this.detailProductFields);
-    } catch (e) {
-      console.log(e);
-    }
+    return await ProductModel.findOne({slug: slug}, this.detailProductFields);
   };
 
   getRelatedProducts = async (product) => {
@@ -284,6 +280,17 @@ export class ProductService {
     if (Object.keys(matchStage).length > 0) {
       stages.push({$match: matchStage});
     }
+
+    stages.push({
+      $lookup: {
+        from: 'shops',
+        localField: 'shop',
+        foreignField: '_id',
+        as: 'shopInfo'
+      }
+    });
+
+    stages.push({$unwind: {path: '$shopInfo'}});
 
     if (queryCondition.sb) {
       stages.push({

@@ -7,6 +7,8 @@ import UserTypes = General.UserTypes;
 import RegisterByTypes = General.RegisterByTypes;
 
 export class User extends Typegoose {
+  _id: string;
+
   @prop({required: true})
   name: string;
 

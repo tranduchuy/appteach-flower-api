@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import { inject } from 'inversify';
 import { controller, httpGet, httpPost } from 'inversify-express-utils';
-import { HttpCodes } from '../constant/http-codes';
+import * as HttpStatus from 'http-status-codes';
 import TYPES from '../constant/types';
 import { IRes } from '../interfaces/i-res';
 import Joi from '@hapi/joi';
@@ -49,7 +49,7 @@ export class SearchController {
         });
 
         const result: IRes<ISearchResponse> = {
-          status: HttpCodes.ERROR,
+          status: HttpStatus.BAD_REQUEST,
           messages: messages
         };
 
@@ -59,7 +59,7 @@ export class SearchController {
       const url = req.query.url || '';
       if (!url) {
         const result: IRes<ISearchResponse> = {
-          status: HttpCodes.ERROR,
+          status: HttpStatus.BAD_REQUEST,
           messages: ['Url is required']
         };
 
@@ -69,7 +69,7 @@ export class SearchController {
       const eles = Url.parse(req.query.url).pathname.split('/');
       if (eles.length < 2) {
         const result: IRes<ISearchResponse> = {
-          status: HttpCodes.ERROR,
+          status: HttpStatus.BAD_REQUEST,
           messages: ['Url is wrong']
         };
 
@@ -77,7 +77,7 @@ export class SearchController {
       }
 
       const resultSuccess: IRes<ISearchResponse> = {
-        status: 1,
+        status: HttpStatus.OK,
         messages: ['Success'],
         data: {}
       };
@@ -119,7 +119,7 @@ export class SearchController {
         });
 
         const result: IRes<ISearchBoxResponse> = {
-          status: HttpCodes.ERROR,
+          status: HttpStatus.BAD_REQUEST,
           messages: messages
         };
 
@@ -146,7 +146,7 @@ export class SearchController {
       }
 
       resolve({
-        status: HttpCodes.SUCCESS,
+        status: HttpStatus.OK,
         messages: ['Success'],
         data: {
           url: urlParamInstance.customUrl || urlParamInstance.url
