@@ -24,8 +24,6 @@ import { ProductService } from '../services/product.service';
 import { ImageService } from '../services/image.service';
 import { AddressController } from '../controllers/AddressController';
 import { AddressService } from '../services/address.service';
-import { AdminSystemConfigController } from "../controllers/admin/AdminSystemConfigController";
-import { SystemConfigService } from "../services/system-config.service";
 
 const container = new Container();
 
@@ -41,7 +39,6 @@ container.bind<AdminUserController>(TYPES.Admin.UserController).to(AdminUserCont
 container.bind<AdminProductController>(TYPES.Admin.ProductController).to(AdminProductController);
 container.bind<AdminShopController>(TYPES.Admin.ShopController).to(AdminShopController);
 container.bind<AdminStatisticController>(TYPES.Admin.StatisticController).to(AdminStatisticController);
-container.bind<AdminSystemConfigController>(TYPES.Admin.SystemConfigController).to(AdminSystemConfigController);
 
 // Bind Service
 container.bind<UserService>(TYPES.UserService).to(UserService);
@@ -51,7 +48,6 @@ container.bind<SearchService>(TYPES.SearchService).to(SearchService);
 container.bind<ImageService>(TYPES.ImageService).to(ImageService);
 container.bind<AddressService>(TYPES.AddressService).to(AddressService);
 container.bind<ShopService>(TYPES.ShopService).to(ShopService);
-container.bind<SystemConfigService>(TYPES.SystemConfigService).to(SystemConfigService);
 
 // Bind model
 
