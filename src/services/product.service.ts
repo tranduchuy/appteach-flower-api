@@ -248,13 +248,16 @@ export class ProductService {
 
   getFeaturedProducts = async () => {
     try {
-      const products = await ProductModel.find({status: Status.ACTIVE}, this.listProductFields).sort({
-        view: -1
-      }).limit(General.HOME_PRODUCT_LIMIT);
-
-      return products;
+      return await ProductModel.find({
+        status: Status.ACTIVE
+      }, this.listProductFields)
+        .sort({
+          view: -1
+        })
+        .limit(General.HOME_PRODUCT_LIMIT);
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      return [];
     }
   };
 
@@ -262,20 +265,18 @@ export class ProductService {
     try {
       const products = await ProductModel.find({'saleOff.active': true, status: Status.ACTIVE}, this.listProductFields).sort({
         updatedAt: -1
-      }).limit(General.HOME_PRODUCT_LIMIT);
+      })
+        .limit(General.HOME_PRODUCT_LIMIT);
 
       return products;
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      return [];
     }
   };
 
   getProductDetail = async (slug) => {
-    try {
-      return await ProductModel.findOne({slug: slug}, this.detailProductFields);
-    } catch (e) {
-      console.log(e);
-    }
+    return await ProductModel.findOne({slug: slug}, this.detailProductFields);
   };
 
   getProductDetailById = async (id) => {
@@ -346,12 +347,23 @@ export class ProductService {
     }
 
     if (queryCondition.product_name) {
-      matchStage['title'] = {"$regex": queryCondition.product_name, "$options": "i" };
+      matchStage['title'] = {'$regex': queryCondition.product_name, '$options': 'i'};
     }
 
     if (Object.keys(matchStage).length > 0) {
       stages.push({$match: matchStage});
     }
+
+    stages.push({
+      $lookup: {
+        from: 'shops',
+        localField: 'shop',
+        foreignField: '_id',
+        as: 'shopInfo'
+      }
+    });
+
+    stages.push({$unwind: {path: '$shopInfo'}});
 
     if (queryCondition.sb) {
       stages.push({
@@ -374,5 +386,19 @@ export class ProductService {
     });
 
     return stages;
+  }
+
+  updateMultipleProducts(shopId: string, productIds: string[], status: number) {
+    return ProductModel.updateMany(
+      {
+        _id: {$in: productIds.map(pId => new mongoose.Types.ObjectId(pId))},
+        shop: new mongoose.Types.ObjectId(shopId)
+      },
+      {
+        $set: {
+          status
+        }
+      }
+    );
   }
 }

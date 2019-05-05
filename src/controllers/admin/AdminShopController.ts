@@ -22,12 +22,12 @@ interface IResShops {
 }
 
 interface IResShopUpdateStatus {
-  shop?: Shop
+  shop?: Shop;
 }
 
 @controller('/admin/shop')
 export class AdminShopController {
-  constructor(@inject(TYPES.ShopService) private shopService: ShopService){
+  constructor(@inject(TYPES.ShopService) private shopService: ShopService) {
 
   }
 
@@ -58,6 +58,7 @@ export class AdminShopController {
           sd: sd,
         });
 
+        console.log(JSON.stringify(stages));
         const result: any = await ShopModel.aggregate(stages);
         const response: IRes<IResShops> = {
           status: HttpStatus.OK,
@@ -71,8 +72,7 @@ export class AdminShopController {
         };
 
         resolve(response);
-      }
-      catch (e) {
+      } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
@@ -86,7 +86,7 @@ export class AdminShopController {
     });
   }
 
-  @httpPut('/status',TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
+  @httpPut('/status', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
   public updateStatusShop(req: Request): Promise<IRes<IResShopUpdateStatus>> {
     return new Promise<IRes<IResShopUpdateStatus>>(async (resolve) => {
       try {
@@ -127,9 +127,7 @@ export class AdminShopController {
             shop: shop
           }
         });
-      }
-
-      catch (e) {
+      } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
