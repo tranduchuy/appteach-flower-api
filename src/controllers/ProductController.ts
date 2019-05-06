@@ -3,7 +3,7 @@ import {
 } from 'inversify-express-utils';
 import { inject } from 'inversify';
 import TYPES from '../constant/types';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { IRes } from '../interfaces/i-res';
 import { ProductService } from '../services/product.service';
 import * as HttpStatus from 'http-status-codes';
