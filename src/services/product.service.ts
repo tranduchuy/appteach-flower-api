@@ -1,16 +1,13 @@
 import { injectable } from 'inversify';
 import ProductModel from '../models/product';
 import TagModel from '../models/tag';
-
 import urlSlug from 'url-slug';
 import { SearchSelector } from '../constant/search-selector.constant';
 import PriceRanges = SearchSelector.PriceRanges;
 import mongoose from 'mongoose';
-
 import RandomString from 'randomstring';
 import { General } from '../constant/generals';
-import ProductStatus = General.ProductStatus;
-import { Status } from "../constant/status";
+import { Status } from '../constant/status';
 
 export interface IQueryProduct {
   shop_id: string;
@@ -27,7 +24,7 @@ export class ProductService {
   listProductFields = ['_id', 'status', 'title', 'image', 'originalPrice', 'saleOff', 'slug'];
   detailProductFields =
     ['_id', 'status', 'title', 'description', 'user', 'images', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
-      'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'tags', 'seoImage','shop','priceRange'];
+      'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'tags', 'seoImage', 'shop', 'priceRange'];
 
   static detectPriceRange(price: number): number {
     let priceRange = null;
@@ -50,7 +47,6 @@ export class ProductService {
                            design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
                          }) => {
     const priceRange = ProductService.detectPriceRange(originalPrice);
-
 
 
     // TODO: generate slug
@@ -87,7 +83,7 @@ export class ProductService {
       slug,
       code,
       originalPrice,
-      status: status || ProductStatus.ACTIVE,
+      status: status || Status.ACTIVE,
       shop: new mongoose.Types.ObjectId(shopId),
       images: images || [],
       design: design || null,
@@ -102,19 +98,16 @@ export class ProductService {
       saleOff: saleOff
     });
 
-    // TODO: add tags
     if (keywordList && keywordList.length > 0) {
       for (let i = 0; i < keywordList.length; i++) {
-        let key = keywordList[i];
-
-        let slug = urlSlug(key);
+        const key = keywordList[i];
+        const slug = urlSlug(key);
 
         if (!slug) {
           continue;
         }
 
         let tag = await TagModel.findOne({status: Status.ACTIVE, slug: slug});
-
         if (!tag) {
           tag = new TagModel({
             slug: slug,
@@ -132,7 +125,7 @@ export class ProductService {
   findProductById = async (productId) => {
     try {
       return await ProductModel.findOne({_id: productId})
-          .populate('shop');
+        .populate('shop');
     } catch (e) {
       console.log(e);
     }
@@ -191,16 +184,13 @@ export class ProductService {
 
       if (keywordList && keywordList.length > 0) {
         for (let i = 0; i < keywordList.length; i++) {
-          let key = keywordList[i];
-
-          let slug = urlSlug(key);
-
+          const key = keywordList[i];
+          const slug = urlSlug(key);
           if (!slug) {
             continue;
           }
 
           let tag = await TagModel.findOne({status: Status.ACTIVE, slug: slug});
-
           if (!tag) {
             tag = new TagModel({
               slug: slug,
@@ -213,7 +203,6 @@ export class ProductService {
       }
       newProduct.tags = newProduct.tags.length > 0 ? newProduct.tags : null;
 
-
       Object.keys(newProduct).map(key => {
         if (newProduct[key] === null) {
           delete newProduct[key];
@@ -224,7 +213,6 @@ export class ProductService {
     } catch (e) {
       console.log(e);
     }
-
   };
 
   updateProductStatus = async (product, status) => {
@@ -263,7 +251,10 @@ export class ProductService {
 
   getSaleProducts = async () => {
     try {
-      const products = await ProductModel.find({'saleOff.active': true, status: Status.ACTIVE}, this.listProductFields).sort({
+      const products = await ProductModel.find({
+        'saleOff.active': true,
+        status: Status.ACTIVE
+      }, this.listProductFields).sort({
         updatedAt: -1
       })
         .limit(General.HOME_PRODUCT_LIMIT);
@@ -281,8 +272,8 @@ export class ProductService {
 
   getProductDetailById = async (id) => {
     try {
-      const product:any = await ProductModel.findOne({_id: id}, this.detailProductFields);
-      const keywords = await Promise.all(product.tags.map(async id=>{
+      const product: any = await ProductModel.findOne({_id: id}, this.detailProductFields);
+      const keywords = await Promise.all(product.tags.map(async id => {
         const tag = await TagModel.findById(id);
         return tag.keyword;
       }));

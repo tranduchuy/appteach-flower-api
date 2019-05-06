@@ -128,6 +128,12 @@ export class ShopService {
           [queryCondition.sortBy]: queryCondition.sortDirection === 'ASC' ? 1 : -1
         }
       });
+    } else {
+      stages.push({
+        $sort: {
+          'updatedAt': -1
+        }
+      });
     }
 
     stages.push({

@@ -1,4 +1,5 @@
 import Joi from '@hapi/joi';
+import { Status } from '../../constant/status';
 
 const AddNewValidationSchema = Joi.object().keys({
       title: Joi.string().required().min(3),
@@ -18,7 +19,7 @@ const AddNewValidationSchema = Joi.object().keys({
       seoDescription: Joi.string(),
       seoImage: Joi.string(),
       keywordList: Joi.array(),
-      status: Joi.number()
+      status: Joi.number().valid([Status.ACTIVE, Status.PRODUCT_HIDDEN])
     }
 );
 
