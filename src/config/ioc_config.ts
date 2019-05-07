@@ -24,6 +24,7 @@ import { ProductService } from '../services/product.service';
 import { ImageService } from '../services/image.service';
 import { AddressController } from '../controllers/AddressController';
 import { AddressService } from '../services/address.service';
+import { GoogleDistanceMatrixService } from "../services/google-distance-matrix.service";
 
 const container = new Container();
 
@@ -48,6 +49,7 @@ container.bind<SearchService>(TYPES.SearchService).to(SearchService);
 container.bind<ImageService>(TYPES.ImageService).to(ImageService);
 container.bind<AddressService>(TYPES.AddressService).to(AddressService);
 container.bind<ShopService>(TYPES.ShopService).to(ShopService);
+container.bind<GoogleDistanceMatrixService>(TYPES.GoogleDistanceMatrixService).to(GoogleDistanceMatrixService);
 
 // Bind model
 
