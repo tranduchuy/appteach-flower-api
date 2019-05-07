@@ -58,6 +58,7 @@ export class AdminShopController {
           sd: sd,
         });
 
+        console.log(JSON.stringify(stages));
         const result: any = await ShopModel.aggregate(stages);
         const response: IRes<IResShops> = {
           status: HttpStatus.OK,
@@ -71,8 +72,7 @@ export class AdminShopController {
         };
 
         resolve(response);
-      }
-      catch (e) {
+      } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
@@ -127,9 +127,7 @@ export class AdminShopController {
             shop: shop
           }
         });
-      }
-
-      catch (e) {
+      } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });

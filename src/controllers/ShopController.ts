@@ -5,11 +5,13 @@ import TYPES from '../constant/types';
 import { Request } from 'express';
 import { IRes } from '../interfaces/i-res';
 import { AddressService } from '../services/address.service';
+import { ProductService } from '../services/product.service';
 import { IQueryProductsOfShop, ShopService } from '../services/shop.service';
 import * as HttpStatus from 'http-status-codes';
 import registerShopSchema from '../validation-schemas/shop/shop-register.schema';
 import checkShopSlugSchema from '../validation-schemas/shop/check-shop-slug.schema';
 import listProductsOfShopSchema from '../validation-schemas/shop/list-product-of-shop.schema';
+import checkUpdateStatusProducts from '../validation-schemas/shop/check-update-status-products.schema';
 import Joi from '@hapi/joi';
 import ShopModel, { Shop } from '../models/shop';
 import ProductModel, { Product } from '../models/product';
@@ -32,9 +34,14 @@ interface IResProductOfShop {
   products: Product[];
 }
 
+interface IResUpdateStatusMultipleProduct {
+
+}
+
 @controller('/shop')
 export class ShopController {
   constructor(@inject(TYPES.ShopService) private shopService: ShopService,
+              @inject(TYPES.ProductService) private productService: ProductService,
               @inject(TYPES.AddressService) private addressService: AddressService) {
 
   }
@@ -184,6 +191,42 @@ export class ShopController {
           },
           products: result[0].entries
         }
+      });
+    });
+  }
+
+  @httpPost('/products/update-status', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
+  public updateStatusMultipleProduct(req: Request): Promise<IRes<IResUpdateStatusMultipleProduct>> {
+    return new Promise<IRes<IResUpdateStatusMultipleProduct>>(async resolve => {
+      const {error} = Joi.validate(req.body, checkUpdateStatusProducts);
+
+      if (error) {
+        const messages = error.details.map(detail => {
+          return detail.message;
+        });
+
+        const result: IRes<IResProductOfShop> = {
+          status: HttpStatus.BAD_REQUEST,
+          messages: messages
+        };
+
+        return resolve(result);
+      }
+
+      const shop: any = await this.shopService.findShopOfUser(req.user._id.toString());
+      if (!shop) {
+        return resolve({
+          status: HttpStatus.BAD_REQUEST,
+          messages: [ResponseMessages.Shop.SHOP_OF_USER_NOT_FOUND]
+        });
+      }
+
+      const {productIds, status} = req.body;
+      const result: any = await this.productService.updateMultipleProducts(shop._id, productIds, status);
+
+      return resolve({
+        status: HttpStatus.OK,
+        messages: [`Cập nhật trạng thái thành công cho ${result.modifiedCount} sản phẩm`]
       });
     });
   }

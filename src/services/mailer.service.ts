@@ -25,7 +25,7 @@ export class MailerService {
       from: 'cskh.hecta@gmail.com',
       to: email,
       subject: 'Flower VN - Xác nhận đăng kí',
-      text: 'http://157.230.248.161:2000/user/account-confirm?token=' + token
+      text: 'http://157.230.248.161:4000/#/xac-nhan-tai-khoan/' + token
     };
 
     this.transporter.sendMail(mailOptions, function (error, info) {
@@ -36,6 +36,7 @@ export class MailerService {
       }
     });
   };
+
   sendResetPassword = (email, token) => {
     return new Promise(((resolve, reject) => {
       const mailOptions = {

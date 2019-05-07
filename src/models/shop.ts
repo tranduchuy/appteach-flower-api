@@ -7,6 +7,8 @@ import { User } from './user';
   next();
 })
 export class Shop extends Typegoose {
+  _id: string;
+
   @prop({required: true})
   name: string;
 
