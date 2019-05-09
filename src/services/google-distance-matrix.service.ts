@@ -11,10 +11,12 @@ export class GoogleDistanceMatrixService {
     console.log(this.distance);
   }
 
-  calculateDistance = async ( origins, destinations) => {
-      return new Promise( async (resolve, reject)=>{
-        try {
-          await this.distance.matrix(origins, destinations, (err, distances) =>{
+  calculateDistance =  ( origins, destinations) => {
+      return new Promise( (resolve, reject)=>{
+          this.distance.matrix(origins, destinations, (err, distances) =>{
+            if(err){
+              reject(err);
+            }
             if(!distances) {
               reject('no distances');
             }
@@ -22,9 +24,6 @@ export class GoogleDistanceMatrixService {
               resolve(distances);
             }
           });
-        } catch (e) {
-          reject(e);
-        }
       })
   };
 
