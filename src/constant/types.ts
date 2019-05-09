@@ -16,6 +16,7 @@ const TYPES = {
   OrderService: Symbol.for('OrderService'),
   AddressService: Symbol.for('AddressService'),
   ShopService: Symbol.for('ShopService'),
+  SystemConfigService: Symbol.for('SystemConfigService'),
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),
   CheckAdminMiddleware: Symbol.for('CheckAdminMiddleware'),
