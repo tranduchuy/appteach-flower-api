@@ -9,7 +9,7 @@ import UserTypes = General.UserTypes;
 export class CheckSellerMiddleware extends BaseMiddleware {
   responseAccessDenied = {
     status: HttpStatus.UNAUTHORIZED,
-    messages: ['Access denied'],
+    messages: ['Bạn không phải là shop, nên không có quyền truy cập data này.'],
     data: {
       meta: {},
       entries: []

@@ -38,7 +38,10 @@ export class ShopService {
   }
 
   async findShopOfUser(userId: string): Promise<Shop> {
-    return await ShopModel.findOne({user: new mongoose.Types.ObjectId(userId)});
+    return await ShopModel.findOne({
+      user: new mongoose.Types.ObjectId(userId),
+      status: Status.ACTIVE
+    });
   }
 
   async findShopBySlug(slug: string): Promise<Shop> {
@@ -104,7 +107,7 @@ export class ShopService {
       matchStage['status'] = queryCondition.status;
     } else {
       matchStage['status'] = {
-        $ne: [Status.DELETE]
+        $ne: Status.DELETE
       };
     }
 
@@ -122,7 +125,13 @@ export class ShopService {
     if (queryCondition.sortBy) {
       stages.push({
         $sort: {
-          [queryCondition.sortBy]: queryCondition.sortDirection  === 'ASC' ? 1 : -1
+          [queryCondition.sortBy]: queryCondition.sortDirection === 'ASC' ? 1 : -1
+        }
+      });
+    } else {
+      stages.push({
+        $sort: {
+          'updatedAt': -1
         }
       });
     }
@@ -147,7 +156,7 @@ export class ShopService {
     const matchStage: any = {};
 
     if (queryCondition.name) {
-      matchStage['name'] = {"$regex": queryCondition.name, "$options": "i" };
+      matchStage['name'] = {'$regex': queryCondition.name, '$options': 'i'};
     }
 
     if (queryCondition.status) {
@@ -157,6 +166,17 @@ export class ShopService {
     if (Object.keys(matchStage).length > 0) {
       stages.push({$match: matchStage});
     }
+
+    stages.push({
+      $lookup: {
+        from: 'users',
+        localField: 'user',
+        foreignField: '_id',
+        as: 'userInfo'
+      }
+    });
+
+    stages.push({$unwind: {path: '$userInfo'}});
 
     if (queryCondition.sb) {
       stages.push({

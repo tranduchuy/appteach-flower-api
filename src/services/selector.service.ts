@@ -1,12 +1,12 @@
 import { injectable } from 'inversify';
-import {SearchSelector}  from '../constant/search-selector.constant';
+import { SearchSelector } from '../constant/search-selector.constant';
 
 @injectable()
 export class SelectorService {
 
   static getTextByValue = (selector, value) => {
     const obj = selector.find(o => {
-      return o.value === value
+      return o.value === value;
     });
 
     if (obj && obj.text)

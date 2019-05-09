@@ -22,12 +22,12 @@ interface IResShops {
 }
 
 interface IResShopUpdateStatus {
-  shop?: Shop
+  shop?: Shop;
 }
 
 @controller('/admin/shop')
 export class AdminShopController {
-  constructor(@inject(TYPES.ShopService) private shopService: ShopService){
+  constructor(@inject(TYPES.ShopService) private shopService: ShopService) {
 
   }
 
@@ -35,7 +35,7 @@ export class AdminShopController {
   public getList(req: Request): Promise<IRes<IResShops>> {
     return new Promise<IRes<IResShops>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(req.query, ListShopSchema);
+        const { error } = Joi.validate(req.query, ListShopSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -48,7 +48,7 @@ export class AdminShopController {
           return resolve(result);
         }
 
-        const {name, limit, page, status, sb, sd} = req.query;
+        const { name, limit, page, status, sb, sd } = req.query;
         const stages: any[] = this.shopService.buildStageGetListShop({
           name: name ? name : null,
           limit: parseInt((limit || 10).toString()),
@@ -58,6 +58,7 @@ export class AdminShopController {
           sd: sd,
         });
 
+        console.log(JSON.stringify(stages));
         const result: any = await ShopModel.aggregate(stages);
         const response: IRes<IResShops> = {
           status: HttpStatus.OK,
@@ -71,8 +72,7 @@ export class AdminShopController {
         };
 
         resolve(response);
-      }
-      catch (e) {
+      } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
@@ -86,11 +86,11 @@ export class AdminShopController {
     });
   }
 
-  @httpPut('/status',TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
+  @httpPut('/status', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
   public updateStatusShop(req: Request): Promise<IRes<IResShopUpdateStatus>> {
     return new Promise<IRes<IResShopUpdateStatus>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(req.body, AdminShopChangeStatus);
+        const { error } = Joi.validate(req.body, AdminShopChangeStatus);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -104,7 +104,7 @@ export class AdminShopController {
           return resolve(result);
         }
 
-        const {shopId, status} = req.body;
+        const { shopId, status } = req.body;
 
         const shop = await ShopModel.findById(shopId);
         if (!shop) {
@@ -127,9 +127,7 @@ export class AdminShopController {
             shop: shop
           }
         });
-      }
-
-      catch (e) {
+      } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });

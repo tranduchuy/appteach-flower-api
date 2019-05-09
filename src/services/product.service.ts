@@ -1,12 +1,13 @@
 import { injectable } from 'inversify';
 import ProductModel from '../models/product';
+import TagModel from '../models/tag';
 import urlSlug from 'url-slug';
 import { SearchSelector } from '../constant/search-selector.constant';
 import PriceRanges = SearchSelector.PriceRanges;
 import mongoose from 'mongoose';
-
 import RandomString from 'randomstring';
 import { General } from '../constant/generals';
+import { Status } from '../constant/status';
 
 export interface IQueryProduct {
   shop_id: string;
@@ -22,8 +23,8 @@ export interface IQueryProduct {
 export class ProductService {
   listProductFields = ['_id', 'status', 'title', 'image', 'originalPrice', 'saleOff', 'slug'];
   detailProductFields =
-    ['_id', 'status', 'title', 'description', 'user', 'image', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
-      'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'seoImage', 'priceRange'];
+    ['_id', 'status', 'title', 'description', 'user', 'images', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
+      'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'tags', 'seoImage', 'shop', 'priceRange'];
 
   static detectPriceRange(price: number): number {
     let priceRange = null;
@@ -42,12 +43,11 @@ export class ProductService {
   }
 
   createProduct = async ({
-                           title, sku, description, topic, shopId, images, salePrice, originalPrice, tags,
+                           title, sku, status, description, topic, shopId, images, salePrice, originalPrice, keywordList,
                            design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
                          }) => {
     const priceRange = ProductService.detectPriceRange(originalPrice);
 
-    // TODO: add tags
 
     // TODO: generate slug
     let slug = urlSlug(title);
@@ -83,6 +83,7 @@ export class ProductService {
       slug,
       code,
       originalPrice,
+      status: status || Status.ACTIVE,
       shop: new mongoose.Types.ObjectId(shopId),
       images: images || [],
       design: design || null,
@@ -97,72 +98,123 @@ export class ProductService {
       saleOff: saleOff
     });
 
+    if (keywordList && keywordList.length > 0) {
+      for (let i = 0; i < keywordList.length; i++) {
+        const key = keywordList[i];
+        const slug = urlSlug(key);
+
+        if (!slug) {
+          continue;
+        }
+
+        let tag = await TagModel.findOne({status: Status.ACTIVE, slug: slug});
+        if (!tag) {
+          tag = new TagModel({
+            slug: slug,
+            keyword: key,
+          });
+          tag = await tag.save();
+        }
+        newProduct.tags.push(tag._id);
+      }
+    }
+
     return await newProduct.save();
   };
 
   findProductById = async (productId) => {
-    return await ProductModel.findOne({_id: productId})
-      .populate('shop');
+    try {
+      return await ProductModel.findOne({_id: productId})
+        .populate('shop');
+    } catch (e) {
+      console.log(e);
+    }
+
   };
 
+  findListProductByIds = async (productIds) => ProductModel.find({ _id: { $in: productIds } });
+
   updateProduct = async (product, {
-    title, sku, description, topic, images, saleOff, originalPrice, tags,
+    title, sku, description, topic, images, saleOff, originalPrice, keywordList,
     design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
   }) => {
-    // TODO: map price ranges
-    const productId = product._id;
-    let priceRange = null;
-    const range = PriceRanges.find(range => {
-      if (range.min && range.max) {
-        return (range.min <= originalPrice && originalPrice < range.max);
+    try {
+      // TODO: map price ranges
+      const productId = product._id;
+      let priceRange = null;
+      const range = PriceRanges.find(range => {
+        if (range.min && range.max) {
+          return (range.min <= originalPrice && originalPrice < range.max);
+        } else {
+          return (range.min <= originalPrice);
+        }
+      });
+      if (range) {
+        priceRange = range.value;
+      }
+
+      const defaultSaleOff = product.saleOff;
+      Object.assign(defaultSaleOff, saleOff);
+      let newOriginalPrice = 0;
+      if (originalPrice === 0) {
+        newOriginalPrice = originalPrice;
       } else {
-        return (range.min <= originalPrice);
+        newOriginalPrice = originalPrice || null;
       }
-    });
-    if (range) {
-      priceRange = range.value;
-    }
 
-    // TODO: add tags
+      const newProduct = {
+        title: title || null,
+        sku: sku || null,
+        description: description || null,
+        topic: topic || null,
+        priceRange: priceRange || null,
+        saleOff: defaultSaleOff,
+        originalPrice: newOriginalPrice,
+        images: images || null,
+        design: design || null,
+        specialOccasion: specialOccasion || null,
+        floret: floret || null,
+        city: city || null,
+        district: district || null,
+        color: color || null,
+        seoUrl: seoUrl || null,
+        seoDescription: seoDescription || null,
+        seoImage: seoImage || null,
+        tags: [],
+        updatedAt: new Date()
+      };
 
-    const defaultSaleOff = product.saleOff;
-    Object.assign(defaultSaleOff, saleOff);
-    let newOriginalPrice = 0;
-    if (originalPrice === 0) {
-      newOriginalPrice = originalPrice;
-    } else {
-      newOriginalPrice = originalPrice || null;
-    }
+      if (keywordList && keywordList.length > 0) {
+        for (let i = 0; i < keywordList.length; i++) {
+          const key = keywordList[i];
+          const slug = urlSlug(key);
+          if (!slug) {
+            continue;
+          }
 
-    const newProduct = {
-      title: title || null,
-      sku: sku || null,
-      description: description || null,
-      topic: topic || null,
-      priceRange: priceRange || null,
-      saleOff: defaultSaleOff,
-      originalPrice: newOriginalPrice,
-      images: images || null,
-      design: design || null,
-      specialOccasion: specialOccasion || null,
-      floret: floret || null,
-      city: city || null,
-      district: district || null,
-      color: color || null,
-      seoUrl: seoUrl || null,
-      seoDescription: seoDescription || null,
-      seoImage: seoImage || null,
-      updatedAt: new Date()
-    };
-
-    Object.keys(newProduct).map(key => {
-      if (newProduct[key] === null) {
-        delete newProduct[key];
+          let tag = await TagModel.findOne({status: Status.ACTIVE, slug: slug});
+          if (!tag) {
+            tag = new TagModel({
+              slug: slug,
+              keyword: key,
+            });
+            tag = await tag.save();
+          }
+          newProduct.tags.push(tag._id);
+        }
       }
-    });
+      newProduct.tags = newProduct.tags.length > 0 ? newProduct.tags : null;
 
-
-    return await ProductModel.findOneAndUpdate({_id: productId}, newProduct);
+      Object.keys(newProduct).map(key => {
+        if (newProduct[key] === null) {
+          delete newProduct[key];
+        }
+      });
+      console.log(newProduct);
+      return await ProductModel.findOneAndUpdate({_id: productId}, newProduct);
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   updateProductStatus = async (product, status) => {
@@ -186,31 +238,49 @@ export class ProductService {
 
   getFeaturedProducts = async () => {
     try {
-      const products = await ProductModel.find({}, this.listProductFields).sort({
-        view: -1
-      }).limit(General.HOME_PRODUCT_LIMIT);
-
-      return products;
+      return await ProductModel.find({
+        status: Status.ACTIVE
+      }, this.listProductFields)
+        .sort({
+          view: -1
+        })
+        .limit(General.HOME_PRODUCT_LIMIT);
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      return [];
     }
   };
 
   getSaleProducts = async () => {
     try {
-      const products = await ProductModel.find({'saleOff.active': true}, this.listProductFields).sort({
+      const products = await ProductModel.find({
+        'saleOff.active': true,
+        status: Status.ACTIVE
+      }, this.listProductFields).sort({
         updatedAt: -1
-      }).limit(General.HOME_PRODUCT_LIMIT);
+      })
+        .limit(General.HOME_PRODUCT_LIMIT);
 
       return products;
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      return [];
     }
   };
 
   getProductDetail = async (slug) => {
+    return await ProductModel.findOne({slug: slug}, this.detailProductFields);
+  };
+
+  getProductDetailById = async (id) => {
     try {
-      return await ProductModel.findOne({slug: slug}, this.detailProductFields);
+      const product: any = await ProductModel.findOne({_id: id}, this.detailProductFields);
+      const keywords = await Promise.all(product.tags.map(async id => {
+        const tag = await TagModel.findById(id);
+        return tag.keyword;
+      }));
+      product.tags = keywords;
+      return product;
     } catch (e) {
       console.log(e);
     }
@@ -220,7 +290,7 @@ export class ProductService {
     try {
       const queryArr = [];
       const query = {
-        _id: {$ne: product._id},
+        _id: { $ne: product._id },
         topic: product.topic || null,
         specialOccasion: product.specialOccasion || null,
         floret: product.floret || null,
@@ -250,7 +320,7 @@ export class ProductService {
         queryArr.push(newObject);
       }
 
-      const relatedProducts = await ProductModel.find({$or: queryArr}, this.listProductFields).limit(General.RELATED_PRODUCT_LIMIT);
+      const relatedProducts = await ProductModel.find({ $or: queryArr }, this.listProductFields).limit(General.RELATED_PRODUCT_LIMIT);
       return relatedProducts;
     } catch (e) {
       console.log(e);
@@ -269,12 +339,23 @@ export class ProductService {
     }
 
     if (queryCondition.product_name) {
-      matchStage['title'] = {"$regex": queryCondition.product_name, "$options": "i" };
+      matchStage['title'] = {'$regex': queryCondition.product_name, '$options': 'i'};
     }
 
     if (Object.keys(matchStage).length > 0) {
-      stages.push({$match: matchStage});
+      stages.push({ $match: matchStage });
     }
+
+    stages.push({
+      $lookup: {
+        from: 'shops',
+        localField: 'shop',
+        foreignField: '_id',
+        as: 'shopInfo'
+      }
+    });
+
+    stages.push({$unwind: {path: '$shopInfo'}});
 
     if (queryCondition.sb) {
       stages.push({
@@ -287,15 +368,29 @@ export class ProductService {
     stages.push({
       $facet: {
         entries: [
-          {$skip: (queryCondition.page - 1) * queryCondition.limit},
-          {$limit: queryCondition.limit}
+          { $skip: (queryCondition.page - 1) * queryCondition.limit },
+          { $limit: queryCondition.limit }
         ],
         meta: [
-          {$group: {_id: null, totalItems: {$sum: 1}}},
+          { $group: { _id: null, totalItems: { $sum: 1 } } },
         ],
       }
     });
 
     return stages;
+  }
+
+  updateMultipleProducts(shopId: string, productIds: string[], status: number) {
+    return ProductModel.updateMany(
+      {
+        _id: {$in: productIds.map(pId => new mongoose.Types.ObjectId(pId))},
+        shop: new mongoose.Types.ObjectId(shopId)
+      },
+      {
+        $set: {
+          status
+        }
+      }
+    );
   }
 }

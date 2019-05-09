@@ -3,10 +3,7 @@ export const Status = {
   PENDING_OR_WAIT_CONFIRM: 2,
   BLOCKED: 3,
   DELETE: 4,
-
-  PAYMENT_PAID: 5,
-  PAYMENT_UNPAID: 6,
-  PAYMENT_FREE: 7,
+  PRODUCT_HIDDEN: 5,
 
   CHILD_ACCEPTED: 8,
   CHILD_WAITING: 9,
@@ -18,7 +15,10 @@ export const Status = {
   OUT_OF_STOCK: 60,
 
   NOTIFY_NEW: 200,
-  NOTIFY_READ: 201
+  NOTIFY_READ: 201,
+
+  ORDER_PENDING: 1,
+  ORDER_SUCCESS: 2
 };
 
 export const StatusNm = {

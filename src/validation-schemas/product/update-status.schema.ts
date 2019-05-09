@@ -1,12 +1,13 @@
 import Joi from '@hapi/joi';
-import { General } from '../../constant/generals';
-import ProductStatus = General.ProductStatus;
+import { Status } from '../../constant/status';
 
-const productStatus = Object.keys(ProductStatus).map(key => {
-  return ProductStatus[key];
-});
 const UpdateStatusValidationSchema = Joi.object().keys({
-    status: Joi.number().required().valid(productStatus)
+    productIds: Joi.array().required().items(Joi.string()).min(1),
+    status: Joi.number().required().valid([
+      Status.ACTIVE,
+      Status.DELETE,
+      Status.PRODUCT_HIDDEN
+    ])
   }
 );
 
