@@ -8,9 +8,15 @@ export const onConnectFn = (socket) => {
   console.log('User connect');
 
   socket.on(SocketEvents.JOIN, (data) => {
-    console.log(data);
-    socket.join(data.userId);//using room of socket io
-    pushToUser(data.userId, JSON.stringify({title: "Hello"}));
+    if(data){
+      if(!data.userId){
+        return;
+      }
+      socket.join(data.userId);//using room of socket io
+      pushToUser(data.userId, JSON.stringify({title: "Hello"}));
+    } else {
+      return;
+    }
   });
 
   socket.on('disconnection', () => {
