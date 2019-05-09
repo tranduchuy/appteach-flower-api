@@ -54,8 +54,8 @@ interface IResUserAcceptedTobeShop {
 }
 
 interface IResUserUpdateStatus {
-  user?: User,
-  shop?: Shop
+  user?: User;
+  shop?: Shop;
 
 }
 

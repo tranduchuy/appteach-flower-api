@@ -1,9 +1,11 @@
+
 const TYPES = {
   MongoDBClient: Symbol.for('MongoDBClient'),
 
   UserController: Symbol.for('UserController'),
   ProductController: Symbol.for('ProductController'),
   SearchController: Symbol.for('SearchController'),
+  OrderController: Symbol.for('OrderController'),
   ShopController: Symbol.for('ShopController'),
   AddressController: Symbol.for('AddressController'),
 
@@ -12,8 +14,11 @@ const TYPES = {
   ProductService: Symbol.for('ProductService'),
   SearchService: Symbol.for('SearchService'),
   ImageService: Symbol.for('ImageService'),
+  OrderService: Symbol.for('OrderService'),
   AddressService: Symbol.for('AddressService'),
   ShopService: Symbol.for('ShopService'),
+  GoogleDistanceMatrixService: Symbol.for('GoogleDistanceMatrixService'),
+  SystemConfigService: Symbol.for('SystemConfigService'),
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),
   CheckAdminMiddleware: Symbol.for('CheckAdminMiddleware'),

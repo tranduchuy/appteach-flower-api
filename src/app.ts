@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { InversifyExpressServer } from 'inversify-express-utils';
-import { makeLoggerMiddleware } from 'inversify-logger-middleware';
+// import { makeLoggerMiddleware } from 'inversify-logger-middleware';
 import * as bodyParser from 'body-parser';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
@@ -24,10 +24,10 @@ mongoose.connect(MONGODB_URI, <any>{useNewUrlParser: true}, function (err) {
 // load everything needed to the Container
 import container from './config/ioc_config';
 
-if (process.env.NODE_ENV === 'development') {
-  const logger = makeLoggerMiddleware();
-  container.applyMiddleware(logger);
-}
+// if (process.env.NODE_ENV === 'development') {
+//   const logger = makeLoggerMiddleware();
+//   container.applyMiddleware(logger);
+// }
 
 // start the server
 const server = new InversifyExpressServer(container);

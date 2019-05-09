@@ -12,7 +12,7 @@ export class SearchService {
   }
 
   async createUrlParamByQuery(query: any): Promise<UrlParam> {
-    const _query = {...query};
+    const _query = { ...query };
     _query.url = this.createUrlByQuery(query);
 
     const newUrlParam = new UrlParamModel(_query);
@@ -20,7 +20,7 @@ export class SearchService {
   }
 
   createUrlByQuery(query: any): string {
-    const _query = {...query};
+    const _query = { ...query };
     const url = urlSlug(this.createTitleByQuery(_query).trim());
 
     return url;
@@ -63,13 +63,13 @@ export class SearchService {
 
     titleEles = titleEles.filter(e => e !== null);
     title = titleEles.join(' ');
-    title = title.replace('hoa Hoa','hoa');
+    title = title.replace('hoa Hoa', 'hoa');
 
     return title;
   }
 
   async searchListByUrlParam(condition: { url: string, limit: number, page: number, sortBy?: string, sortDirection?: string }): Promise<{ total: number, products: Product[] }> {
-    const urlParam: UrlParam | null = await UrlParamModel.findOne({url: condition.url});
+    const urlParam: UrlParam | null = await UrlParamModel.findOne({ url: condition.url });
     if (!urlParam) {
       return {
         total: 0,
@@ -105,11 +105,11 @@ export class SearchService {
     stages.push({
       $facet: {
         entries: [
-          {$skip: (condition.page - 1) * condition.limit},
-          {$limit: condition.limit}
+          { $skip: (condition.page - 1) * condition.limit },
+          { $limit: condition.limit }
         ],
         meta: [
-          {$group: {_id: null, totalItems: {$sum: 1}}}
+          { $group: { _id: null, totalItems: { $sum: 1 } } }
         ]
       }
     });
