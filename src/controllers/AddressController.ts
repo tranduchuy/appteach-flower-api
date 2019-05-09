@@ -16,7 +16,6 @@ import { AddressService } from '../services/address.service';
 import { General } from '../constant/generals';
 import UserTypes = General.UserTypes;
 import updateDeliveryAddressSchema from '../validation-schemas/address/update-delivery-address.schema';
-import { GoogleDistanceMatrixService } from "../services/google-distance-matrix.service";
 
 @controller('/address')
 export class AddressController {
