@@ -25,14 +25,20 @@ export class OrderService {
 
   findOrder = async (userId: string): Promise<Order[]> => OrderModel.find({ fromUser: userId });
 
-  findPendingOrder = async (userId: string) => {
+  findPendingOrders = async (userId: string) => {
     try {
       const order: any = await OrderModel.findOne({ fromUser: userId, status: Status.ORDER_PENDING });
-      return order;
+      const items = await this.findItemInOrder(order._id);
+      return {
+        order,
+        items
+      };
     } catch (e) {
       console.log(e);
     }
   };
+
+  findPendingOrder = async (userId: string) : Promise<Order> => OrderModel.findOne({ fromUser: userId, status: Status.ORDER_PENDING });
 
   findItemInOrder = async (orderId: string) =>{
     try {

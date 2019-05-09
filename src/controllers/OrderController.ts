@@ -32,11 +32,11 @@ export class OrderController {
       const user = request.user;
       const status = request.query.status;
 
-      let order = null;
-      if (status) order = await this.orderService.findPendingOrder(user.id);
-      else order = await this.orderService.findOrder(user.id);
+      let orders = null;
+      if (status) orders = await this.orderService.findPendingOrders(user.id);
+      else orders = await this.orderService.findOrder(user.id);
 
-      if (!order) {
+      if (!orders) {
         const result = {
           status: HttpStatus.NOT_FOUND,
           messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
@@ -46,15 +46,10 @@ export class OrderController {
         resolve(result);
       }
 
-      const items = await this.orderService.findItemInOrder(order._id);
-
       const result: IRes<{}> = {
         status: HttpCodes.SUCCESS,
         messages: [ResponseMessages.SUCCESS],
-        data: {
-          order,
-          items
-        }
+        data: orders
       };
       logger.debug(result);
       resolve(result);
