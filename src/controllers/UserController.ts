@@ -21,8 +21,8 @@ import loginSchema from '../validation-schemas/user/login.schema';
 import loginGoogleSchema from '../validation-schemas/user/login-google.schema';
 import registerSchema from '../validation-schemas/user/register.schema';
 import { ResponseMessages } from '../constant/messages';
-import forgetPasswordValidationSchema from "../validation-schemas/user/forget-password.schema";
-import resetPasswordValidationSchema from "../validation-schemas/user/reset-password.schema";
+import forgetPasswordValidationSchema from '../validation-schemas/user/forget-password.schema';
+import resetPasswordValidationSchema from '../validation-schemas/user/reset-password.schema';
 
 @controller('/user')
 export class UserController {
@@ -70,7 +70,7 @@ export class UserController {
   public registerNewUser(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const {error} = Joi.validate(request.body, registerSchema);
+        const { error } = Joi.validate(request.body, registerSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -88,7 +88,7 @@ export class UserController {
           name, username, phone, address, gender, city, district, ward
         } = request.body;
 
-        const duplicatedPhones = await UserModel.find({phone: phone});
+        const duplicatedPhones = await UserModel.find({ phone: phone });
         if (duplicatedPhones.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -107,7 +107,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const duplicatedUsers = await UserModel.find({email: email});
+        const duplicatedUsers = await UserModel.find({ email: email });
         if (duplicatedUsers.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -117,7 +117,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const duplicatedUsernames = await UserModel.find({username: username});
+        const duplicatedUsernames = await UserModel.find({ username: username });
         if (duplicatedUsernames.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -170,7 +170,7 @@ export class UserController {
           messages: [ResponseMessages.User.Register.REGISTER_SUCCESS],
           data: {
             meta: {},
-            entries: [{email, name, username, phone, address, gender, city, district, ward}]
+            entries: [{ email, name, username, phone, address, gender, city, district, ward }]
           }
         };
 
@@ -196,7 +196,7 @@ export class UserController {
   public login(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const {error} = Joi.validate(request.body, loginSchema);
+        const { error } = Joi.validate(request.body, loginSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -209,8 +209,8 @@ export class UserController {
           return resolve(result);
         }
 
-        const {email, username, password} = request.body;
-        console.log({email, username, password});
+        const { email, username, password } = request.body;
+        console.log({ email, username, password });
         const user = await this.userService.findByEmailOrUsername(email, username);
 
         if (!user) {
@@ -243,24 +243,24 @@ export class UserController {
         }
 
         const userInfoResponse = {
-            id: user.id,
-            role: user.role,
-            email: user.email,
-            username: user.username,
-            name: user.name,
-            phone: user.phone,
-            address: user.address,
-            type: user.type,
-            status: user.status,
-            avatar: user.avatar,
-            gender: user.gender,
-            city: user.city,
-            district: user.district,
-            ward: user.ward,
-            registerBy: user.registerBy
-          }
-        ;
-        const token = this.userService.generateToken({email: user.email});
+          id: user.id,
+          role: user.role,
+          email: user.email,
+          username: user.username,
+          name: user.name,
+          phone: user.phone,
+          address: user.address,
+          type: user.type,
+          status: user.status,
+          avatar: user.avatar,
+          gender: user.gender,
+          city: user.city,
+          district: user.district,
+          ward: user.ward,
+          registerBy: user.registerBy
+        }
+          ;
+        const token = this.userService.generateToken({ email: user.email });
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -292,7 +292,7 @@ export class UserController {
   public loginByGoogle(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const {error} = Joi.validate(request.body, loginGoogleSchema);
+        const { error } = Joi.validate(request.body, loginGoogleSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -306,7 +306,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const {email, googleId, name} = request.body;
+        const { email, googleId, name } = request.body;
         let user = await this.userService.findByGoogleId(googleId);
 
 
@@ -342,7 +342,7 @@ export class UserController {
           registerBy: user.registerBy,
           googleId: user.googleId
         };
-        const token = this.userService.generateToken({email: user.email});
+        const token = this.userService.generateToken({ email: user.email });
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -374,7 +374,7 @@ export class UserController {
   public confirm(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const {token} = request.query;
+        const { token } = request.query;
 
         const user = await UserModel.findOne({
           tokenEmailConfirm: token
@@ -423,7 +423,7 @@ export class UserController {
   public forgetPassword(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const {error} = Joi.validate(request.query, forgetPasswordValidationSchema);
+        const { error } = Joi.validate(request.query, forgetPasswordValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -437,9 +437,9 @@ export class UserController {
           return resolve(result);
         }
 
-        const {email} = request.query;
+        const { email } = request.query;
         const user = await this.userService.findByEmail(email);
-        if(!user){
+        if (!user) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.User.Login.USER_NOT_FOUND],
@@ -448,7 +448,7 @@ export class UserController {
           return resolve(result);
         }
 
-        if(user.registerBy !== RegisterByTypes.NORMAL) {
+        if (user.registerBy !== RegisterByTypes.NORMAL) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.User.ForgetPassword.INVALID_REGISTER_TYPE],
@@ -489,7 +489,7 @@ export class UserController {
   public resetPassword(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const {error} = Joi.validate(request.body, resetPasswordValidationSchema);
+        const { error } = Joi.validate(request.body, resetPasswordValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -503,7 +503,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const {token, password, confirmedPassword} = request.body;
+        const { token, password, confirmedPassword } = request.body;
         if (password !== confirmedPassword) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
