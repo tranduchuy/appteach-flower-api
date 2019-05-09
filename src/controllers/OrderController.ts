@@ -27,8 +27,8 @@ export class OrderController {
   }
 
   @httpGet(OrderRoute.GetOrder, TYPES.CheckTokenMiddleware)
-  public getOrder(request: Request, response: Response): Promise<IRes<Order[]>> {
-    return new Promise<IRes<Order[]>>(async (resolve, reject) => {
+  public getOrder(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
       const user = request.user;
       const status = request.query.status;
 
@@ -46,10 +46,15 @@ export class OrderController {
         resolve(result);
       }
 
-      const result: IRes<Order[]> = {
+      const items = await this.orderService.findItemInOrder(order._id);
+
+      const result: IRes<{}> = {
         status: HttpCodes.SUCCESS,
         messages: [ResponseMessages.SUCCESS],
-        data: order
+        data: {
+          order,
+          items
+        }
       };
       logger.debug(result);
       resolve(result);
