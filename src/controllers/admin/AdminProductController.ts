@@ -5,7 +5,7 @@ import { controller, httpGet } from 'inversify-express-utils';
 import { ResponseMessages } from '../../constant/messages';
 import TYPES from '../../constant/types';
 import { IRes } from '../../interfaces/i-res';
-import ProductModel, {Product} from '../../models/product';
+import ProductModel, { Product } from '../../models/product';
 import { ProductService } from '../../services/product.service';
 import Joi from '@hapi/joi';
 
@@ -21,7 +21,7 @@ interface IResProducts {
 
 @controller('/admin/product')
 export class AdminProductController {
-  constructor(@inject(TYPES.ProductService) private productService: ProductService){
+  constructor(@inject(TYPES.ProductService) private productService: ProductService) {
 
   }
 
@@ -29,7 +29,7 @@ export class AdminProductController {
   public getList(req: Request): Promise<IRes<IResProducts>> {
     return new Promise<IRes<IResProducts>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(req.query, ListProductSchema);
+        const { error } = Joi.validate(req.query, ListProductSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -42,7 +42,7 @@ export class AdminProductController {
           return resolve(result);
         }
 
-        const {shop_id, product_name, limit, page, status, sb, sd} = req.query;
+        const { shop_id, product_name, limit, page, status, sb, sd } = req.query;
         const stages: any[] = this.productService.buildStageGetListProduct({
           shop_id: shop_id ? shop_id : null,
           product_name: product_name ? product_name : null,

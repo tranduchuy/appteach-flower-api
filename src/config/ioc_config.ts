@@ -25,11 +25,16 @@ import { ImageService } from '../services/image.service';
 import { AddressController } from '../controllers/AddressController';
 import { AddressService } from '../services/address.service';
 
+import { OrderController } from '../controllers/OrderController';
+import { OrderService } from '../services/order.service';
+
 const container = new Container();
 
 // Bind Controller
 container.bind<UserController>(TYPES.UserController).to(UserController).whenTargetNamed(TAG.UserController);
 container.bind<ProductController>(TYPES.ProductController).to(ProductController).whenTargetNamed(TAG.ProductController);
+container.bind<SearchController>(TYPES.SearchController).to(SearchController);
+container.bind<OrderController>(TYPES.OrderController).to(OrderController);
 container.bind<SearchController>(TYPES.SearchController).to(SearchController);
 container.bind<AddressController>(TYPES.AddressController).to(AddressController);
 container.bind<ShopController>(TYPES.ShopController).to(ShopController);
@@ -46,6 +51,7 @@ container.bind<ProductService>(TYPES.ProductService).to(ProductService);
 container.bind<MailerService>(TYPES.MailerService).to(MailerService);
 container.bind<SearchService>(TYPES.SearchService).to(SearchService);
 container.bind<ImageService>(TYPES.ImageService).to(ImageService);
+container.bind<OrderService>(TYPES.OrderService).to(OrderService);
 container.bind<AddressService>(TYPES.AddressService).to(AddressService);
 container.bind<ShopService>(TYPES.ShopService).to(ShopService);
 

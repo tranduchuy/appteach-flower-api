@@ -15,7 +15,10 @@ export const Status = {
   OUT_OF_STOCK: 60,
 
   NOTIFY_NEW: 200,
-  NOTIFY_READ: 201
+  NOTIFY_READ: 201,
+
+  ORDER_PENDING: 1,
+  ORDER_SUCCESS: 2
 };
 
 export const StatusNm = {

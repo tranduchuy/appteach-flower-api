@@ -35,7 +35,7 @@ export class AdminShopController {
   public getList(req: Request): Promise<IRes<IResShops>> {
     return new Promise<IRes<IResShops>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(req.query, ListShopSchema);
+        const { error } = Joi.validate(req.query, ListShopSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -48,7 +48,7 @@ export class AdminShopController {
           return resolve(result);
         }
 
-        const {name, limit, page, status, sb, sd} = req.query;
+        const { name, limit, page, status, sb, sd } = req.query;
         const stages: any[] = this.shopService.buildStageGetListShop({
           name: name ? name : null,
           limit: parseInt((limit || 10).toString()),
@@ -90,7 +90,7 @@ export class AdminShopController {
   public updateStatusShop(req: Request): Promise<IRes<IResShopUpdateStatus>> {
     return new Promise<IRes<IResShopUpdateStatus>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(req.body, AdminShopChangeStatus);
+        const { error } = Joi.validate(req.body, AdminShopChangeStatus);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -104,7 +104,7 @@ export class AdminShopController {
           return resolve(result);
         }
 
-        const {shopId, status} = req.body;
+        const { shopId, status } = req.body;
 
         const shop = await ShopModel.findById(shopId);
         if (!shop) {

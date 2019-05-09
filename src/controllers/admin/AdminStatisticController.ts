@@ -12,15 +12,15 @@ import ShopModel from '../../models/shop';
 // schemas
 
 interface IResStatisticDashboard {
-  productCount: number,
-  userCount: number,
-  shopCount: number,
-  addressCount: number,
+  productCount: number;
+  userCount: number;
+  shopCount: number;
+  addressCount: number;
 }
 
 @controller('/admin/statistic')
 export class AdminStatisticController {
-  constructor(){
+  constructor() {
   }
 
   @httpGet('/', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
