@@ -50,7 +50,7 @@ export class OrderService {
   findItemInOrder = async (orderId: string) =>{
     try {
       const orderItems = await OrderItemModel.find({ order: orderId });
-      const result = await Promise.all(orderItems.map(async item =>{
+      return await Promise.all(orderItems.map(async item =>{
         //get product info.
         const productInfo = await ProductModel.findOne({_id: item.product}, this.productInfoFields);
         item.product = productInfo;
@@ -59,7 +59,6 @@ export class OrderService {
         item.shop = shopInfo;
         return item;
       }));
-      return result;
     } catch(e){
       console.log(e);
     }
@@ -86,9 +85,9 @@ export class OrderService {
     return orderItem.save();
   };
 
-  deleteItem = async (id) => OrderItemModel.findByIdAndRemove(id);
+  deleteItem = async (id: string) => OrderItemModel.findByIdAndRemove(id);
 
-  checkAndUpdateSuccessStatus = async (orderId) =>{
+  checkAndUpdateSuccessStatus = async (orderId: string) =>{
     const orderItems = await OrderItemModel.find({ order: orderId});
     const finishedItems  = orderItems.filter(item => {
       return item.status === Status.ORDER_ITEM_FINISHED;
@@ -97,7 +96,7 @@ export class OrderService {
     if(orderItems.length === finishedItems.length){
       return await OrderModel.findByIdAndUpdate(orderId, { status: Status.ORDER_SUCCESS});
     } else{
-      return;
+      return null;
     }
   }
 }
