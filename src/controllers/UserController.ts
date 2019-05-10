@@ -276,7 +276,7 @@ export class UserController {
 
         const result: IRes<any> = {
           status: HttpStatus.OK,
-          messages: [ResponseMessages.User.Register.REGISTER_SUCCESS],
+          messages: [ResponseMessages.SUCCESS],
           data: {
             meta: {},
             entries: []
