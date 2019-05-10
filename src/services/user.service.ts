@@ -61,15 +61,23 @@ export class UserService {
   };
 
   updateUser = async (user, {
-    password, name, phone, address, city, district, ward, registerBy, gender
+    newPassword, name, phone, address, city, district, ward, birthday, gender, avatar
   }) => {
     try {
       const userId = user._id;
 
+      let passwordHash = null;
+      if(newPassword){
+        passwordHash = bcrypt.hashSync(newPassword, user.passwordSalt);
+      }
+
       const newUser = {
         name: name || null,
+        avatar: avatar || null,
         phone: phone || null,
+        birthday: birthday || null,
         address: address || null,
+        passwordHash: passwordHash || null,
         city: city || null,
         district: district || null,
         ward: ward || null,
