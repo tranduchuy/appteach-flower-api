@@ -194,7 +194,7 @@ export class OrderController {
           })
         );
         //update order items status: new => pending
-        await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PENDING);
+        await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PROCESSING);
         await this.orderService.submitOrder(order);
 
         const result: IRes<Order> = {

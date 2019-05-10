@@ -43,7 +43,7 @@ export class UserController {
       delete user.passwordReminderToken;
 
       const result: IRes<User> = {
-        status: 1,
+        status: HttpStatus.OK,
         messages: [ResponseMessages.SUCCESS],
         data: user
       };
@@ -57,7 +57,7 @@ export class UserController {
     return new Promise<IRes<User[]>>(async (resolve, reject) => {
 
       const result: IRes<User[]> = {
-        status: 1,
+        status: HttpStatus.OK,
         messages: [ResponseMessages.SUCCESS],
         data: await UserModel.find()
       };
