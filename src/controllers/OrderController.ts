@@ -33,8 +33,8 @@ export class OrderController {
       const status = request.query.status;
 
       let orders = null;
-      if (status) orders = await this.orderService.findPendingOrders(user.id);
-      else orders = await this.orderService.findOrder(user.id);
+      if (status) orders = await this.orderService.findOrders(user.id, status);
+      else orders = await this.orderService.findOrders(user.id, null);
 
       if (!orders) {
         const result = {

@@ -25,18 +25,24 @@ export class OrderService {
 
   findOrder = async (userId: string): Promise<Order[]> => OrderModel.find({ fromUser: userId });
 
-  findPendingOrders = async (userId: string) => {
+  findOrders = async (userId: string, status: number) => {
     try {
-      const order: any = await OrderModel.findOne({ fromUser: userId, status: Status.ORDER_PENDING });
-      const items = await this.findItemInOrder(order._id);
-      return {
-        order,
-        items
+      let query = {
+       fromUser: userId, status: status || null
       };
+
+      Object.keys(query).map(key => {
+        if (query[key] === null) {
+          delete query[key];
+        }
+      });
+
+      return await OrderModel.find(query);
     } catch (e) {
       console.log(e);
     }
   };
+
 
   findPendingOrder = async (userId: string) : Promise<Order> => OrderModel.findOne({ fromUser: userId, status: Status.ORDER_PENDING });
 
@@ -80,4 +86,17 @@ export class OrderService {
   };
 
   deleteItem = async (id) => OrderItemModel.findByIdAndRemove(id);
+
+  checkAndUpdateSuccessStatus = async (orderId) =>{
+    const orderItems = await OrderItemModel.find({ order: orderId});
+    const finishedItems  = orderItems.filter(item => {
+      return item.status === Status.ORDER_ITEM_FINISHED;
+    });
+
+    if(orderItems.length === finishedItems.length){
+      return await OrderModel.findByIdAndUpdate(orderId, { status: Status.ORDER_SUCCESS});
+    } else{
+      return;
+    }
+  }
 }

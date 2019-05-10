@@ -210,7 +210,6 @@ export class ProductService {
           delete newProduct[key];
         }
       });
-      console.log(newProduct);
       return await ProductModel.findOneAndUpdate({_id: productId}, newProduct);
     } catch (e) {
       console.log(e);

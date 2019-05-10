@@ -51,7 +51,7 @@ export class OrderItem extends Typegoose {
   @prop({ default: new Date() })
   createdAt: Date;
 
-  @prop({required: true, default: Status.ORDER_ITEM_PENDING})
+  @prop({required: true, default: Status.ORDER_ITEM_NEW})
   status: number;
 
   @prop()
