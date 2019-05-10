@@ -10,6 +10,7 @@ const UpdateUserValidationSchema = Joi.object().keys({
     password: Joi.string().min(6).regex(/^[a-zA-Z0-9]*$/),
     newPassword: Joi.string().min(6).regex(/^[a-zA-Z0-9]*$/),
     confirmedPassword: Joi.string().min(6).regex(/^[a-zA-Z0-9]*$/),
+    avatar: Joi.array(),
     phone: Joi.string().min(10).max(11).regex(/^[0-9]*$/),
     address: Joi.string().min(6).max(200),
     city: Joi.string(),

@@ -251,10 +251,12 @@ export class UserController {
         }
 
         if(avatar){
-          const paths = avatar || [];
-
-          if (paths.length > 0) {
-            this.imageService.confirmImages(avatar);
+          if(avatar[0].link !== user.avatar){
+            const oldImages = [user.avatar] || [];
+            const newImages = avatar;
+            if (newImages) {
+              this.imageService.updateImages(oldImages, newImages);
+            }
           }
         }
 

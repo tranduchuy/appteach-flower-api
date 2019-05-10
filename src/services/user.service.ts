@@ -73,7 +73,7 @@ export class UserService {
 
       const newUser = {
         name: name || null,
-        avatar: avatar || null,
+        avatar: avatar ? avatar[0].link : null,
         phone: phone || null,
         birthday: birthday || null,
         address: address || null,
