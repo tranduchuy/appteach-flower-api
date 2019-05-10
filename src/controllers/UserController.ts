@@ -280,7 +280,7 @@ export class UserController {
           messages: [ResponseMessages.User.Register.REGISTER_SUCCESS],
           data: {
             meta: {},
-            entries: [newUser]
+            entries: []
           }
         };
 
