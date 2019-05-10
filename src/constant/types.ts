@@ -1,3 +1,4 @@
+
 const TYPES = {
   MongoDBClient: Symbol.for('MongoDBClient'),
 
@@ -16,6 +17,8 @@ const TYPES = {
   OrderService: Symbol.for('OrderService'),
   AddressService: Symbol.for('AddressService'),
   ShopService: Symbol.for('ShopService'),
+  GoogleDistanceMatrixService: Symbol.for('GoogleDistanceMatrixService'),
+  SystemConfigService: Symbol.for('SystemConfigService'),
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),
   CheckAdminMiddleware: Symbol.for('CheckAdminMiddleware'),

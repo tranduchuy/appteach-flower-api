@@ -22,8 +22,7 @@ export class AddressController {
   constructor(
     @inject(TYPES.AddressService) private addressService: AddressService,
     @inject(TYPES.ShopService) private shopService: ShopService
-  ) {
-  }
+  ) {}
 
   @httpGet('/delivery', TYPES.CheckTokenMiddleware)
   public getAddress(request: Request, response: Response): Promise<{}> {
