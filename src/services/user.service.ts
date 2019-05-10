@@ -60,6 +60,34 @@ export class UserService {
 
   };
 
+  updateUser = async (user, {
+    password, name, phone, address, city, district, ward, registerBy, gender
+  }) => {
+    try {
+      const userId = user._id;
+
+      const newUser = {
+        name: name || null,
+        phone: phone || null,
+        address: address || null,
+        city: city || null,
+        district: district || null,
+        ward: ward || null,
+        gender: gender || null
+      };
+
+
+      Object.keys(newUser).map(key => {
+        if (newUser[key] === null) {
+          delete newUser[key];
+        }
+      });
+      return await UserModel.findOneAndUpdate({_id: userId}, newUser);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   createUserByGoogle = async ({ email, name, googleId }) => {
 
     const newUser = new UserModel({
