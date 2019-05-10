@@ -28,6 +28,7 @@ import { GoogleDistanceMatrixService } from "../services/google-distance-matrix.
 
 import { OrderController } from '../controllers/OrderController';
 import { OrderService } from '../services/order.service';
+import { OrderItemService } from "../services/order-item.service";
 
 const container = new Container();
 
@@ -53,6 +54,7 @@ container.bind<MailerService>(TYPES.MailerService).to(MailerService);
 container.bind<SearchService>(TYPES.SearchService).to(SearchService);
 container.bind<ImageService>(TYPES.ImageService).to(ImageService);
 container.bind<OrderService>(TYPES.OrderService).to(OrderService);
+container.bind<OrderItemService>(TYPES.OrderItemService).to(OrderItemService);
 container.bind<AddressService>(TYPES.AddressService).to(AddressService);
 container.bind<ShopService>(TYPES.ShopService).to(ShopService);
 container.bind<GoogleDistanceMatrixService>(TYPES.GoogleDistanceMatrixService).to(GoogleDistanceMatrixService);

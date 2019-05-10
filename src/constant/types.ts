@@ -15,6 +15,7 @@ const TYPES = {
   SearchService: Symbol.for('SearchService'),
   ImageService: Symbol.for('ImageService'),
   OrderService: Symbol.for('OrderService'),
+  OrderItemService: Symbol.for('OrderItemService'),
   AddressService: Symbol.for('AddressService'),
   ShopService: Symbol.for('ShopService'),
   GoogleDistanceMatrixService: Symbol.for('GoogleDistanceMatrixService'),
