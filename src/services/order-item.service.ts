@@ -6,4 +6,10 @@ export class OrderItemService {
   updateStatus = async (id, status): Promise<OrderItem> => {
     return await OrderItemModel.findOneAndUpdate({_id: id}, {status: status});
   };
+
+  updateItemsStatus = async (items, status)=>{
+    return await Promise.all(items.map( async item =>{
+      return await this.updateStatus(item._id, status);
+    }))
+  }
 }

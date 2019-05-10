@@ -16,12 +16,15 @@ import { HttpCodes } from '../constant/http-codes';
 import { OrderItem } from '../models/order-item';
 import logger from '../utils/logger';
 import { Product } from '../models/product';
+import { OrderItemService } from "../services/order-item.service";
+import { Status } from "../constant/status";
 
 @controller(OrderRoute.Name)
 export class OrderController {
   constructor(
     @inject(TYPES.ProductService) private productService: ProductService,
     @inject(TYPES.OrderService) private orderService: OrderService,
+    @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
     @inject(TYPES.AddressService) private addressService: AddressService
   ) {
   }
@@ -115,7 +118,7 @@ export class OrderController {
         const { productId, quantity } = request.body;
         const user = request.user;
 
-        let order = await this.orderService.findPendingOrder(user.id);
+        let order = await this.orderService.findNewOrder(user.id);
         if (!order) {
           const addressList = await this.addressService.getDelieveryAddress(user);
           order = await this.orderService.createOrder(user, addressList[0]);
@@ -162,7 +165,7 @@ export class OrderController {
       try {
         const user = request.user;
 
-        const order = await this.orderService.findPendingOrder(user.id);
+        const order = await this.orderService.findNewOrder(user.id);
         if (!order) throw ('Order not found');
         const orderId = _.get(order, '_id').toString();
 
@@ -190,7 +193,8 @@ export class OrderController {
             return orderItem;
           })
         );
-
+        //update order items status: new => pending
+        await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PENDING);
         await this.orderService.submitOrder(order);
 
         const result: IRes<Order> = {

@@ -19,8 +19,8 @@ export class OrderService {
   };
 
   submitOrder = async (order): Promise<Order> => {
-    order.status = Status.ORDER_SUCCESS;
-    return order.save();
+    order.status = Status.ORDER_PENDING;
+    return await order.save();
   };
 
   findOrder = async (userId: string): Promise<Order[]> => OrderModel.find({ fromUser: userId });
@@ -45,6 +45,8 @@ export class OrderService {
 
 
   findPendingOrder = async (userId: string) : Promise<Order> => OrderModel.findOne({ fromUser: userId, status: Status.ORDER_PENDING });
+
+  findNewOrder= async (userId: string) : Promise<Order> => OrderModel.findOne({ fromUser: userId, status: Status.ORDER_NEW });
 
   findItemInOrder = async (orderId: string) =>{
     try {

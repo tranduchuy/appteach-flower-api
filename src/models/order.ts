@@ -18,7 +18,7 @@ export class Order extends Typegoose {
   @prop({ ref: Address, required: true })
   address: Ref<Address>;
 
-  @prop({required: true, default: Status.ORDER_PENDING})
+  @prop({required: true, default: Status.ORDER_NEW})
   status: number;
 
   @prop({ default: new Date() })
