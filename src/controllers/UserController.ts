@@ -272,8 +272,7 @@ export class UserController {
           gender,
           avatar
         };
-
-        const newUser = await this.userService.updateUser(user , newUserData);
+        await this.userService.updateUser(user , newUserData);
 
         const result: IRes<any> = {
           status: HttpStatus.OK,
