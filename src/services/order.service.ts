@@ -25,7 +25,7 @@ export class OrderService {
 
   findOrder = async (userId: string): Promise<Order[]> => OrderModel.find({ fromUser: userId });
 
-  findOrders = async (userId: string, status: number) => {
+  findOrders = async (userId: string, status: number) : Promise<Array<Order>> => {
     try {
       let query = {
        fromUser: userId, status: status || null
@@ -47,7 +47,7 @@ export class OrderService {
   findPendingOrder = async (userId: string) : Promise<Order> => OrderModel.findOne({ fromUser: userId, status: Status.ORDER_PENDING });
 
 
-  findItemInOrder = async (orderId: string) =>{
+  findItemInOrder = async (orderId: string) : Promise<Array<any>> =>{
     try {
       const orderItems = await OrderItemModel.find({ order: orderId });
       return await Promise.all(orderItems.map(async item =>{
