@@ -8,12 +8,17 @@ import mongoose from 'mongoose';
 import RandomString from 'randomstring';
 import { General } from '../constant/generals';
 import { Status } from '../constant/status';
+import * as _ from 'lodash';
 
 export interface IQueryProduct {
   shop_id: string;
-  product_name: string;
+  title: string;
   limit: number;
   page: number;
+  sku: string;
+  maxPrice: number;
+  minPrice: number;
+  saleOff: boolean,
   status: number;
   sb?: string;
   sd?: string;
@@ -338,8 +343,24 @@ export class ProductService {
       matchStage['status'] = queryCondition.status;
     }
 
-    if (queryCondition.product_name) {
-      matchStage['title'] = {'$regex': queryCondition.product_name, '$options': 'i'};
+    if (queryCondition.sku) {
+      matchStage['sku'] = queryCondition.sku;
+    }
+
+    if (queryCondition.minPrice) {
+      matchStage['originalPrice'] =  {'$gte': queryCondition.minPrice};
+    }
+
+    if (queryCondition.maxPrice) {
+      matchStage['originalPrice'] =  {'$lt': queryCondition.maxPrice};
+    }
+
+    if(_.isBoolean(queryCondition.saleOff)){
+      matchStage['saleOff.active'] = queryCondition.saleOff;
+    }
+
+    if (queryCondition.title) {
+      matchStage['title'] = {'$regex': queryCondition.title, '$options': 'i'};
     }
 
     if (Object.keys(matchStage).length > 0) {
