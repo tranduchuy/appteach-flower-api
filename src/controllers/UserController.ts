@@ -1,5 +1,5 @@
 import {
-  controller, httpGet, httpPost
+  controller, httpGet, httpPost, httpPut
 } from 'inversify-express-utils';
 import { inject } from 'inversify';
 import TYPES from '../constant/types';
@@ -17,17 +17,21 @@ import RegisterByTypes = General.RegisterByTypes;
 import * as HttpStatus from 'http-status-codes';
 import Joi from '@hapi/joi';
 // validate schema
-import loginSchema from '../validation-schemas/user/login.schema';
+import UpdateUserValidationSchema from '../validation-schemas/user/update-user.schema';
+
+import loginValidationSchema from '../validation-schemas/user/login.schema';
 import loginGoogleSchema from '../validation-schemas/user/login-google.schema';
 import registerSchema from '../validation-schemas/user/register.schema';
 import { ResponseMessages } from '../constant/messages';
 import forgetPasswordValidationSchema from '../validation-schemas/user/forget-password.schema';
 import resetPasswordValidationSchema from '../validation-schemas/user/reset-password.schema';
+import { ImageService } from "../services/image.service";
 
 @controller('/user')
 export class UserController {
   constructor(
     @inject(TYPES.UserService) private userService: UserService,
+    @inject(TYPES.ImageService) private imageService: ImageService,
     @inject(TYPES.MailerService) private mailerService: MailerService
   ) {
   }
@@ -192,11 +196,133 @@ export class UserController {
     });
   }
 
+  @httpPut('/', TYPES.CheckTokenMiddleware)
+  public updateUser(request: Request, response: Response): Promise<IRes<any>> {
+    return new Promise<IRes<any>>(async (resolve, reject) => {
+      try {
+        const user = request.user;
+        const { error } = Joi.validate(request.body, UpdateUserValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+        const {
+            password ,newPassword, confirmedPassword, name, phone, birthday, address, city, district, ward, gender, avatar
+        } = request.body;
+
+        if(phone !== user.phone){
+          const duplicatedPhones = await UserModel.find({ phone: phone });
+          if (duplicatedPhones.length !== 0) {
+            const result: IRes<{}> = {
+              status: HttpStatus.INTERNAL_SERVER_ERROR,
+              messages: [ResponseMessages.User.Register.PHONE_DUPLICATED],
+              data: {}
+            };
+            return resolve(result);
+          }
+        }
+
+        if(password && newPassword && confirmedPassword){
+          if (!this.userService.isValidHashPassword(user.passwordHash, password)) {
+            const result: IRes<{}> = {
+              status: HttpStatus.BAD_REQUEST,
+              messages: [ResponseMessages.User.Login.WRONG_PASSWORD],
+              data: {}
+            };
+            return resolve(result);
+          }
+
+          if (newPassword !== confirmedPassword) {
+            const result: IRes<{}> = {
+              status: HttpStatus.INTERNAL_SERVER_ERROR,
+              messages: [ResponseMessages.User.Register.PASSWORD_DONT_MATCH],
+              data: {}
+            };
+            return resolve(result);
+          }
+        }
+
+        if(avatar){
+          if(avatar[0].link !== user.avatar){
+            const oldImages = [user.avatar] || [];
+            const newImages = avatar;
+            if (newImages) {
+              this.imageService.updateImages(oldImages, newImages);
+            }
+          }
+        }
+
+        const newUserData = {
+          newPassword,
+          name,
+          phone,
+          address,
+          city,
+          district,
+          ward,
+          birthday,
+          gender,
+          avatar
+        };
+        await this.userService.updateUser(user , newUserData);
+        const userInfoResponse = {
+          id: user.id,
+          role: user.role,
+          email: user.email,
+          username: user.username,
+          name: name || user.name,
+          phone: phone || user.phone,
+          address:address || user.address,
+          type: user.type,
+          birthday: birthday || user.birthday,
+          status: user.status,
+          avatar: avatar[0].link || user.avatar,
+          gender: user.gender,
+          city: city || user.city,
+          district: district || user.district,
+          ward: ward || user.ward,
+          registerBy: user.registerBy
+        };
+
+        const result: IRes<any> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: {
+            userInfoResponse
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {
+            meta: {},
+            entries: []
+          }
+        };
+        resolve(result);
+      }
+    });
+  }
+
   @httpPost('/login')
   public login(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const { error } = Joi.validate(request.body, loginSchema);
+        const { error } = Joi.validate(request.body, loginValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;

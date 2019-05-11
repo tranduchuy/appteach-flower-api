@@ -60,6 +60,42 @@ export class UserService {
 
   };
 
+  updateUser = async (user, {
+    newPassword, name, phone, address, city, district, ward, birthday, gender, avatar
+  }) => {
+    try {
+      const userId = user._id;
+
+      let passwordHash = null;
+      if(newPassword){
+        passwordHash = bcrypt.hashSync(newPassword, user.passwordSalt);
+      }
+
+      const newUser = {
+        name: name || null,
+        avatar: avatar ? avatar[0].link : null,
+        phone: phone || null,
+        birthday: birthday || null,
+        address: address || null,
+        passwordHash: passwordHash || null,
+        city: city || null,
+        district: district || null,
+        ward: ward || null,
+        gender: gender || null
+      };
+
+
+      Object.keys(newUser).map(key => {
+        if (newUser[key] === null) {
+          delete newUser[key];
+        }
+      });
+      return await UserModel.findOneAndUpdate({_id: userId}, newUser);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   createUserByGoogle = async ({ email, name, googleId }) => {
 
     const newUser = new UserModel({
