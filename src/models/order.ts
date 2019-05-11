@@ -26,6 +26,9 @@ export class Order extends Typegoose {
 
   @prop({ default: new Date() })
   createdAt: Date;
+
+  @prop()
+  paidAt: Date;
 }
 
 export default new Order().getModelForClass(Order);

@@ -21,7 +21,7 @@ export interface IQueryProduct {
 
 @injectable()
 export class ProductService {
-  listProductFields = ['_id', 'status', 'title', 'image', 'originalPrice', 'saleOff', 'slug'];
+  listProductFields = ['_id', 'status', 'title', 'images', 'originalPrice', 'saleOff', 'slug'];
   detailProductFields =
     ['_id', 'status', 'title', 'description', 'user', 'images', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
       'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'tags', 'seoImage', 'shop', 'priceRange'];
@@ -210,7 +210,6 @@ export class ProductService {
           delete newProduct[key];
         }
       });
-      console.log(newProduct);
       return await ProductModel.findOneAndUpdate({_id: productId}, newProduct);
     } catch (e) {
       console.log(e);

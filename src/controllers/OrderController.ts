@@ -16,27 +16,30 @@ import { HttpCodes } from '../constant/http-codes';
 import { OrderItem } from '../models/order-item';
 import logger from '../utils/logger';
 import { Product } from '../models/product';
+import { OrderItemService } from "../services/order-item.service";
+import { Status } from "../constant/status";
 
 @controller(OrderRoute.Name)
 export class OrderController {
   constructor(
     @inject(TYPES.ProductService) private productService: ProductService,
     @inject(TYPES.OrderService) private orderService: OrderService,
+    @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
     @inject(TYPES.AddressService) private addressService: AddressService
   ) {
   }
 
   @httpGet(OrderRoute.GetOrder, TYPES.CheckTokenMiddleware)
-  public getOrder(request: Request, response: Response): Promise<IRes<Order[]>> {
-    return new Promise<IRes<Order[]>>(async (resolve, reject) => {
+  public getOrder(request: Request, response: Response): Promise<IRes<Order>> {
+    return new Promise<IRes<Order>>(async (resolve, reject) => {
       const user = request.user;
       const status = request.query.status;
 
-      let order = null;
-      if (status) order = await this.orderService.findPendingOrder(user.id);
-      else order = await this.orderService.findOrder(user.id);
+      let orders = null;
+      if (status) orders = await this.orderService.findOrders(user.id, status);
+      else orders = await this.orderService.findOrders(user.id, null);
 
-      if (!order) {
+      if (!orders) {
         const result = {
           status: HttpStatus.NOT_FOUND,
           messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
@@ -46,10 +49,10 @@ export class OrderController {
         resolve(result);
       }
 
-      const result: IRes<Order[]> = {
+      const result: IRes<Order> = {
         status: HttpCodes.SUCCESS,
         messages: [ResponseMessages.SUCCESS],
-        data: order
+        data: orders
       };
       logger.debug(result);
       resolve(result);
@@ -190,7 +193,8 @@ export class OrderController {
             return orderItem;
           })
         );
-
+        //update order items status: new => pending
+        await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PROCESSING);
         await this.orderService.submitOrder(order);
 
         const result: IRes<Order> = {
