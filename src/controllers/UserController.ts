@@ -273,13 +273,30 @@ export class UserController {
           avatar
         };
         await this.userService.updateUser(user , newUserData);
+        const userInfoResponse = {
+          id: user.id,
+          role: user.role,
+          email: user.email,
+          username: user.username,
+          name: name || user.name,
+          phone: phone || user.phone,
+          address:address || user.address,
+          type: user.type,
+          birthday: birthday || user.birthday,
+          status: user.status,
+          avatar: avatar[0].link || user.avatar,
+          gender: user.gender,
+          city: city || user.city,
+          district: district || user.district,
+          ward: ward || user.ward,
+          registerBy: user.registerBy
+        };
 
         const result: IRes<any> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: {
-            meta: {},
-            entries: []
+            userInfoResponse
           }
         };
 
