@@ -61,6 +61,7 @@ export class OrderService {
       }));
     } catch(e){
       console.log(e);
+      return [];
     }
   };
 
