@@ -1,5 +1,5 @@
 import { injectable } from 'inversify';
-import ProductModel from '../models/product';
+import ProductModel, { Product } from '../models/product';
 import TagModel from '../models/tag';
 import urlSlug from 'url-slug';
 import { SearchSelector } from '../constant/search-selector.constant';
@@ -132,7 +132,7 @@ export class ProductService {
 
   };
 
-  findListProductByIds = async (productIds) => ProductModel.find({ _id: { $in: productIds } });
+  findListProductByIds = async (productIds) => ProductModel.find({_id: {$in: productIds}});
 
   updateProduct = async (product, {
     title, sku, description, topic, images, saleOff, originalPrice, keywordList,
@@ -289,7 +289,7 @@ export class ProductService {
     try {
       const queryArr = [];
       const query = {
-        _id: { $ne: product._id },
+        _id: {$ne: product._id},
         topic: product.topic || null,
         specialOccasion: product.specialOccasion || null,
         floret: product.floret || null,
@@ -319,7 +319,7 @@ export class ProductService {
         queryArr.push(newObject);
       }
 
-      const relatedProducts = await ProductModel.find({ $or: queryArr }, this.listProductFields).limit(General.RELATED_PRODUCT_LIMIT);
+      const relatedProducts = await ProductModel.find({$or: queryArr}, this.listProductFields).limit(General.RELATED_PRODUCT_LIMIT);
       return relatedProducts;
     } catch (e) {
       console.log(e);
@@ -342,7 +342,7 @@ export class ProductService {
     }
 
     if (Object.keys(matchStage).length > 0) {
-      stages.push({ $match: matchStage });
+      stages.push({$match: matchStage});
     }
 
     stages.push({
@@ -367,11 +367,11 @@ export class ProductService {
     stages.push({
       $facet: {
         entries: [
-          { $skip: (queryCondition.page - 1) * queryCondition.limit },
-          { $limit: queryCondition.limit }
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
         ],
         meta: [
-          { $group: { _id: null, totalItems: { $sum: 1 } } },
+          {$group: {_id: null, totalItems: {$sum: 1}}},
         ],
       }
     });
@@ -391,5 +391,23 @@ export class ProductService {
         }
       }
     );
+  }
+
+  getSearchQueryFromProduct(product: Product): any {
+    let priceRange = ProductService.detectPriceRange(product.originalPrice);
+    if (product.saleOff.active === true) {
+      priceRange = ProductService.detectPriceRange(product.saleOff.price);
+    }
+
+    return {
+      topic: product.topic,
+      specialOccasion: product.specialOccasion,
+      design: product.design,
+      floret: product.floret,
+      city: product.city,
+      district: product.district,
+      color: product.color,
+      priceRange: priceRange
+    };
   }
 }

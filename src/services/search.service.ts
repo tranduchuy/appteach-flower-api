@@ -12,7 +12,7 @@ export class SearchService {
   }
 
   async createUrlParamByQuery(query: any): Promise<UrlParam> {
-    const _query = { ...query };
+    const _query = {...query};
     _query.url = this.createUrlByQuery(query);
 
     const newUrlParam = new UrlParamModel(_query);
@@ -20,7 +20,7 @@ export class SearchService {
   }
 
   createUrlByQuery(query: any): string {
-    const _query = { ...query };
+    const _query = {...query};
     const url = urlSlug(this.createTitleByQuery(_query).trim());
 
     return url;
@@ -69,7 +69,7 @@ export class SearchService {
   }
 
   async searchListByUrlParam(condition: { url: string, limit: number, page: number, sortBy?: string, sortDirection?: string }): Promise<{ total: number, products: Product[] }> {
-    const urlParam: UrlParam | null = await UrlParamModel.findOne({ url: condition.url });
+    const urlParam: UrlParam | null = await UrlParamModel.findOne({url: condition.url});
     if (!urlParam) {
       return {
         total: 0,
@@ -105,11 +105,11 @@ export class SearchService {
     stages.push({
       $facet: {
         entries: [
-          { $skip: (condition.page - 1) * condition.limit },
-          { $limit: condition.limit }
+          {$skip: (condition.page - 1) * condition.limit},
+          {$limit: condition.limit}
         ],
         meta: [
-          { $group: { _id: null, totalItems: { $sum: 1 } } }
+          {$group: {_id: null, totalItems: {$sum: 1}}}
         ]
       }
     });
@@ -120,6 +120,24 @@ export class SearchService {
       total: result.meta[0] ? result.meta[0].totalItems : 0,
       products: result.entries
     };
+  }
+
+  async getSearchQueryFromUrlParam(url: string): Promise<any> {
+    const urlParam: any = await UrlParamModel.findOne({url}).lean();
+    if (!urlParam) {
+      return Promise.resolve({});
+    }
+
+    return Promise.resolve({
+      topic: urlParam.topic,
+      specialOccasion: urlParam.specialOccasion,
+      design: urlParam.design,
+      floret: urlParam.floret,
+      city: urlParam.city,
+      district: urlParam.district,
+      color: urlParam.color,
+      priceRange: urlParam.priceRange
+    });
   }
 }
 

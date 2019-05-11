@@ -19,6 +19,7 @@ interface ISearchBoxResponse {
 }
 
 interface ISearchResponse {
+  searchQuery?: any;
   isList?: boolean;
   isDetail?: boolean;
   products?: Product[];
@@ -94,10 +95,12 @@ export class SearchController {
         resultSuccess.data.isList = true;
         resultSuccess.data.products = result.products;
         resultSuccess.data.totalItems = result.total;
+        resultSuccess.data.searchQuery = await this.searchService.getSearchQueryFromUrlParam(eles[1]);
       } else if (SLUG_DETAIL === eles[0]) {
         // case detail product
         resultSuccess.data.isDetail = true;
         resultSuccess.data.product = await this.productService.getProductDetail(eles[1]);
+        resultSuccess.data.searchQuery = this.productService.getSearchQueryFromProduct(resultSuccess.data.product);
         resultSuccess.data.relatedProducts = await this.productService.getRelatedProducts(resultSuccess.data.product);
         resultSuccess.data.shopInfo = await this.shopService.findShopById(resultSuccess.data.product.shop.toString());
         delete resultSuccess.data.product.shop;
