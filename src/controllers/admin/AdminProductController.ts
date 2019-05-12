@@ -8,7 +8,6 @@ import { IRes } from '../../interfaces/i-res';
 import ProductModel, { Product } from '../../models/product';
 import { ProductService } from '../../services/product.service';
 import Joi from '@hapi/joi';
-
 // schemas
 import ListProductSchema from '../../validation-schemas/user/admin-list-product.schema';
 
@@ -42,13 +41,17 @@ export class AdminProductController {
           return resolve(result);
         }
 
-        const { shop_id, product_name, limit, page, status, sb, sd } = req.query;
+        const { shop_id, title, saleOff, minPrice, sku, maxPrice, limit, page, status, sb, sd } = req.query;
         const stages: any[] = this.productService.buildStageGetListProduct({
           shop_id: shop_id ? shop_id : null,
-          product_name: product_name ? product_name : null,
+          title: title ? title : null,
+          minPrice: parseInt(minPrice),
+          maxPrice: parseInt(maxPrice),
+          sku: sku,
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
           status: status ? parseInt(status) : null,
+          saleOff: saleOff,
           sb: sb,
           sd: sd,
         });
