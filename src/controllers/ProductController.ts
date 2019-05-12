@@ -277,12 +277,14 @@ export class ProductController {
 
         const saleOffObject = {
           price: salePrice || null,
-          startDate: Date.now(),
-          endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+          startDate: salePrice ? null : Date.now(),
+          endDate: salePrice ? null : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+          active: salePrice ? false : true
         };
         if(saleOff){
-          saleOff.startDate = saleOff.startDate || Date.now();
-          saleOff.endDate = saleOff.endDate || new Date(new Date().setFullYear(new Date().getFullYear() + 1));
+          saleOff.startDate = Date.now();
+          saleOff.endDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
+          saleOff.active = true
         } else {
           saleOff = saleOffObject;
         }
