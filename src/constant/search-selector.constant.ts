@@ -1,7 +1,7 @@
 export namespace SearchSelector {
   export const Topics = [
     {text: 'Hoa khai trương', value: 1},
-    {text: 'Sinh nhật', value: 2},
+    {text: 'Hoa Sinh nhật', value: 2},
     {text: 'Hoa tình yêu', value: 3},
     {text: 'Hoa tặng mẹ', value: 4},
     {text: 'Hoa tình bạn', value: 5},
