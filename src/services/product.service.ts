@@ -73,9 +73,9 @@ export class ProductService {
     if (salePrice) {
       saleOff = {
         price: salePrice,
-        startDate: null,
-        endDate: null,
-        active: false
+        startDate: Date.now(),
+        endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+        active: true
       };
     }
     const code = RandomString.generate() + Date.now();

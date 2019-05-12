@@ -276,9 +276,16 @@ export class ProductController {
         let {saleOff} = request.body;
 
         const saleOffObject = {
-          price: salePrice || null
+          price: salePrice || null,
+          startDate: Date.now(),
+          endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
         };
-        saleOff = saleOff ? saleOff : saleOffObject;
+        if(saleOff){
+          saleOff.startDate = saleOff.startDate || Date.now();
+          saleOff.endDate = saleOff.endDate || new Date(new Date().setFullYear(new Date().getFullYear() + 1));
+        } else {
+          saleOff = saleOffObject;
+        }
 
         const salePriceCheck = saleOffObject.price || product.saleOff.price;
         const price = originalPrice || product.originalPrice;
