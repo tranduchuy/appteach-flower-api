@@ -16,6 +16,7 @@ export namespace ResponseMessages {
       export const INACTIVE_USER = 'Tài khoản chưa được kí hoạt';
       export const LOGIN_SUCCESS = 'Đăng nhập thành công';
       export const PERMISSION_DENIED = 'Không có quyền truy cập';
+      export const INVALID_TOKEN = 'accessToken không hợp lệ'
     }
     export namespace Confirm {
       export const INVALID_TOKEN = 'Token không hợp lệ';

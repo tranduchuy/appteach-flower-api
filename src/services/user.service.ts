@@ -122,6 +122,32 @@ export class UserService {
     return await newUser.save();
   };
 
+  createUserByFacebook = async ({ email, name, facebookId }) => {
+
+    const username = email.split('@')[0];
+
+    const newUser = new UserModel({
+      email,
+      passwordHash: null,
+      passwordSalt: null,
+      type: UserTypes.TYPE_CUSTOMER,
+      name,
+      username: username,
+      phone: null,
+      tokenEmailConfirm: null,
+      registerBy: RegisterByTypes.FACEBOOK,
+      status: Status.ACTIVE,
+      address: null,
+      city: null,
+      district: null,
+      ward: null,
+      gender: null,
+      role: UserRoles.USER_ROLE_ENDUSER,
+      facebookId
+    });
+    return await newUser.save();
+  };
+
   generateToken = (data) => {
     const secretKey = General.jwtSecret;
     return jwt.sign(data, secretKey, {
@@ -146,6 +172,11 @@ export class UserService {
     return await user.save();
   };
 
+  updateFacebookId = async (user, facebookId) => {
+    user.facebookId = facebookId;
+    return await user.save();
+  };
+
   async findById(id: string): Promise<User> {
     return await UserModel.findById(id);
   }
@@ -156,6 +187,10 @@ export class UserService {
 
   findByGoogleId = async (googleId) => {
     return await UserModel.findOne({ googleId: googleId });
+  };
+
+  findByFacebookId = async (facebookId) => {
+    return await UserModel.findOne({ facebookId: facebookId });
   };
 
   isValidHashPassword = (hashed: string, plainText: string) => {
