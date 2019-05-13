@@ -26,13 +26,17 @@ import { ResponseMessages } from '../constant/messages';
 import forgetPasswordValidationSchema from '../validation-schemas/user/forget-password.schema';
 import resetPasswordValidationSchema from '../validation-schemas/user/reset-password.schema';
 import { ImageService } from "../services/image.service";
+import LoginFacebookValidationSchema from "../validation-schemas/user/login-facebook.schema";
+import { FacebookGraphApiService } from "../services/facebook-graph-api.service";
 
 @controller('/user')
 export class UserController {
   constructor(
     @inject(TYPES.UserService) private userService: UserService,
     @inject(TYPES.ImageService) private imageService: ImageService,
-    @inject(TYPES.MailerService) private mailerService: MailerService
+    @inject(TYPES.MailerService) private mailerService: MailerService,
+    @inject(TYPES.FacebookGraphApiService) private fcebookGraphApiService: FacebookGraphApiService
+
   ) {
   }
 
@@ -274,7 +278,7 @@ export class UserController {
         };
         await this.userService.updateUser(user , newUserData);
         const userInfoResponse = {
-          id: user.id,
+          _id: user.id,
           role: user.role,
           email: user.email,
           username: user.username,
@@ -336,7 +340,7 @@ export class UserController {
         }
 
         const { email, username, password } = request.body;
-        console.log({ email, username, password });
+
         const user = await this.userService.findByEmailOrUsername(email, username);
 
         if (!user) {
@@ -369,7 +373,7 @@ export class UserController {
         }
 
         const userInfoResponse = {
-          id: user.id,
+          _id: user.id,
           role: user.role,
           email: user.email,
           username: user.username,
@@ -451,7 +455,7 @@ export class UserController {
         }
 
         const userInfoResponse = {
-          id: user.id,
+          _id: user.id,
           role: user.role,
           email: user.email,
           username: user.username,
@@ -476,6 +480,100 @@ export class UserController {
           data: {
             meta: {
               token
+            },
+            entries: [userInfoResponse]
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
+  @httpPost('/login-by-facebook')
+  public loginByFacebook(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const { error } = Joi.validate(request.body, LoginFacebookValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const {token}= request.body;
+
+        const facebookInfo:any = await this.fcebookGraphApiService.getUserInfoByAccessToken(token);
+        if(facebookInfo === null){
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.Login.INVALID_TOKEN],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const { id, email, name } = facebookInfo;
+
+        let user = await this.userService.findByFacebookId(id);
+
+        if (!user) {
+          user = await this.userService.findByEmail(email);
+          if (user) {
+            user = await this.userService.updateFacebookId(user, id);
+          } else {
+            const newUser = {
+              name,
+              email,
+              facebookId: id
+            };
+            user = await this.userService.createUserByFacebook(newUser);
+          }
+        }
+
+        const userInfoResponse = {
+          _id: user.id,
+          role: user.role,
+          email: user.email,
+          username: user.username,
+          name: user.name,
+          phone: user.phone,
+          address: user.address,
+          type: user.type,
+          status: user.status,
+          avatar: user.avatar,
+          gender: user.gender,
+          city: user.city,
+          district: user.district,
+          ward: user.ward,
+          registerBy: user.registerBy,
+          facebookId: user.facebookId
+        };
+        const resToken = this.userService.generateToken({ email: user.email });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.User.Login.LOGIN_SUCCESS],
+          data: {
+            meta: {
+              token: resToken
             },
             entries: [userInfoResponse]
           }
