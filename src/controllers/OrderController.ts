@@ -64,10 +64,11 @@ export class OrderController {
   public getPendingOrder(request: Request, response: Response): Promise<IRes<any>> {
     return new Promise<IRes<any>>(async (resolve, reject) => {
       try {
+        console.log("pending called");
         const user = request.user;
-        const pendingOrder = await this.orderService.findPendingOrder(user._id);
+        const pendingOrder : any = await this.orderService.findPendingOrder(user._id);
 
-        if(pendingOrder){
+        if(!pendingOrder){
           const result = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Order.ORDER_EMPTY],
@@ -76,11 +77,11 @@ export class OrderController {
           resolve(result);
         }
 
-        const orderId = pendingOrder.id;
+        const orderId = pendingOrder._id;
 
 
         let orderItems: OrderItem[] = null;
-        if (orderId) orderItems = await this.orderService.findPendingOrderItems(orderId);
+        if (orderId) orderItems = await this.orderItemService.findPendingOrderItems(orderId);
 
         if (!orderItems) {
           const result = {
@@ -173,6 +174,8 @@ export class OrderController {
         if (!order) {
           const addressList = await this.addressService.getDelieveryAddress(user);
           order = await this.orderService.createOrder(user, addressList[0]);
+          order.fromUser = user._id;
+          order.address = addressList[0]._id;
         }
 
         const product = await this.productService.findProductById(productId);

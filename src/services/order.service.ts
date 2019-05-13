@@ -15,7 +15,7 @@ export class OrderService {
 
   createOrder = async (user: User, address: Address): Promise<Order> => {
     const newOrder = new OrderModel({ fromUser: user, address });
-    return newOrder.save();
+    return await newOrder.save();
   };
 
   submitOrder = async (order): Promise<Order> => {
@@ -50,24 +50,6 @@ export class OrderService {
   findItemInOrder = async (orderId: string) : Promise<Array<any>> =>{
     try {
       const orderItems = await OrderItemModel.find({ order: orderId });
-      return await Promise.all(orderItems.map(async item =>{
-        //get product info.
-        const productInfo = await ProductModel.findOne({_id: item.product}, this.productInfoFields);
-        item.product = productInfo;
-        //get shop info.
-        const shopInfo = await ShopModel.findOne({_id: productInfo.shop}, this.shopInfoFields);
-        item.shop = shopInfo;
-        return item;
-      }));
-    } catch(e){
-      console.log(e);
-      return [];
-    }
-  };
-
-  findPendingOrderItems = async (orderId: string) : Promise<Array<any>> =>{
-    try {
-      const orderItems = await OrderItemModel.find({ order: orderId, status: Status.ORDER_ITEM_NEW });
       return await Promise.all(orderItems.map(async item =>{
         //get product info.
         const productInfo = await ProductModel.findOne({_id: item.product}, this.productInfoFields);
