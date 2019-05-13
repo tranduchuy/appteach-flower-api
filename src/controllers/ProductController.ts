@@ -276,20 +276,33 @@ export class ProductController {
         let {saleOff} = request.body;
 
         const saleOffObject = {
-          price: salePrice || null,
-          startDate: Date.now(),
-          endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-          active: true
+          price: 0,
+          startDate: null,
+          endDate: null,
+          active: false
         };
-        if(saleOff){
-          saleOff.startDate = Date.now();
-          saleOff.endDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
-          saleOff.active = true
+
+        if(salePrice && salePrice !== product.saleOff.price){
+          if(salePrice === 0){
+            saleOff = {
+              price: 0,
+              startDate: null,
+              endDate: null,
+              active: false
+            };
+          } else {
+            saleOff = {
+              price: salePrice,
+              startDate: Date.now(),
+              endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+              active: true
+            };
+          }
         } else {
           saleOff = saleOffObject;
         }
 
-        const salePriceCheck = saleOffObject.price || product.saleOff.price;
+        const salePriceCheck = salePrice || product.saleOff.price;
         const price = originalPrice || product.originalPrice;
         // check sale price vs original price.
         if (salePriceCheck > price) {
