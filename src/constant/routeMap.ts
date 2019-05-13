@@ -3,6 +3,7 @@ export enum OrderRoute {
     // GET
     GetOrder = '/',
     GetOrderItem = '/:orderId/item',
+    GetPendingOrder = '/pending',
 
     // UPDATE
     SubmitOrder = '/',

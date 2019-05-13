@@ -15,7 +15,7 @@ export class OrderService {
 
   createOrder = async (user: User, address: Address): Promise<Order> => {
     const newOrder = new OrderModel({ fromUser: user, address });
-    return newOrder.save();
+    return await newOrder.save();
   };
 
   submitOrder = async (order): Promise<Order> => {
