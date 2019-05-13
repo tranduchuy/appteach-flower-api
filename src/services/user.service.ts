@@ -122,13 +122,15 @@ export class UserService {
 
   createUserByFacebook = async ({ email, name, facebookId }) => {
 
+    const username = email.split('@')[0];
+
     const newUser = new UserModel({
       email,
       passwordHash: null,
       passwordSalt: null,
       type: UserTypes.TYPE_CUSTOMER,
       name,
-      username: null,
+      username: username,
       phone: null,
       tokenEmailConfirm: null,
       registerBy: RegisterByTypes.FACEBOOK,
