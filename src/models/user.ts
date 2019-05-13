@@ -18,7 +18,7 @@ export class User extends Typegoose {
   @prop({validate: /\S+@\S+\.\S+/, unique: true, required: true, lowercase: true, trim: true})
   email: string;
 
-  @prop({unique: true, lowercase: true, trim: true, match: /[0-9]*/, minlength: 10, maxlength: 11})
+  @prop({lowercase: true, trim: true, match: /[0-9]*/, minlength: 10, maxlength: 11})
   phone: string;
 
   @prop()

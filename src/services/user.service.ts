@@ -98,13 +98,15 @@ export class UserService {
 
   createUserByGoogle = async ({ email, name, googleId }) => {
 
+    const username = email.split('@')[0];
+
     const newUser = new UserModel({
       email,
       passwordHash: null,
       passwordSalt: null,
       type: UserTypes.TYPE_CUSTOMER,
       name,
-      username: null,
+      username: username,
       phone: null,
       tokenEmailConfirm: null,
       registerBy: RegisterByTypes.GOOGLE,

@@ -483,14 +483,12 @@ export class UserController {
 
         resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
+          messages: [e.errmsg],
           data: {}
         };
+
         resolve(result);
       }
     });
