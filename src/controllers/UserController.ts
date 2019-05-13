@@ -25,9 +25,9 @@ import registerSchema from '../validation-schemas/user/register.schema';
 import { ResponseMessages } from '../constant/messages';
 import forgetPasswordValidationSchema from '../validation-schemas/user/forget-password.schema';
 import resetPasswordValidationSchema from '../validation-schemas/user/reset-password.schema';
-import { ImageService } from "../services/image.service";
-import LoginFacebookValidationSchema from "../validation-schemas/user/login-facebook.schema";
-import { FacebookGraphApiService } from "../services/facebook-graph-api.service";
+import { ImageService } from '../services/image.service';
+import LoginFacebookValidationSchema from '../validation-schemas/user/login-facebook.schema';
+import { FacebookGraphApiService } from '../services/facebook-graph-api.service';
 
 @controller('/user')
 export class UserController {
@@ -36,7 +36,6 @@ export class UserController {
     @inject(TYPES.ImageService) private imageService: ImageService,
     @inject(TYPES.MailerService) private mailerService: MailerService,
     @inject(TYPES.FacebookGraphApiService) private fcebookGraphApiService: FacebookGraphApiService
-
   ) {
   }
 
@@ -78,7 +77,7 @@ export class UserController {
   public registerNewUser(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const { error } = Joi.validate(request.body, registerSchema);
+        const {error} = Joi.validate(request.body, registerSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -96,7 +95,7 @@ export class UserController {
           name, username, phone, address, gender, city, district, ward
         } = request.body;
 
-        const duplicatedPhones = await UserModel.find({ phone: phone });
+        const duplicatedPhones = await UserModel.find({phone: phone});
         if (duplicatedPhones.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -115,7 +114,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const duplicatedUsers = await UserModel.find({ email: email });
+        const duplicatedUsers = await UserModel.find({email: email});
         if (duplicatedUsers.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -125,7 +124,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const duplicatedUsernames = await UserModel.find({ username: username });
+        const duplicatedUsernames = await UserModel.find({username: username});
         if (duplicatedUsernames.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -178,7 +177,7 @@ export class UserController {
           messages: [ResponseMessages.User.Register.REGISTER_SUCCESS],
           data: {
             meta: {},
-            entries: [{ email, name, username, phone, address, gender, city, district, ward }]
+            entries: [{email, name, username, phone, address, gender, city, district, ward}]
           }
         };
 
@@ -201,11 +200,11 @@ export class UserController {
   }
 
   @httpPut('/', TYPES.CheckTokenMiddleware)
-  public updateUser(request: Request, response: Response): Promise<IRes<any>> {
-    return new Promise<IRes<any>>(async (resolve, reject) => {
+  public updateUser(request: Request): Promise<IRes<any>> {
+    return new Promise<IRes<any>>(async (resolve) => {
       try {
         const user = request.user;
-        const { error } = Joi.validate(request.body, UpdateUserValidationSchema);
+        const {error} = Joi.validate(request.body, UpdateUserValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -219,11 +218,11 @@ export class UserController {
           return resolve(result);
         }
         const {
-            password ,newPassword, confirmedPassword, name, phone, birthday, address, city, district, ward, gender, avatar
+          password, newPassword, confirmedPassword, name, phone, birthday, address, city, district, ward, gender, avatar
         } = request.body;
 
-        if(phone !== user.phone){
-          const duplicatedPhones = await UserModel.find({ phone: phone });
+        if (phone !== user.phone) {
+          const duplicatedPhones = await UserModel.find({phone: phone});
           if (duplicatedPhones.length !== 0) {
             const result: IRes<{}> = {
               status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -234,7 +233,7 @@ export class UserController {
           }
         }
 
-        if(password && newPassword && confirmedPassword){
+        if (password && newPassword && confirmedPassword) {
           if (!this.userService.isValidHashPassword(user.passwordHash, password)) {
             const result: IRes<{}> = {
               status: HttpStatus.BAD_REQUEST,
@@ -254,8 +253,8 @@ export class UserController {
           }
         }
 
-        if(avatar){
-          if(avatar[0].link !== user.avatar){
+        if (avatar) {
+          if (avatar[0].link !== user.avatar) {
             const oldImages = [user.avatar] || [];
             const newImages = avatar;
             if (newImages) {
@@ -276,7 +275,7 @@ export class UserController {
           gender,
           avatar
         };
-        await this.userService.updateUser(user , newUserData);
+        await this.userService.updateUser(user, newUserData);
         const userInfoResponse = {
           _id: user.id,
           role: user.role,
@@ -284,7 +283,7 @@ export class UserController {
           username: user.username,
           name: name || user.name,
           phone: phone || user.phone,
-          address:address || user.address,
+          address: address || user.address,
           type: user.type,
           birthday: birthday || user.birthday,
           status: user.status,
@@ -326,7 +325,7 @@ export class UserController {
   public login(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const { error } = Joi.validate(request.body, loginValidationSchema);
+        const {error} = Joi.validate(request.body, loginValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -339,7 +338,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const { email, username, password } = request.body;
+        const {email, username, password} = request.body;
 
         const user = await this.userService.findByEmailOrUsername(email, username);
 
@@ -373,24 +372,24 @@ export class UserController {
         }
 
         const userInfoResponse = {
-          _id: user.id,
-          role: user.role,
-          email: user.email,
-          username: user.username,
-          name: user.name,
-          phone: user.phone,
-          address: user.address,
-          type: user.type,
-          status: user.status,
-          avatar: user.avatar,
-          gender: user.gender,
-          city: user.city,
-          district: user.district,
-          ward: user.ward,
-          registerBy: user.registerBy
-        }
-          ;
-        const token = this.userService.generateToken({ email: user.email });
+            _id: user.id,
+            role: user.role,
+            email: user.email,
+            username: user.username,
+            name: user.name,
+            phone: user.phone,
+            address: user.address,
+            type: user.type,
+            status: user.status,
+            avatar: user.avatar,
+            gender: user.gender,
+            city: user.city,
+            district: user.district,
+            ward: user.ward,
+            registerBy: user.registerBy
+          }
+        ;
+        const token = this.userService.generateToken({email: user.email});
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -422,7 +421,7 @@ export class UserController {
   public loginByGoogle(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const { error } = Joi.validate(request.body, loginGoogleSchema);
+        const {error} = Joi.validate(request.body, loginGoogleSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -436,7 +435,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const { email, googleId, name } = request.body;
+        const {email, googleId, name} = request.body;
         let user = await this.userService.findByGoogleId(googleId);
 
 
@@ -472,7 +471,7 @@ export class UserController {
           registerBy: user.registerBy,
           googleId: user.googleId
         };
-        const token = this.userService.generateToken({ email: user.email });
+        const token = this.userService.generateToken({email: user.email});
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -502,7 +501,7 @@ export class UserController {
   public loginByFacebook(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const { error } = Joi.validate(request.body, LoginFacebookValidationSchema);
+        const {error} = Joi.validate(request.body, LoginFacebookValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -516,10 +515,10 @@ export class UserController {
           return resolve(result);
         }
 
-        const {token}= request.body;
+        const {token} = request.body;
 
-        const facebookInfo:any = await this.fcebookGraphApiService.getUserInfoByAccessToken(token);
-        if(facebookInfo === null){
+        const facebookInfo: any = await this.fcebookGraphApiService.getUserInfoByAccessToken(token);
+        if (facebookInfo === null) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.User.Login.INVALID_TOKEN],
@@ -528,7 +527,8 @@ export class UserController {
           return resolve(result);
         }
 
-        const { id, email, name } = facebookInfo;
+        const {id, email, name} = facebookInfo;
+        console.log(facebookInfo);
 
         let user = await this.userService.findByFacebookId(id);
 
@@ -564,7 +564,7 @@ export class UserController {
           registerBy: user.registerBy,
           facebookId: user.facebookId
         };
-        const resToken = this.userService.generateToken({ email: user.email });
+        const resToken = this.userService.generateToken({email: user.email});
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -579,12 +579,12 @@ export class UserController {
 
         resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
+        const messages = Object.keys(e.errors || {}).map(key => {
           return e.errors[key].message;
         });
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
+          messages: messages || [e],
           data: {}
         };
         resolve(result);
@@ -596,7 +596,7 @@ export class UserController {
   public confirm(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const { token } = request.query;
+        const {token} = request.query;
 
         const user = await UserModel.findOne({
           tokenEmailConfirm: token
@@ -645,7 +645,7 @@ export class UserController {
   public forgetPassword(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const { error } = Joi.validate(request.query, forgetPasswordValidationSchema);
+        const {error} = Joi.validate(request.query, forgetPasswordValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -659,7 +659,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const { email } = request.query;
+        const {email} = request.query;
         const user = await this.userService.findByEmail(email);
         if (!user) {
           const result: IRes<{}> = {
@@ -686,8 +686,7 @@ export class UserController {
           status: HttpStatus.OK,
           messages: [ResponseMessages.User.ForgetPassword.FORGET_PASSWORD_SUCCESS],
           data: {
-            meta: {
-            },
+            meta: {},
             entries: []
           }
         };
@@ -711,7 +710,7 @@ export class UserController {
   public resetPassword(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
-        const { error } = Joi.validate(request.body, resetPasswordValidationSchema);
+        const {error} = Joi.validate(request.body, resetPasswordValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -725,7 +724,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const { token, password, confirmedPassword } = request.body;
+        const {token, password, confirmedPassword} = request.body;
         if (password !== confirmedPassword) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
@@ -761,8 +760,7 @@ export class UserController {
           status: HttpStatus.OK,
           messages: [ResponseMessages.User.ResetPassword.RESET_PASSWORD_SUCCESS],
           data: {
-            meta: {
-            },
+            meta: {},
             entries: []
           }
         };
