@@ -59,6 +59,57 @@ export class OrderController {
     });
   }
 
+
+  @httpGet(OrderRoute.GetPendingOrder, TYPES.CheckTokenMiddleware)
+  public getPendingOrder(request: Request, response: Response): Promise<IRes<any>> {
+    return new Promise<IRes<any>>(async (resolve, reject) => {
+      try {
+        const user = request.user;
+        const pendingOrder = await this.orderService.findPendingOrder(user._id);
+
+        if(pendingOrder){
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Order.ORDER_EMPTY],
+            data: null
+          };
+          resolve(result);
+        }
+
+        const orderId = pendingOrder.id;
+
+
+        let orderItems: OrderItem[] = null;
+        if (orderId) orderItems = await this.orderService.findPendingOrderItems(orderId);
+
+        if (!orderItems) {
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Order.ORDER_EMPTY],
+            data: null
+          };
+          resolve(result);
+        }
+
+        const result: IRes<any> = {
+          status: HttpCodes.SUCCESS,
+          messages: [ResponseMessages.SUCCESS],
+          data: orderItems
+        };
+        resolve(result);
+      } catch (error) {
+        logger.debug(error);
+
+        const result: IRes<OrderItem[]> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: error.messages,
+          data: null
+        };
+        resolve(result);
+      }
+    });
+  }
+
   @httpGet(OrderRoute.GetOrderItem, TYPES.CheckTokenMiddleware)
   public getOrderItem(request: Request, response: Response): Promise<IRes<any>> {
     return new Promise<IRes<any>>(async (resolve, reject) => {
@@ -130,6 +181,7 @@ export class OrderController {
         const orderItem = await this.orderService.findOrderItem(order, product);
         if (!orderItem) await this.orderService.addItem(order, product, quantity);
         else await this.orderService.updateItem(orderItem, quantity);
+
 
         const result: IRes<Order> = {
           status: HttpCodes.SUCCESS,

@@ -70,6 +70,7 @@ export namespace ResponseMessages {
 
   export namespace Order {
     export const ORDER_NOT_FOUND = 'Không tìm thấy đơn hàng';
+    export const ORDER_EMPTY = 'Giỏ hàng trống';
     export namespace Add {
       export const ADD_ORDER_SUCCESS = 'Thêm đơn hàng thành công';
       export const NO_ADD_ORDER_PERMISSION = 'Chỉ có chủ đơn hàng được phép thêm sản phẩm';
