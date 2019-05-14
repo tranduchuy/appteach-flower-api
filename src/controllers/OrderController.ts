@@ -12,12 +12,11 @@ import { Order } from '../models/order';
 import { ResponseMessages } from '../constant/messages';
 import { ProductService } from '../services/product.service';
 import { AddressService } from '../services/address.service';
-import { HttpCodes } from '../constant/http-codes';
 import { OrderItem } from '../models/order-item';
 import logger from '../utils/logger';
 import { Product } from '../models/product';
-import { OrderItemService } from "../services/order-item.service";
-import { Status } from "../constant/status";
+import { OrderItemService } from '../services/order-item.service';
+import { Status } from '../constant/status';
 
 @controller(OrderRoute.Name)
 export class OrderController {
@@ -50,7 +49,7 @@ export class OrderController {
       }
 
       const result: IRes<Order> = {
-        status: HttpCodes.SUCCESS,
+        status: HttpStatus.OK,
         messages: [ResponseMessages.SUCCESS],
         data: orders
       };
@@ -65,9 +64,9 @@ export class OrderController {
     return new Promise<IRes<any>>(async (resolve, reject) => {
       try {
         const user = request.user;
-        const pendingOrder : any = await this.orderService.findPendingOrder(user._id);
+        const pendingOrder: any = await this.orderService.findPendingOrder(user._id);
 
-        if(!pendingOrder){
+        if (!pendingOrder) {
           const result = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Order.ORDER_EMPTY],
@@ -77,7 +76,6 @@ export class OrderController {
         }
 
         const orderId = pendingOrder._id;
-
 
         let orderItems: OrderItem[] = null;
         if (orderId) orderItems = await this.orderItemService.findPendingOrderItems(orderId);
@@ -132,7 +130,7 @@ export class OrderController {
         const products = await this.productService.findListProductByIds(productIds) as Product[];
 
         const orderItemsResult = orderItems.map((orderItem) => {
-          const product = _.find(products, { id: _.get(orderItem.product, '_id').toString() }) as Product;
+          const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
           if (!product) return orderItem;
 
           orderItem.title = product.title;
@@ -144,7 +142,7 @@ export class OrderController {
         });
 
         const result: IRes<any> = {
-          status: HttpCodes.SUCCESS,
+          status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: orderItemsResult
         };
@@ -166,7 +164,7 @@ export class OrderController {
   public addOne(request: Request, response: Response): Promise<IRes<Order>> {
     return new Promise<IRes<Order>>(async (resolve, reject) => {
       try {
-        const { productId, quantity } = request.body;
+        const {productId, quantity} = request.body;
         const user = request.user;
 
         let order = await this.orderService.findPendingOrder(user.id);
@@ -186,7 +184,7 @@ export class OrderController {
 
 
         const result: IRes<Order> = {
-          status: HttpCodes.SUCCESS,
+          status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: order
         };
@@ -240,19 +238,20 @@ export class OrderController {
 
         await Promise.all(
           orderItems.map(async (orderItem) => {
-            const product = _.find(products, { id: _.get(orderItem.product, '_id').toString() }) as Product;
+            const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
             if (!product) return orderItem;
             const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
             await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
             return orderItem;
           })
         );
-        //update order items status: new => pending
+
+        // update order items status: new => pending
         await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PROCESSING);
         await this.orderService.submitOrder(order);
 
         const result: IRes<Order> = {
-          status: HttpCodes.SUCCESS,
+          status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: order
         };
@@ -288,7 +287,7 @@ export class OrderController {
         await this.orderService.deleteItem(itemId);
 
         const result: IRes<OrderItem> = {
-          status: HttpCodes.SUCCESS,
+          status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: null
         };

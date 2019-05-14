@@ -36,6 +36,7 @@
     "express-flash": "0.0.2",
     "express-session": "^1.15.6",
     "express-validator": "^4.3.0",
+    "fb": "^2.0.0",
     "fbgraph": "^1.4.1",
     "fetch": "^1.1.0",
     "google-distance-matrix": "^1.1.1",

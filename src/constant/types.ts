@@ -6,6 +6,7 @@ const TYPES = {
   ProductController: Symbol.for('ProductController'),
   SearchController: Symbol.for('SearchController'),
   OrderController: Symbol.for('OrderController'),
+  OrderItemController: Symbol.for('OrderItemController'),
   ShopController: Symbol.for('ShopController'),
   AddressController: Symbol.for('AddressController'),
 
@@ -19,6 +20,7 @@ const TYPES = {
   AddressService: Symbol.for('AddressService'),
   ShopService: Symbol.for('ShopService'),
   GoogleDistanceMatrixService: Symbol.for('GoogleDistanceMatrixService'),
+  FacebookGraphApiService: Symbol.for('FacebookGraphApiService'),
   SystemConfigService: Symbol.for('SystemConfigService'),
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),

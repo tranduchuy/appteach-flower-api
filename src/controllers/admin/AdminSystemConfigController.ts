@@ -1,27 +1,29 @@
-import { controller, httpGet, httpPut } from "inversify-express-utils";
-import TYPES from "../../constant/types";
-import { inject } from "inversify";
-import { SystemConfigService } from "../../services/system-config.service";
-import { Request, Response } from "express";
-import { IRes } from "../../interfaces/i-res";
-import { ResponseMessages } from "../../constant/messages";
-import { SystemConfig } from "../../models/system-config";
-import * as HttpStatus from "http-status-codes";
-import { HttpCodes } from "../../constant/http-codes";
-import { ImageService } from "../../services/image.service";
+import { controller, httpGet, httpPut } from 'inversify-express-utils';
+import TYPES from '../../constant/types';
+import { inject } from 'inversify';
+import { SystemConfigService } from '../../services/system-config.service';
+import { Request, Response } from 'express';
+import { IRes } from '../../interfaces/i-res';
+import { ResponseMessages } from '../../constant/messages';
+import { SystemConfig } from '../../models/system-config';
+import * as HttpStatus from 'http-status-codes';
+import { HttpCodes } from '../../constant/http-codes';
+import { ImageService } from '../../services/image.service';
 
-//validate
+// validate
 import Joi from '@hapi/joi';
-import UpdateImage from "../../validation-schemas/system-config/update-image";
-import UpdateImages from "../../validation-schemas/system-config/update-images";
+import UpdateImage from '../../validation-schemas/system-config/update-image';
+import UpdateImages from '../../validation-schemas/system-config/update-images';
+
 @controller('/admin/system-config')
 export class AdminSystemConfigController {
   constructor(@inject(TYPES.SystemConfigService) private systemConfigService: SystemConfigService,
               @inject(TYPES.ImageService) private imageService: ImageService) {
   }
+
   @httpGet('/', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
   public getProducts(request: Request, response: Response): Promise<IRes<SystemConfig>> {
-    return new Promise<IRes<SystemConfig>>(async (resolve, reject) =>{
+    return new Promise<IRes<SystemConfig>>(async (resolve, reject) => {
       const config = await this.systemConfigService.getConfig();
       const result: IRes<SystemConfig> = {
         status: 1,
@@ -50,7 +52,7 @@ export class AdminSystemConfigController {
 
           return resolve(result);
         }
-        const config =  await this.systemConfigService.getConfig();
+        const config = await this.systemConfigService.getConfig();
         const {image} = req.body;
         console.log(image);
 
@@ -102,7 +104,7 @@ export class AdminSystemConfigController {
 
           return resolve(result);
         }
-        const config =  await this.systemConfigService.getConfig();
+        const config = await this.systemConfigService.getConfig();
         const {image} = req.body;
         console.log(image);
 
@@ -154,7 +156,7 @@ export class AdminSystemConfigController {
 
           return resolve(result);
         }
-        const config =  await this.systemConfigService.getConfig();
+        const config = await this.systemConfigService.getConfig();
         const {image} = req.body;
         console.log(image);
 
@@ -206,7 +208,7 @@ export class AdminSystemConfigController {
 
           return resolve(result);
         }
-        const config =  await this.systemConfigService.getConfig();
+        const config = await this.systemConfigService.getConfig();
         const {images} = req.body;
 
         await this.systemConfigService.updateCriteriaImages(images);

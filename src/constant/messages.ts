@@ -1,5 +1,6 @@
 export namespace ResponseMessages {
   export const SUCCESS = 'Thành công';
+  export const INVALID_ID = 'ID không hợp lệ';
   export namespace User {
     export const USER_NOT_FOUND = 'Tài khoản không tồn tại';
 
@@ -16,6 +17,7 @@ export namespace ResponseMessages {
       export const INACTIVE_USER = 'Tài khoản chưa được kí hoạt';
       export const LOGIN_SUCCESS = 'Đăng nhập thành công';
       export const PERMISSION_DENIED = 'Không có quyền truy cập';
+      export const INVALID_TOKEN = 'accessToken không hợp lệ';
     }
     export namespace Confirm {
       export const INVALID_TOKEN = 'Token không hợp lệ';
@@ -79,5 +81,9 @@ export namespace ResponseMessages {
       export const UPDATE_ORDER_SUCCESS = 'Cập nhật sản phẩm thành công';
       export const NO_UPDATE_ORDER_PERMISSION = 'Chỉ có chủ đơn hàng được phép cập nhật sản phẩm';
     }
+  }
+
+  export namespace OrderItem {
+    export const ORDER_ITEM_NOT_FOUND = 'Không tìm thấy sản phẩm trong giỏ hàng';
   }
 }

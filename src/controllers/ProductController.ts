@@ -27,9 +27,9 @@ interface IResUpdateProductsStatus {
 @controller('/product')
 export class ProductController {
   constructor(
-    @inject(TYPES.ProductService) private productService: ProductService,
-    @inject(TYPES.ImageService) private imageService: ImageService,
-    @inject(TYPES.ShopService) private shopService: ShopService
+      @inject(TYPES.ProductService) private productService: ProductService,
+      @inject(TYPES.ImageService) private imageService: ImageService,
+      @inject(TYPES.ShopService) private shopService: ShopService
   ) {
   }
 
@@ -276,11 +276,33 @@ export class ProductController {
         let {saleOff} = request.body;
 
         const saleOffObject = {
-          price: salePrice || null
+          price: 0,
+          startDate: null,
+          endDate: null,
+          active: false
         };
-        saleOff = saleOff ? saleOff : saleOffObject;
 
-        const salePriceCheck = saleOffObject.price || product.saleOff.price;
+        if (salePrice && salePrice !== product.saleOff.price) {
+          if (salePrice === 0) {
+            saleOff = {
+              price: 0,
+              startDate: null,
+              endDate: null,
+              active: false
+            };
+          } else {
+            saleOff = {
+              price: salePrice,
+              startDate: Date.now(),
+              endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+              active: true
+            };
+          }
+        } else {
+          saleOff = saleOffObject;
+        }
+
+        const salePriceCheck = salePrice || product.saleOff.price;
         const price = originalPrice || product.originalPrice;
         // check sale price vs original price.
         if (salePriceCheck > price) {

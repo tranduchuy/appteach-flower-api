@@ -14,7 +14,7 @@ export class OrderService {
   shopInfoFields = ['id', 'name', 'slug'];
 
   createOrder = async (user: User, address: Address): Promise<Order> => {
-    const newOrder = new OrderModel({ fromUser: user, address });
+    const newOrder = new OrderModel({fromUser: user, address});
     return await newOrder.save();
   };
 
@@ -23,12 +23,12 @@ export class OrderService {
     return await order.save();
   };
 
-  findOrder = async (userId: string): Promise<Order[]> => OrderModel.find({ fromUser: userId });
+  findOrder = async (userId: string): Promise<Order[]> => OrderModel.find({fromUser: userId});
 
-  findOrders = async (userId: string, status: number) : Promise<Array<Order>> => {
+  findOrders = async (userId: string, status: number): Promise<Array<Order>> => {
     try {
-      let query = {
-       fromUser: userId, status: status || null
+      const query = {
+        fromUser: userId, status: status || null
       };
 
       Object.keys(query).map(key => {
@@ -44,28 +44,34 @@ export class OrderService {
   };
 
 
-  findPendingOrder = async (userId: string) : Promise<Order> => OrderModel.findOne({ fromUser: userId, status: Status.ORDER_PENDING });
+  findPendingOrder = async (userId: string): Promise<Order> => OrderModel.findOne({
+    fromUser: userId,
+    status: Status.ORDER_PENDING
+  });
 
 
-  findItemInOrder = async (orderId: string) : Promise<Array<any>> =>{
+  findItemInOrder = async (orderId: string): Promise<Array<any>> => {
     try {
-      const orderItems = await OrderItemModel.find({ order: orderId });
-      return await Promise.all(orderItems.map(async item =>{
-        //get product info.
+      const orderItems = await OrderItemModel.find({order: orderId});
+      return await Promise.all(orderItems.map(async item => {
+        // get product info.
         const productInfo = await ProductModel.findOne({_id: item.product}, this.productInfoFields);
         item.product = productInfo;
-        //get shop info.
+        // get shop info.
         const shopInfo = await ShopModel.findOne({_id: productInfo.shop}, this.shopInfoFields);
         item.shop = shopInfo;
         return item;
       }));
-    } catch(e){
+    } catch (e) {
       console.log(e);
       return [];
     }
   };
 
-  findOrderItem = async (order: Order, product: Product): Promise<OrderItem> => OrderItemModel.findOne({ order: order, product: product });
+  findOrderItem = async (order: Order, product: Product): Promise<OrderItem> => OrderItemModel.findOne({
+    order: order,
+    product: product
+  });
 
 
   addItem = async (order: Order, product: Product, quantity: number): Promise<OrderItem> => {
@@ -88,15 +94,15 @@ export class OrderService {
 
   deleteItem = async (id: string) => OrderItemModel.findByIdAndRemove(id);
 
-  checkAndUpdateSuccessStatus = async (orderId: string) =>{
-    const orderItems = await OrderItemModel.find({ order: orderId});
-    const finishedItems  = orderItems.filter(item => {
+  checkAndUpdateSuccessStatus = async (orderId: string) => {
+    const orderItems = await OrderItemModel.find({order: orderId});
+    const finishedItems = orderItems.filter(item => {
       return item.status === Status.ORDER_ITEM_FINISHED;
     });
 
-    if(orderItems.length === finishedItems.length){
-      return await OrderModel.findByIdAndUpdate(orderId, { status: Status.ORDER_SUCCESS});
-    } else{
+    if (orderItems.length === finishedItems.length) {
+      return await OrderModel.findByIdAndUpdate(orderId, {status: Status.ORDER_SUCCESS});
+    } else {
       return null;
     }
   }

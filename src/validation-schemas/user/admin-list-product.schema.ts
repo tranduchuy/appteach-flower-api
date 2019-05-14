@@ -1,5 +1,5 @@
 import Joi from '@hapi/joi';
-import { Status } from "../../constant/status";
+import { Status } from '../../constant/status';
 
 const ListProductSchema = Joi.object().keys(
   {

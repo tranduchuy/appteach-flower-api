@@ -3,7 +3,7 @@ import * as dumpUser from './dump-data/user';
 // import * as dumpProduct from './dump-data/products';
 import * as socketIo from 'socket.io';
 import app from './app';
-import { init } from "./utils/socket";
+import { init } from './utils/socket';
 
 app.use(errorHandler());
 
@@ -18,8 +18,8 @@ const server = app.listen(app.get('port'), () => {
   // dumpProduct.run();
 });
 
-//init socket
-let io = socketIo.listen(server);
+// init socket
+const io = socketIo.listen(server);
 init(io);
 
 export default server;

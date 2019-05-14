@@ -1,6 +1,6 @@
 import { pre, prop, Ref, Typegoose } from 'typegoose';
 import { User } from './user';
-import { Status } from "../constant/status";
+import { Status } from '../constant/status';
 
 @pre<Tags>('save', function (next) {
   this.updatedAt = new Date();

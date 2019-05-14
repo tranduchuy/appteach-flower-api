@@ -18,7 +18,7 @@ export interface IQueryProduct {
   sku: string;
   maxPrice: number;
   minPrice: number;
-  saleOff: boolean,
+  saleOff: boolean;
   status: number;
   sb?: string;
   sd?: string;
@@ -73,9 +73,9 @@ export class ProductService {
     if (salePrice) {
       saleOff = {
         price: salePrice,
-        startDate: null,
-        endDate: null,
-        active: false
+        startDate: Date.now(),
+        endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+        active: true
       };
     }
     const code = RandomString.generate() + Date.now();
@@ -146,17 +146,7 @@ export class ProductService {
     try {
       // TODO: map price ranges
       const productId = product._id;
-      let priceRange = null;
-      const range = PriceRanges.find(range => {
-        if (range.min && range.max) {
-          return (range.min <= originalPrice && originalPrice < range.max);
-        } else {
-          return (range.min <= originalPrice);
-        }
-      });
-      if (range) {
-        priceRange = range.value;
-      }
+      const priceRange = ProductService.detectPriceRange(originalPrice);
 
       const defaultSaleOff = product.saleOff;
       Object.assign(defaultSaleOff, saleOff);
@@ -257,15 +247,18 @@ export class ProductService {
 
   getSaleProducts = async () => {
     try {
-      const products = await ProductModel.find({
-        'saleOff.active': true,
-        status: Status.ACTIVE
-      }, this.listProductFields).sort({
-        updatedAt: -1
-      })
+      return await ProductModel
+        .find(
+          {
+            'saleOff.active': true,
+            status: Status.ACTIVE
+          },
+          this.listProductFields
+        )
+        .sort({
+          updatedAt: -1
+        })
         .limit(General.HOME_PRODUCT_LIMIT);
-
-      return products;
     } catch (e) {
       console.error(e);
       return [];
@@ -279,14 +272,15 @@ export class ProductService {
   getProductDetailById = async (id) => {
     try {
       const product: any = await ProductModel.findOne({_id: id}, this.detailProductFields);
-      const keywords = await Promise.all(product.tags.map(async id => {
+      product.tags = await Promise.all(product.tags.map(async id => {
         const tag = await TagModel.findById(id);
         return tag.keyword;
       }));
-      product.tags = keywords;
+
       return product;
     } catch (e) {
       console.log(e);
+      return null;
     }
   };
 
@@ -324,10 +318,9 @@ export class ProductService {
         queryArr.push(newObject);
       }
 
-      const relatedProducts = await ProductModel.find({$or: queryArr}, this.listProductFields).limit(General.RELATED_PRODUCT_LIMIT);
-      return relatedProducts;
+      return await ProductModel.find({$or: queryArr}, this.listProductFields).limit(General.RELATED_PRODUCT_LIMIT);
     } catch (e) {
-      console.log(e);
+      return null;
     }
   };
 
@@ -347,14 +340,14 @@ export class ProductService {
     }
 
     if (queryCondition.minPrice) {
-      matchStage['originalPrice'] =  {'$gte': queryCondition.minPrice};
+      matchStage['originalPrice'] = {'$gte': queryCondition.minPrice};
     }
 
     if (queryCondition.maxPrice) {
-      matchStage['originalPrice'] =  {'$lt': queryCondition.maxPrice};
+      matchStage['originalPrice'] = {'$lt': queryCondition.maxPrice};
     }
 
-    if(_.isBoolean(queryCondition.saleOff)){
+    if (_.isBoolean(queryCondition.saleOff)) {
       matchStage['saleOff.active'] = queryCondition.saleOff;
     }
 
