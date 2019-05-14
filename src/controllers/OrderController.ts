@@ -13,10 +13,11 @@ import { ResponseMessages } from '../constant/messages';
 import { ProductService } from '../services/product.service';
 import { AddressService } from '../services/address.service';
 import { OrderItem } from '../models/order-item';
-import logger from '../utils/logger';
 import { Product } from '../models/product';
 import { OrderItemService } from '../services/order-item.service';
 import { Status } from '../constant/status';
+
+const console = process['console'];
 
 @controller(OrderRoute.Name)
 export class OrderController {
@@ -44,7 +45,7 @@ export class OrderController {
           messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
           data: null
         };
-        logger.debug(result);
+        console.info(result);
         resolve(result);
       }
 
@@ -53,7 +54,7 @@ export class OrderController {
         messages: [ResponseMessages.SUCCESS],
         data: orders
       };
-      logger.debug(result);
+      console.info(result);
       resolve(result);
     });
   }
@@ -96,7 +97,7 @@ export class OrderController {
         };
         resolve(result);
       } catch (error) {
-        logger.debug(error);
+        console.error(error);
 
         const result: IRes<OrderItem[]> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -148,7 +149,7 @@ export class OrderController {
         };
         resolve(result);
       } catch (error) {
-        logger.debug(error);
+        console.error(error);
 
         const result: IRes<OrderItem[]> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -190,7 +191,7 @@ export class OrderController {
         };
         resolve(result);
       } catch (error) {
-        logger.debug(error);
+        console.error(error);
         let result: IRes<Order> = null;
 
         if (error == 'Product not found') {
@@ -257,7 +258,7 @@ export class OrderController {
         };
         resolve(result);
       } catch (error) {
-        logger.debug(error);
+        console.error(error);
         let result: IRes<Order> = null;
 
         if (error == 'Order not found') {
@@ -293,7 +294,7 @@ export class OrderController {
         };
         resolve(result);
       } catch (error) {
-        logger.debug(error);
+        console.error(error);
 
         const result: IRes<OrderItem> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,

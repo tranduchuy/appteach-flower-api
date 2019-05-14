@@ -2,6 +2,8 @@ import { encrypt } from './encrypt';
 import { SocketEvents } from '../constant/socket-event';
 
 let io = null;
+const console = process['console'];
+
 export const onDisconnect = (socket) => {
 };
 
