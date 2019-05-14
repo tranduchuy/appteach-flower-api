@@ -20,7 +20,7 @@ export enum OrderItemRoute {
   // GET
 
   // UPDATE
-  UpdateOrderItem = '/:id',
+  UpdateOrderItem = '/new/:id',
 
   // CREATE
 
