@@ -19,7 +19,6 @@ export class OrderItemService {
     }));
   };
 
-
   updateOrderItem = async (orderItem, {quantity}) => {
     if (quantity) {
       orderItem.quantity = quantity;
