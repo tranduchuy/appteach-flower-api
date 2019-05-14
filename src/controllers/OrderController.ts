@@ -64,7 +64,6 @@ export class OrderController {
   public getPendingOrder(request: Request, response: Response): Promise<IRes<any>> {
     return new Promise<IRes<any>>(async (resolve, reject) => {
       try {
-        console.log("pending called");
         const user = request.user;
         const pendingOrder : any = await this.orderService.findPendingOrder(user._id);
 
@@ -93,7 +92,7 @@ export class OrderController {
         }
 
         const result: IRes<any> = {
-          status: HttpCodes.SUCCESS,
+          status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: orderItems
         };
