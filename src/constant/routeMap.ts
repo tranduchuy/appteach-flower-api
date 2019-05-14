@@ -14,3 +14,15 @@ export enum OrderRoute {
     // DELETE
     DeleteItem = '/item/:itemId',
 }
+
+export enum OrderItemRoute {
+  Name = '/order-item',
+  // GET
+
+  // UPDATE
+  UpdateOrderItem = '/:id',
+
+  // CREATE
+
+  // DELETE
+}

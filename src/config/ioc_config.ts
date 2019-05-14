@@ -24,12 +24,14 @@ import { ProductService } from '../services/product.service';
 import { ImageService } from '../services/image.service';
 import { AddressController } from '../controllers/AddressController';
 import { AddressService } from '../services/address.service';
-import { GoogleDistanceMatrixService } from "../services/google-distance-matrix.service";
+import { GoogleDistanceMatrixService } from '../services/google-distance-matrix.service';
 
 import { OrderController } from '../controllers/OrderController';
+import { OrderItemController } from '../controllers/OrderItemController';
+
 import { OrderService } from '../services/order.service';
-import { OrderItemService } from "../services/order-item.service";
-import { FacebookGraphApiService } from "../services/facebook-graph-api.service";
+import { OrderItemService } from '../services/order-item.service';
+import { FacebookGraphApiService } from '../services/facebook-graph-api.service';
 
 const container = new Container();
 
@@ -41,7 +43,7 @@ container.bind<OrderController>(TYPES.OrderController).to(OrderController);
 container.bind<SearchController>(TYPES.SearchController).to(SearchController);
 container.bind<AddressController>(TYPES.AddressController).to(AddressController);
 container.bind<ShopController>(TYPES.ShopController).to(ShopController);
-
+container.bind<OrderItemController>(TYPES.OrderItemController).to(OrderItemController);
 // Bind Admin Controller
 container.bind<AdminUserController>(TYPES.Admin.UserController).to(AdminUserController);
 container.bind<AdminProductController>(TYPES.Admin.ProductController).to(AdminProductController);

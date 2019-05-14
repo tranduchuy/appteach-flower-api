@@ -6,6 +6,7 @@ const TYPES = {
   ProductController: Symbol.for('ProductController'),
   SearchController: Symbol.for('SearchController'),
   OrderController: Symbol.for('OrderController'),
+  OrderItemController: Symbol.for('OrderItemController'),
   ShopController: Symbol.for('ShopController'),
   AddressController: Symbol.for('AddressController'),
 

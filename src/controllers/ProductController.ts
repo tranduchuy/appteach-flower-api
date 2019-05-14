@@ -27,9 +27,9 @@ interface IResUpdateProductsStatus {
 @controller('/product')
 export class ProductController {
   constructor(
-    @inject(TYPES.ProductService) private productService: ProductService,
-    @inject(TYPES.ImageService) private imageService: ImageService,
-    @inject(TYPES.ShopService) private shopService: ShopService
+      @inject(TYPES.ProductService) private productService: ProductService,
+      @inject(TYPES.ImageService) private imageService: ImageService,
+      @inject(TYPES.ShopService) private shopService: ShopService
   ) {
   }
 
@@ -282,8 +282,8 @@ export class ProductController {
           active: false
         };
 
-        if(salePrice && salePrice !== product.saleOff.price){
-          if(salePrice === 0){
+        if (salePrice && salePrice !== product.saleOff.price) {
+          if (salePrice === 0) {
             saleOff = {
               price: 0,
               startDate: null,

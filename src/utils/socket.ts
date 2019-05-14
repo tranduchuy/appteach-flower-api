@@ -1,5 +1,6 @@
-import {encrypt} from './encrypt';
-import { SocketEvents } from "../constant/socket-event";
+import { encrypt } from './encrypt';
+import { SocketEvents } from '../constant/socket-event';
+
 let io = null;
 export const onDisconnect = (socket) => {
 };
@@ -8,19 +9,19 @@ export const onConnectFn = (socket) => {
   console.log('User connect');
 
   socket.on(SocketEvents.JOIN, (data) => {
-    if(data){
-      if(!data.userId){
+    if (data) {
+      if (!data.userId) {
         return;
       }
-      socket.join(data.userId);//using room of socket io
-      pushToUser(data.userId, JSON.stringify({title: "Hello"}));
+      socket.join(data.userId); // using room of socket io
+      pushToUser(data.userId, JSON.stringify({title: 'Hello'}));
     } else {
       return;
     }
   });
 
   socket.on('disconnection', () => {
-    onDisconnect(socket)
+    onDisconnect(socket);
   });
 };
 

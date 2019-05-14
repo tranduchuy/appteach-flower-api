@@ -30,7 +30,7 @@ export interface IQueryUser {
 export class UserService {
   sellerInProductDetailFields = ['_id', 'avatar', 'name', 'address'];
 
-  createUser = async ({ email, password, type, name, username, phone, address, city, district, ward, registerBy, gender, role }) => {
+  createUser = async ({email, password, type, name, username, phone, address, city, district, ward, registerBy, gender, role}) => {
     const salt = bcrypt.genSaltSync(UserConstant.saltLength);
     const tokenEmailConfirm = RandomString.generate({
       length: UserConstant.tokenConfirmEmailLength,
@@ -67,7 +67,7 @@ export class UserService {
       const userId = user._id;
 
       let passwordHash = null;
-      if(newPassword){
+      if (newPassword) {
         passwordHash = bcrypt.hashSync(newPassword, user.passwordSalt);
       }
 
@@ -96,7 +96,7 @@ export class UserService {
     }
   };
 
-  createUserByGoogle = async ({ email, name, googleId }) => {
+  createUserByGoogle = async ({email, name, googleId}) => {
 
     const username = email.split('@')[0];
 
@@ -122,7 +122,7 @@ export class UserService {
     return await newUser.save();
   };
 
-  createUserByFacebook = async ({ email, name, facebookId }) => {
+  createUserByFacebook = async ({email, name, facebookId}) => {
 
     const username = email.split('@')[0];
 
@@ -156,7 +156,7 @@ export class UserService {
   };
 
   findByUsername = async (username: string) => {
-    return await UserModel.findOne({ username });
+    return await UserModel.findOne({username});
   };
 
   findByEmailOrUsername = async (email, username) => {
@@ -176,23 +176,15 @@ export class UserService {
     user.facebookId = facebookId;
     return await user.save();
   };
-
-  async findById(id: string): Promise<User> {
-    return await UserModel.findById(id);
-  }
-
   findByEmail = async (email) => {
-    return await UserModel.findOne({ email: email });
+    return await UserModel.findOne({email: email});
   };
-
   findByGoogleId = async (googleId) => {
-    return await UserModel.findOne({ googleId: googleId });
+    return await UserModel.findOne({googleId: googleId});
   };
-
   findByFacebookId = async (facebookId) => {
-    return await UserModel.findOne({ facebookId: facebookId });
+    return await UserModel.findOne({facebookId: facebookId});
   };
-
   isValidHashPassword = (hashed: string, plainText: string) => {
     try {
       return bcrypt.compareSync(plainText, hashed);
@@ -200,10 +192,35 @@ export class UserService {
       return false;
     }
   };
-
   getSellerInProductDetail = async (id) => {
-    return await UserModel.findOne({ _id: id }, this.sellerInProductDetailFields);
+    return await UserModel.findOne({_id: id}, this.sellerInProductDetailFields);
   };
+  generateForgetPasswordToken = async (user) => {
+    const reminderToken = RandomString.generate();
+    const reminderExpired = moment().add(2, 'hours');
+
+    user.passwordReminderToken = reminderToken;
+    user.passwordReminderExpire = reminderExpired;
+
+    return await user.save();
+  };
+  isExpiredTokenResetPassword = (expiredOn) => {
+    return moment(expiredOn).isBefore(moment());
+  };
+  resetPassword = async (newPassword, user) => {
+    user.passwordHash = bcrypt.hashSync(newPassword, user.passwordSalt);
+    user.passwordReminderToken = '';
+    return await user.save();
+  }
+  findUserByPasswordReminderToken = async (passwordReminderToken) => {
+    return await UserModel.findOne({
+      passwordReminderToken: passwordReminderToken
+    });
+  }
+
+  async findById(id: string): Promise<User> {
+    return await UserModel.findById(id);
+  }
 
   isRoleAdmin(role: number): boolean {
     return [
@@ -252,7 +269,7 @@ export class UserService {
     }
 
     if (Object.keys(matchStage).length > 0) {
-      stages.push({ $match: matchStage });
+      stages.push({$match: matchStage});
     }
 
     if (queryCondition.sortBy) {
@@ -266,42 +283,16 @@ export class UserService {
     stages.push({
       $facet: {
         entries: [
-          { $skip: (queryCondition.page - 1) * queryCondition.limit },
-          { $limit: queryCondition.limit }
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
         ],
         meta: [
-          { $group: { _id: null, totalItems: { $sum: 1 } } },
+          {$group: {_id: null, totalItems: {$sum: 1}}},
         ],
       }
     });
 
     return stages;
-  }
-
-  generateForgetPasswordToken = async (user) => {
-    const reminderToken = RandomString.generate();
-    const reminderExpired = moment().add(2, 'hours');
-
-    user.passwordReminderToken = reminderToken;
-    user.passwordReminderExpire = reminderExpired;
-
-    return await user.save();
-  };
-
-  isExpiredTokenResetPassword = (expiredOn) => {
-    return moment(expiredOn).isBefore(moment());
-  };
-
-  resetPassword = async (newPassword, user) => {
-    user.passwordHash = bcrypt.hashSync(newPassword, user.passwordSalt);
-    user.passwordReminderToken = '';
-    return await user.save();
-  }
-
-  findUserByPasswordReminderToken = async (passwordReminderToken) => {
-    return await UserModel.findOne({
-      passwordReminderToken: passwordReminderToken
-    });
   }
 
 

@@ -3,5 +3,5 @@ export const encrypt = (dataStr) => {
 };
 
 export const decrypt = (hashedDataStr) => {
-  return hashedDataStr
+  return hashedDataStr;
 };

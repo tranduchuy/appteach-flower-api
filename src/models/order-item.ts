@@ -2,7 +2,7 @@ import { pre, prop, Ref, Typegoose } from 'typegoose';
 import { Order } from './order';
 import { Product } from './product';
 import { Shop } from './shop';
-import { Status } from "../constant/status";
+import { Status } from '../constant/status';
 
 @pre<Order>('save', function (next) {
   this.updatedAt = new Date();
@@ -42,7 +42,7 @@ export class OrderItem extends Typegoose {
   @prop({ required: true, default: 1 })
   quantity: number;
 
-  @prop({ required: true, default: 0 })
+  @prop({ required: true, default: null })
   price: number;
 
   @prop({ default: new Date() })
