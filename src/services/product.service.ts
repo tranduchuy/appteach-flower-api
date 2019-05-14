@@ -271,7 +271,10 @@ export class ProductService {
 
   getProductDetailById = async (id) => {
     try {
-      const product: any = await ProductModel.findOne({_id: id}, this.detailProductFields);
+      const product: any = await ProductModel
+        .findOne({_id: id}, this.detailProductFields)
+        .populate('shop');
+
       product.tags = await Promise.all(product.tags.map(async id => {
         const tag = await TagModel.findById(id);
         return tag.keyword;
