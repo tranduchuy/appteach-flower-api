@@ -29,6 +29,12 @@ export class Order extends Typegoose {
 
   @prop()
   paidAt: Date;
+
+  @prop()
+  deliveryTime: Date;
+
+  @prop()
+  note: string;
 }
 
 export default new Order().getModelForClass(Order);

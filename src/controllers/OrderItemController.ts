@@ -9,7 +9,6 @@ import { IRes } from '../interfaces/i-res';
 import { OrderItemRoute } from '../constant/routeMap';
 import { Order } from '../models/order';
 import { ResponseMessages } from '../constant/messages';
-import logger from '../utils/logger';
 import { OrderItemService } from '../services/order-item.service';
 import UpdateOrderItemValidationSchema from '../validation-schemas/order-item/update-delivery-address.schema';
 import { ObjectID } from 'bson';
@@ -76,7 +75,6 @@ export class OrderItemController {
         };
         return resolve(result);
       } catch (e) {
-        logger.debug(e);
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });

@@ -42,7 +42,7 @@ export class OrderItem extends Typegoose {
   @prop({ required: true, default: 1 })
   quantity: number;
 
-  @prop({ required: true, default: null })
+  @prop({ default: null })
   price: number;
 
   @prop({ default: new Date() })
