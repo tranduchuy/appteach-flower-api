@@ -85,5 +85,6 @@ export namespace ResponseMessages {
 
   export namespace OrderItem {
     export const ORDER_ITEM_NOT_FOUND = 'Không tìm thấy sản phẩm trong giỏ hàng';
+    export const ORDER_SUBMITTED = 'Đơn hàng đã hoàn tất, không thể thay đổi thông tin được nữa';
   }
 }
