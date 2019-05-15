@@ -56,7 +56,7 @@ export class OrderService {
     if (note) {
       order.note = note;
     }
-    if (note) {
+    if (address) {
       order.address = address;
     }
 
