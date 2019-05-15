@@ -12,7 +12,11 @@ const RegisterShop = Joi.object().keys(
     slug: Joi.string().required(),
     images: Joi.array().required().items(Joi.string()),
     availableShipCountry: Joi.boolean().required(),
-    availableShipAddresses: Joi.array().items(shopShipAddress)
+    availableShipAddresses: Joi.array().items(shopShipAddress),
+    city: Joi.string().required(),
+    district: Joi.number().required(),
+    ward: Joi.number(),
+    address: Joi.string().required()
   }
 );
 

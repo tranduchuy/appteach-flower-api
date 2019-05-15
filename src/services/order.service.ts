@@ -28,7 +28,8 @@ export class OrderService {
   findOrders = async (userId: string, status: number): Promise<Array<Order>> => {
     try {
       const query = {
-        fromUser: userId, status: status || null
+        fromUser: userId,
+        status: status || {$ne: Status.ORDER_PENDING} // ko lấy order đang trong trang thái giỏ hảng
       };
 
       Object.keys(query).map(key => {
@@ -105,5 +106,5 @@ export class OrderService {
     } else {
       return null;
     }
-  }
+  };
 }

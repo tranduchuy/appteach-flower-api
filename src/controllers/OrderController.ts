@@ -19,6 +19,11 @@ import { Status } from '../constant/status';
 
 const console = process['console'];
 
+interface IResAddOrderItem {
+  order: Order;
+  orderItem: OrderItem;
+}
+
 @controller(OrderRoute.Name)
 export class OrderController {
   constructor(
@@ -162,8 +167,8 @@ export class OrderController {
   }
 
   @httpPost(OrderRoute.AddItem, TYPES.CheckTokenMiddleware)
-  public addOne(request: Request, response: Response): Promise<IRes<Order>> {
-    return new Promise<IRes<Order>>(async (resolve, reject) => {
+  public addOne(request: Request, response: Response): Promise<IRes<IResAddOrderItem>> {
+    return new Promise<IRes<IResAddOrderItem>>(async (resolve, reject) => {
       try {
         const {productId, quantity} = request.body;
         const user = request.user;
@@ -179,20 +184,26 @@ export class OrderController {
         const product = await this.productService.findProductById(productId);
         if (!product) throw ('Product not found');
 
-        const orderItem = await this.orderService.findOrderItem(order, product);
-        if (!orderItem) await this.orderService.addItem(order, product, quantity);
-        else await this.orderService.updateItem(orderItem, quantity);
+        let orderItem = await this.orderService.findOrderItem(order, product);
+        if (!orderItem) {
+          orderItem = await this.orderService.addItem(order, product, quantity);
+        } else {
+          await this.orderService.updateItem(orderItem, quantity);
+        }
 
 
-        const result: IRes<Order> = {
+        const result: IRes<IResAddOrderItem> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
-          data: order
+          data: {
+            order,
+            orderItem
+          }
         };
         resolve(result);
       } catch (error) {
         console.error(error);
-        let result: IRes<Order> = null;
+        let result: IRes<IResAddOrderItem> = null;
 
         if (error == 'Product not found') {
           result = {

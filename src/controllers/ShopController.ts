@@ -74,7 +74,7 @@ export class ShopController {
         return resolve(result);
       }
 
-      const {name, slug, images, availableShipCountry, availableShipAddresses} = req.body;
+      const {name, slug, images, availableShipCountry, availableShipAddresses, city, district, ward, address} = req.body;
       const duplicateShopSlug: any = await this.shopService.findShopBySlug(slug);
       if (duplicateShopSlug) {
         const result: IRes<IResRegisterShop> = {
@@ -86,6 +86,9 @@ export class ShopController {
       }
 
       const shop: any = await this.shopService.createNewShop(req.user._id.toString(), name, slug, images, availableShipCountry);
+
+      // create shop address
+      await this.addressService.createShopAddress(shop._id.toString(), city, district, ward || null, address);
 
       await Promise.all((availableShipAddresses || []).map(async (addressData: { city: string, district?: number }) => {
         await this.addressService.createPossibleDeliveryAddress({

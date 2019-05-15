@@ -34,6 +34,19 @@ export class AddressService {
     return await newAddress.save();
   };
 
+  async createShopAddress(shopId: string, city: string, district: number, ward: number | null, address: string) {
+    const newAddress = new AddressModel({
+      city,
+      district,
+      ward,
+      address,
+      shop: new mongoose.Types.ObjectId(shopId),
+      type: AddressTypes.SHOP_ADDRESS
+    });
+
+    return await newAddress.save();
+  }
+
   getDelieveryAddress = async (user) => {
     return await AddressModel.find({
       user: user._id,
