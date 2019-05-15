@@ -1,6 +1,7 @@
 import { injectable } from 'inversify';
 import ProductModel, { Product } from '../models/product';
 import TagModel from '../models/tag';
+import ShopModel from '../models/shop';
 import urlSlug from 'url-slug';
 import { SearchSelector } from '../constant/search-selector.constant';
 import PriceRanges = SearchSelector.PriceRanges;
@@ -130,7 +131,7 @@ export class ProductService {
   findProductById = async (productId) => {
     try {
       return await ProductModel.findOne({_id: productId})
-        .populate('shop');
+        .populate({model: ShopModel, path: 'shop'});
     } catch (e) {
       console.log(e);
     }

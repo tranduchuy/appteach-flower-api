@@ -31,4 +31,6 @@ export namespace General {
     BLOCKED: 3,
     OUT_OF_STOCK: 60
   };
+
+  export const costPerKm = 50000;
 }

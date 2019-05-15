@@ -114,6 +114,11 @@ export class OrderService {
 
   deleteItem = async (id: string) => OrderItemModel.findByIdAndRemove(id);
 
+  findOrderById = async (orderId: string) => {
+    return await OrderModel.findById(orderId);
+  };
+
+
   checkAndUpdateSuccessStatus = async (orderId: string) => {
     const orderItems = await OrderItemModel.find({order: orderId});
     const finishedItems = orderItems.filter(item => {

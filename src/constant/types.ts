@@ -22,6 +22,7 @@ const TYPES = {
   GoogleDistanceMatrixService: Symbol.for('GoogleDistanceMatrixService'),
   FacebookGraphApiService: Symbol.for('FacebookGraphApiService'),
   SystemConfigService: Symbol.for('SystemConfigService'),
+  CostService: Symbol.for('CostService'),
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),
   CheckAdminMiddleware: Symbol.for('CheckAdminMiddleware'),
