@@ -23,6 +23,12 @@ export class OrderService {
     return await order.save();
   };
 
+  submitOrderDev = async (order): Promise<Order> => {
+    order.status = Status.ORDER_PAID;
+    order.paidAt = Date.now();
+    return await order.save();
+  };
+
   findOrder = async (userId: string): Promise<Order[]> => OrderModel.find({fromUser: userId});
 
   findOrders = async (userId: string, status: number): Promise<Array<Order>> => {
@@ -42,6 +48,20 @@ export class OrderService {
     } catch (e) {
       console.log(e);
     }
+  };
+
+  updateSubmitOrder = async (order, {deliveryTime, note, address}) => {
+    if (deliveryTime) {
+      order.deliveryTime = deliveryTime;
+    }
+    if (note) {
+      order.note = note;
+    }
+    if (address) {
+      order.address = address;
+    }
+
+    return await  order.save();
   };
 
 

@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import { controller, httpPost, httpGet, httpDelete, httpPut } from 'inversify-express-utils';
 import { inject } from 'inversify';
 import { Request, Response } from 'express';
+import Joi from '@hapi/joi';
 
 import TYPES from '../constant/types';
 import { IRes } from '../interfaces/i-res';
@@ -17,6 +18,9 @@ import { Product } from '../models/product';
 import { OrderItemService } from '../services/order-item.service';
 import { Status } from '../constant/status';
 
+import { prod } from '../utils/secrets';
+import SubmitOrderValidationSchema from '../validation-schemas/order/submit-order.schema';
+
 const console = process['console'];
 
 interface IResAddOrderItem {
@@ -26,11 +30,13 @@ interface IResAddOrderItem {
 
 @controller(OrderRoute.Name)
 export class OrderController {
+  prod = prod;
+
   constructor(
-    @inject(TYPES.ProductService) private productService: ProductService,
-    @inject(TYPES.OrderService) private orderService: OrderService,
-    @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-    @inject(TYPES.AddressService) private addressService: AddressService
+      @inject(TYPES.ProductService) private productService: ProductService,
+      @inject(TYPES.OrderService) private orderService: OrderService,
+      @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+      @inject(TYPES.AddressService) private addressService: AddressService
   ) {
   }
 
@@ -224,10 +230,24 @@ export class OrderController {
   }
 
   @httpPut(OrderRoute.SubmitOrder, TYPES.CheckTokenMiddleware)
-  public submitOrder(request: Request, response: Response): Promise<IRes<Order>> {
-    return new Promise<IRes<Order>>(async (resolve, reject) => {
+  public submitOrder(request: Request, response: Response): Promise<IRes<any>> {
+    return new Promise<IRes<any>>(async (resolve, reject) => {
       try {
         const user = request.user;
+
+        const {error} = Joi.validate(request.body, SubmitOrderValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
 
         const order = await this.orderService.findPendingOrder(user.id);
         if (!order) throw ('Order not found');
@@ -249,18 +269,29 @@ export class OrderController {
         const products = await this.productService.findListProductByIds(productIds) as Product[];
 
         await Promise.all(
-          orderItems.map(async (orderItem) => {
-            const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
-            if (!product) return orderItem;
-            const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
-            await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
-            return orderItem;
-          })
+            orderItems.map(async (orderItem) => {
+              const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+              if (!product) return orderItem;
+              const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
+              await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
+              return orderItem;
+            })
         );
 
         // update order items status: new => pending
         await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PROCESSING);
-        await this.orderService.submitOrder(order);
+
+        const {deliveryTime, note, address} = request.body;
+
+        const newOrder = {deliveryTime, note, address};
+        // update delivery info for order.
+        await this.orderService.updateSubmitOrder(order, newOrder);
+
+        if (this.prod) {
+          await this.orderService.submitOrder(order);
+        } else {
+          await this.orderService.submitOrderDev(order);
+        }
 
         const result: IRes<Order> = {
           status: HttpStatus.OK,
