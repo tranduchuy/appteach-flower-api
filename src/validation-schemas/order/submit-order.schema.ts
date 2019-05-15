@@ -1,8 +1,8 @@
 import Joi from '@hapi/joi';
 
 const SubmitOrderValidationSchema = Joi.object().keys({
-      address: Joi.string().requried(),
-      deliveryTime: Joi.date().requried(),
+      address: Joi.string().required(),
+      deliveryTime: Joi.date().required(),
       note: Joi.string()
     }
 );
