@@ -1,4 +1,4 @@
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 
 import OrderModel, { Order } from '../models/order';
 import OrderItemModel, { OrderItem } from '../models/order-item';
@@ -7,30 +7,29 @@ import ShopModel from '../models/shop';
 import { User } from '../models/user';
 import { Address } from '../models/address';
 import { Status } from '../constant/status';
+import { OrderItemService } from './order-item.service';
+import { AddressService } from './address.service';
+import TYPES from '../constant/types';
+import { CostService } from './cost.service';
 
 @injectable()
 export class OrderService {
   productInfoFields = ['id', 'status', 'title', 'images', 'originalPrice', 'shop', 'saleOff', 'slug'];
   shopInfoFields = ['id', 'name', 'slug'];
-
   createOrder = async (user: User, address: Address): Promise<Order> => {
     const newOrder = new OrderModel({fromUser: user, address});
     return await newOrder.save();
   };
-
   submitOrder = async (order): Promise<Order> => {
     order.status = Status.ORDER_NOT_YET_PAID;
     return await order.save();
   };
-
   submitOrderDev = async (order): Promise<Order> => {
     order.status = Status.ORDER_PAID;
     order.paidAt = Date.now();
     return await order.save();
   };
-
   findOrder = async (userId: string): Promise<Order[]> => OrderModel.find({fromUser: userId});
-
   findOrders = async (userId: string, status: number): Promise<Array<Order>> => {
     try {
       const query = {
@@ -48,7 +47,6 @@ export class OrderService {
       console.log(e);
     }
   };
-
   updateSubmitOrder = async (order, {deliveryTime, note, address}) => {
     if (deliveryTime) {
       order.deliveryTime = deliveryTime;
@@ -62,14 +60,10 @@ export class OrderService {
 
     return await  order.save();
   };
-
-
   findPendingOrder = async (userId: string): Promise<Order> => OrderModel.findOne({
     fromUser: userId,
     status: Status.ORDER_PENDING
   });
-
-
   findItemInOrder = async (orderId: string): Promise<Array<any>> => {
     try {
       const orderItems = await OrderItemModel.find({order: orderId});
@@ -87,13 +81,10 @@ export class OrderService {
       return [];
     }
   };
-
   findOrderItem = async (order: Order, product: Product): Promise<OrderItem> => OrderItemModel.findOne({
     order: order,
     product: product
   });
-
-
   addItem = async (order: Order, product: Product, quantity: number): Promise<OrderItem> => {
     const newOrderItem = new OrderItemModel({
       order,
@@ -104,21 +95,16 @@ export class OrderService {
 
     return newOrderItem.save();
   };
-
   updateItem = async (orderItem, quantity: number, price?: number): Promise<OrderItem> => {
     if (quantity == 0) this.deleteItem(orderItem.id);
     if (price) orderItem.price = price;
     orderItem.quantity = quantity;
     return orderItem.save();
   };
-
   deleteItem = async (id: string) => OrderItemModel.findByIdAndRemove(id);
-
   findOrderById = async (orderId: string) => {
     return await OrderModel.findById(orderId);
   };
-
-
   checkAndUpdateSuccessStatus = async (orderId: string) => {
     const orderItems = await OrderItemModel.find({order: orderId});
     const finishedItems = orderItems.filter(item => {
@@ -130,5 +116,26 @@ export class OrderService {
     } else {
       return null;
     }
+  };
+  updateCost = async (orderId: string, addressId) => {
+    // get orderItem by order
+    const orderItems = await this.orderItemService.findOrderItemByOrderId(orderId);
+
+    //  calculate shipping cost for each orderItem
+    await Promise.all(orderItems.map(async item => {
+      const shopAddress = await this.addressService.findDeliveryAddressByShopId(item.shop);
+      const shipping = await this.costService.calculateShippingCost(shopAddress._id, addressId);
+      const discount = await this.costService.calculateDiscount(item.shop, item.price);
+      item.shippingCost = shipping.shippingCost;
+      item.shippingDistance = shipping.shippingDistance;
+      item.discount = discount;
+      return await item.save();
+    }));
+  };
+
+  constructor(@inject(TYPES.CostService) private costService: CostService,
+              @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+              @inject(TYPES.AddressService) private addressService: AddressService) {
+
   }
 }

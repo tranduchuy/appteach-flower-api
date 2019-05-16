@@ -61,6 +61,9 @@ export class OrderItem extends Typegoose {
   shippingCost: number;
 
   @prop()
+  shippingDistance: number;
+
+  @prop()
   discount: number;
 }
 

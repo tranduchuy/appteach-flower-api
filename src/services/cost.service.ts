@@ -21,7 +21,10 @@ export class CostService {
 
     if (minDistance !== null) {
       const shippingCost = (minDistance * costPerKm) / 1000;
-      return shippingCost;
+      return {
+        shippingDistance: minDistance,
+        shippingCost
+      };
     } else {
       return null;
     }
