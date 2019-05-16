@@ -30,6 +30,10 @@ export class OrderItemService {
     return await OrderItemModel.findOne({_id: id, status: Status.ORDER_ITEM_NEW});
   };
 
+  findOrderItemById = async (id: string) => {
+    return await OrderItemModel.findOne({_id: id});
+  };
+
   findOrderItemByOrderId = async (orderId: string) => {
     return await OrderItemModel.find({order: orderId});
   };
@@ -51,4 +55,57 @@ export class OrderItemService {
       return [];
     }
   };
+
+  buildStageGetListOrderItem(queryCondition): any[] {
+    const stages = [];
+    const matchStage: any = {};
+    if (queryCondition.shop) {
+      matchStage['shop'] = queryCondition.shop;
+    }
+
+    if (queryCondition.status) {
+      matchStage['status'] = queryCondition.status;
+    } else {
+      matchStage['status'] = {
+        $ne: Status.ORDER_ITEM_NEW
+      };
+    }
+
+    if (Object.keys(matchStage).length > 0) {
+      stages.push({$match: matchStage});
+    }
+
+    stages.push({
+      $lookup: {
+        from: 'orders',
+        localField: 'order',
+        foreignField: '_id',
+        as: 'orderInfo'
+      }
+    });
+
+    stages.push({$unwind: {path: '$orderInfo'}});
+
+    if (queryCondition.sb) {
+      stages.push({
+        $sort: {
+          [queryCondition.sb]: queryCondition.sd === 'ASC' ? 1 : -1
+        }
+      });
+    }
+
+    stages.push({
+      $facet: {
+        entries: [
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}},
+        ],
+      }
+    });
+
+    return stages;
+  }
 }
