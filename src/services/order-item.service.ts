@@ -30,6 +30,10 @@ export class OrderItemService {
     return await OrderItemModel.findOne({_id: id, status: Status.ORDER_ITEM_NEW});
   };
 
+  findOrderItemByOrderId = async (orderId: string) => {
+    return await OrderItemModel.find({order: orderId});
+  };
+
   findPendingOrderItems = async (orderId: string): Promise<Array<any>> => {
     try {
       const orderItems = await OrderItemModel.find({order: orderId, status: Status.ORDER_ITEM_NEW});

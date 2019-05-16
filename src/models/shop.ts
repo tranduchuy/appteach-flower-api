@@ -32,6 +32,9 @@ export class Shop extends Typegoose {
 
   @prop()
   createdAt: Date;
+
+  @prop({default: 0, max: 100})
+  discountRate: number;
 }
 
 export default new Shop().getModelForClass(Shop);
