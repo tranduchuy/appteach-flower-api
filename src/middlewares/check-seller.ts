@@ -17,9 +17,9 @@ export class CheckSellerMiddleware extends BaseMiddleware {
   };
 
   public async handler(
-    req: Request,
-    res: Response,
-    next: NextFunction
+      req: Request,
+      res: Response,
+      next: NextFunction
   ) {
 
     if (req.user.type !== UserTypes.TYPE_SELLER) {
