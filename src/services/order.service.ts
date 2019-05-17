@@ -58,7 +58,7 @@ export class OrderService {
       order.address = address;
     }
 
-    return await  order.save();
+    return await order.save();
   };
   findPendingOrder = async (userId: string): Promise<Order> => OrderModel.findOne({
     fromUser: userId,
