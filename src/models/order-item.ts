@@ -13,13 +13,13 @@ export class OrderItem extends Typegoose {
   @prop()
   id: string;
 
-  @prop({ ref: Order, required: true })
+  @prop({ref: Order, required: true})
   order: Ref<Order>;
 
-  @prop({ ref: Shop, required: true })
+  @prop({ref: Shop, required: true})
   shop: Ref<Shop>;
 
-  @prop({ ref: Product, required: true })
+  @prop({ref: Product, required: true})
   product: Ref<Product>;
 
   @prop()
@@ -39,16 +39,16 @@ export class OrderItem extends Typegoose {
     active: boolean;
   };
 
-  @prop({ required: true, default: 1 })
+  @prop({required: true, default: 1})
   quantity: number;
 
-  @prop({ default: null })
+  @prop({default: null})
   price: number;
 
-  @prop({ default: new Date() })
+  @prop({default: new Date()})
   updatedAt: Date;
 
-  @prop({ default: new Date() })
+  @prop({default: new Date()})
   createdAt: Date;
 
   @prop({required: true, default: Status.ORDER_ITEM_NEW})
@@ -56,6 +56,15 @@ export class OrderItem extends Typegoose {
 
   @prop()
   deliveredAt: Date;
+
+  @prop()
+  shippingCost: number;
+
+  @prop()
+  shippingDistance: number;
+
+  @prop()
+  discount: number;
 }
 
 export default new OrderItem().getModelForClass(OrderItem);

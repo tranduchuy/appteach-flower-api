@@ -32,6 +32,7 @@ import { OrderItemController } from '../controllers/OrderItemController';
 import { OrderService } from '../services/order.service';
 import { OrderItemService } from '../services/order-item.service';
 import { FacebookGraphApiService } from '../services/facebook-graph-api.service';
+import { CostService } from '../services/cost.service';
 
 const container = new Container();
 
@@ -62,6 +63,8 @@ container.bind<AddressService>(TYPES.AddressService).to(AddressService);
 container.bind<ShopService>(TYPES.ShopService).to(ShopService);
 container.bind<GoogleDistanceMatrixService>(TYPES.GoogleDistanceMatrixService).to(GoogleDistanceMatrixService);
 container.bind<FacebookGraphApiService>(TYPES.FacebookGraphApiService).to(FacebookGraphApiService);
+container.bind<CostService>(TYPES.CostService).to(CostService);
+
 
 // Bind model
 

@@ -20,6 +20,8 @@ import { Status } from '../constant/status';
 
 import { prod } from '../utils/secrets';
 import SubmitOrderValidationSchema from '../validation-schemas/order/submit-order.schema';
+import GetOrderShippingCostValidationSchema from '../validation-schemas/order/get-order-shipping-cost.schema';
+import { CostService } from '../services/cost.service';
 
 const console = process['console'];
 
@@ -34,6 +36,7 @@ export class OrderController {
 
   constructor(
       @inject(TYPES.ProductService) private productService: ProductService,
+      @inject(TYPES.CostService) private costService: CostService,
       @inject(TYPES.OrderService) private orderService: OrderService,
       @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
       @inject(TYPES.AddressService) private addressService: AddressService
@@ -249,7 +252,7 @@ export class OrderController {
           return resolve(result);
         }
 
-        const order = await this.orderService.findPendingOrder(user.id);
+        const order: any = await this.orderService.findPendingOrder(user.id);
         if (!order) throw ('Order not found');
         const orderId = _.get(order, '_id').toString();
 
@@ -286,6 +289,9 @@ export class OrderController {
         const newOrder = {deliveryTime, note, address};
         // update delivery info for order.
         await this.orderService.updateSubmitOrder(order, newOrder);
+
+        // update shipping and discount
+        await this.orderService.updateCost(order._id, address);
 
         if (this.prod) {
           await this.orderService.submitOrder(order);
@@ -344,6 +350,82 @@ export class OrderController {
           data: null
         };
         resolve(result);
+      }
+    });
+  }
+
+
+  @httpPost(OrderRoute.GetOrderShippingCost, TYPES.CheckTokenMiddleware)
+  public getOrderShippingCost(request: Request, response: Response): Promise<IRes<any>> {
+    return new Promise<IRes<any>>(async (resolve, reject) => {
+      try {
+
+        const {error} = Joi.validate(request.body, GetOrderShippingCostValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<any> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const {orderId, addressId} = request.body;
+        const order = await this.orderService.findOrderById(orderId);
+        if (!order) {
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
+            data: null
+          };
+          console.info(result);
+          resolve(result);
+        }
+
+        if (order.status !== Status.ORDER_PENDING) {
+          const result = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.Order.WRONG_STATUS],
+            data: null
+          };
+          console.info(result);
+          resolve(result);
+        }
+
+        // get orderItem by order
+        let orderItems = await this.orderItemService.findOrderItemByOrderId(orderId);
+
+        //  calculate shipping cost for each orderItem
+        orderItems = await Promise.all(orderItems.map(async item => {
+          const shopAddress = await this.addressService.findDeliveryAddressByShopId(item.shop);
+          const shipping = await this.costService.calculateShippingCost(shopAddress._id, addressId);
+          item.shippingCost = shipping.shippingCost;
+          item.shippingDistance = shipping.shippingDistance;
+          return item;
+        }));
+
+
+        const result: IRes<any> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: orderItems
+        };
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        return resolve(result);
       }
     });
   }

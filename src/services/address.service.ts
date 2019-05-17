@@ -3,12 +3,18 @@ import mongoose from 'mongoose';
 import AddressModel from '../models/address';
 import { General } from '../constant/generals';
 import AddressTypes = General.AddressTypes;
+import { SearchSelector } from '../constant/search-selector.constant';
+import Cities = SearchSelector.Cities;
 
 @injectable()
 export class AddressService {
   listDeliveryAddressFields = ['name', 'user', 'phone', 'city', 'district', 'ward', 'address'];
   listPossibleDeliveryAddressFields = ['city', 'district'];
   createDeliveryAddress = async ({name, user, ward, phone, city, district, address}) => {
+    const cityObject = this.getCityByCode(city);
+    const districtObject = this.getDistrictByValue(cityObject, district);
+    const wardObject = this.getWardByValue(districtObject, ward);
+    const addressText = `${address}, ${wardObject.pre} ${wardObject.name}, ${districtObject.pre} ${districtObject.name}, ${cityObject.name}`;
     const newAddress = new AddressModel({
       name,
       phone,
@@ -16,6 +22,7 @@ export class AddressService {
       district,
       address,
       ward,
+      addressText,
       user: user._id,
       type: AddressTypes.DELIVERY
     });
@@ -124,6 +131,27 @@ export class AddressService {
     }
   };
 
+  findDeliveryAddressByShopId = async (shopId) => {
+    try {
+      return await AddressModel.findOne({
+        shop: shopId
+      });
+    } catch (e) {
+      console.log(e);
+    }
+
+  };
+
+  findAddress = async (addressId) => {
+    try {
+      return await AddressModel.findOne({
+        _id: addressId
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   deleteAddress = async (id) => {
     try {
       return await AddressModel.findByIdAndRemove(id);
@@ -132,5 +160,23 @@ export class AddressService {
     }
   };
 
+  getCityByCode(cd: string): any {
+    return Cities.find(city => {
+      return city.code === cd;
+    });
+  }
+
+  getDistrictByValue(city: any, value: number): any {
+    const district = city.districts || [];
+    return district.find(d => {
+      return d.id === value;
+    });
+  }
+
+  getWardByValue(district: any, value: number): any {
+    return district.wards.find(w => {
+      return w.id === value;
+    });
+  }
 
 }

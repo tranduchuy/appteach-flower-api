@@ -13,6 +13,9 @@ export class Address extends Typegoose {
   @prop({})
   address: string;
 
+  @prop({})
+  addressText: string;
+
   @prop({required: true})
   city: string;
 

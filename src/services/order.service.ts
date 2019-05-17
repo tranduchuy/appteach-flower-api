@@ -1,4 +1,4 @@
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 
 import OrderModel, { Order } from '../models/order';
 import OrderItemModel, { OrderItem } from '../models/order-item';
@@ -7,6 +7,10 @@ import ShopModel from '../models/shop';
 import { User } from '../models/user';
 import { Address } from '../models/address';
 import { Status } from '../constant/status';
+import { OrderItemService } from './order-item.service';
+import { AddressService } from './address.service';
+import TYPES from '../constant/types';
+import { CostService } from './cost.service';
 
 @injectable()
 export class OrderService {
@@ -114,7 +118,9 @@ export class OrderService {
   };
 
   deleteItem = async (id: string) => OrderItemModel.findByIdAndRemove(id);
-
+  findOrderById = async (orderId: string) => {
+    return await OrderModel.findById(orderId);
+  };
   checkAndUpdateSuccessStatus = async (orderId: string) => {
     const orderItems = await OrderItemModel.find({order: orderId});
     const finishedItems = orderItems.filter(item => {
@@ -127,4 +133,25 @@ export class OrderService {
       return null;
     }
   };
+  updateCost = async (orderId: string, addressId) => {
+    // get orderItem by order
+    const orderItems = await this.orderItemService.findOrderItemByOrderId(orderId);
+
+    //  calculate shipping cost for each orderItem
+    await Promise.all(orderItems.map(async item => {
+      const shopAddress = await this.addressService.findDeliveryAddressByShopId(item.shop);
+      const shipping = await this.costService.calculateShippingCost(shopAddress._id, addressId);
+      const discount = await this.costService.calculateDiscount(item.shop, item.price);
+      item.shippingCost = shipping.shippingCost;
+      item.shippingDistance = shipping.shippingDistance;
+      item.discount = discount;
+      return await item.save();
+    }));
+  };
+
+  constructor(@inject(TYPES.CostService) private costService: CostService,
+              @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+              @inject(TYPES.AddressService) private addressService: AddressService) {
+
+  }
 }

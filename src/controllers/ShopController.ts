@@ -15,6 +15,9 @@ import checkUpdateStatusProducts from '../validation-schemas/shop/check-update-s
 import Joi from '@hapi/joi';
 import ShopModel, { Shop } from '../models/shop';
 import ProductModel, { Product } from '../models/product';
+import ListShopSchema from '../validation-schemas/user/admin-list-shop.schema';
+import { OrderItemService } from '../services/order-item.service';
+import OrderItemModel from '../models/order-item';
 
 interface IResRegisterShop {
   shop: Shop;
@@ -42,6 +45,7 @@ interface IResUpdateStatusMultipleProduct {
 export class ShopController {
   constructor(@inject(TYPES.ShopService) private shopService: ShopService,
               @inject(TYPES.ProductService) private productService: ProductService,
+              @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
               @inject(TYPES.AddressService) private addressService: AddressService) {
 
   }
@@ -231,6 +235,68 @@ export class ShopController {
         status: HttpStatus.OK,
         messages: [`Cập nhật trạng thái thành công cho ${result.modifiedCount} sản phẩm`]
       });
+    });
+  }
+
+  @httpGet('/order', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
+  public getOrderItemList(req: Request): Promise<IRes<any>> {
+    return new Promise<IRes<any>>(async (resolve) => {
+      try {
+        const {error} = Joi.validate(req.query, ListShopSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<any> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages
+          };
+          return resolve(result);
+        }
+
+        const shop: any = await this.shopService.findShopOfUser(req.user._id.toString());
+
+        if (!shop) {
+          return resolve({
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.Shop.SHOP_OF_USER_NOT_FOUND]
+          });
+        }
+
+        const {limit, page, status} = req.query;
+        const stages: any[] = this.orderItemService.buildStageGetListOrderItem({
+          shop: shop._id ? shop._id : null,
+          limit: parseInt((limit || 10).toString()),
+          page: parseInt((page || 1).toString()),
+          status: status ? parseInt(status) : null,
+        });
+
+        console.log(JSON.stringify(stages));
+        const result: any = await OrderItemModel.aggregate(stages);
+        const response: IRes<any> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: {
+            meta: {
+              totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0
+            },
+            orderItems: result[0].entries
+          }
+        };
+
+        resolve(response);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<any> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages
+        };
+        resolve(result);
+      }
     });
   }
 }
