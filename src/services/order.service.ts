@@ -72,6 +72,9 @@ export class OrderService {
     if (address) {
       order.address = address;
     }
+    // generate order code
+    const date = new Date();
+    order.code = date.getTime();
 
     return await order.save();
   };
