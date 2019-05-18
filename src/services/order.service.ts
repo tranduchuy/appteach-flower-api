@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-
+import mongoose from 'mongoose';
 import OrderModel, { Order } from '../models/order';
 import OrderItemModel, { OrderItem } from '../models/order-item';
 import ProductModel, { Product } from '../models/product';
@@ -35,10 +35,10 @@ export class OrderService {
 
   findOrder = async (userId: string): Promise<Order[]> => OrderModel.find({fromUser: userId});
 
-  findOrders = async (userId: string, status: number): Promise<Array<Order>> => {
+  findOrders = async (userId: string, status: number): Promise<Array<any>> => {
     try {
       const query = {
-        fromUser: userId,
+        fromUser: new mongoose.Types.ObjectId(userId),
         status: status || {$ne: Status.ORDER_PENDING} // ko lấy order đang trong trang thái giỏ hảng
       };
 
@@ -48,9 +48,17 @@ export class OrderService {
         }
       });
 
-      return await OrderModel.find(query);
+      const orders: any = await OrderModel.find(query).lean();
+      await Promise.all(orders.map(async (order: any) => {
+        const orderItems = await this.findItemInOrder(order._id.toString());
+        (order as any).orderItems = orderItems;
+        return order;
+      }));
+
+      return orders;
     } catch (e) {
       console.log(e);
+      return [];
     }
   };
 
@@ -65,7 +73,7 @@ export class OrderService {
       order.address = address;
     }
 
-    return await  order.save();
+    return await order.save();
   };
 
 

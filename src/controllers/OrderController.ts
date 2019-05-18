@@ -35,11 +35,11 @@ export class OrderController {
   prod = prod;
 
   constructor(
-      @inject(TYPES.ProductService) private productService: ProductService,
-      @inject(TYPES.CostService) private costService: CostService,
-      @inject(TYPES.OrderService) private orderService: OrderService,
-      @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-      @inject(TYPES.AddressService) private addressService: AddressService
+    @inject(TYPES.ProductService) private productService: ProductService,
+    @inject(TYPES.CostService) private costService: CostService,
+    @inject(TYPES.OrderService) private orderService: OrderService,
+    @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+    @inject(TYPES.AddressService) private addressService: AddressService
   ) {
   }
 
@@ -59,16 +59,24 @@ export class OrderController {
           messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
           data: null
         };
-        console.info(result);
+
         resolve(result);
       }
+
+      orders.forEach(order => {
+        order.productNames = order.orderItems.map(oi => {
+          return oi.product.title;
+        });
+
+        delete order.orderItems;
+      });
 
       const result: IRes<Order> = {
         status: HttpStatus.OK,
         messages: [ResponseMessages.SUCCESS],
         data: orders
       };
-      console.info(result);
+
       resolve(result);
     });
   }
@@ -272,13 +280,13 @@ export class OrderController {
         const products = await this.productService.findListProductByIds(productIds) as Product[];
 
         await Promise.all(
-            orderItems.map(async (orderItem) => {
-              const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
-              if (!product) return orderItem;
-              const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
-              await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
-              return orderItem;
-            })
+          orderItems.map(async (orderItem) => {
+            const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+            if (!product) return orderItem;
+            const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
+            await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
+            return orderItem;
+          })
         );
 
         // update order items status: new => pending

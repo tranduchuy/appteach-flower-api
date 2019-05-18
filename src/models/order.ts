@@ -8,9 +8,7 @@ import { Address } from './address';
   next();
 })
 export class Order extends Typegoose {
-
-  @prop()
-  id: string;
+  _id: string;
 
   @prop({ ref: User, required: true })
   fromUser: Ref<User>;
