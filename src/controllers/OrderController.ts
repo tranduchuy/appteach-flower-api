@@ -25,16 +25,21 @@ import { CostService } from '../services/cost.service';
 
 const console = process['console'];
 
+interface IResAddOrderItem {
+  order: Order;
+  orderItem: OrderItem;
+}
+
 @controller(OrderRoute.Name)
 export class OrderController {
   prod = prod;
 
   constructor(
-      @inject(TYPES.ProductService) private productService: ProductService,
-      @inject(TYPES.CostService) private costService: CostService,
-      @inject(TYPES.OrderService) private orderService: OrderService,
-      @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-      @inject(TYPES.AddressService) private addressService: AddressService
+    @inject(TYPES.ProductService) private productService: ProductService,
+    @inject(TYPES.CostService) private costService: CostService,
+    @inject(TYPES.OrderService) private orderService: OrderService,
+    @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+    @inject(TYPES.AddressService) private addressService: AddressService
   ) {
   }
 
@@ -54,16 +59,24 @@ export class OrderController {
           messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
           data: null
         };
-        console.info(result);
+
         resolve(result);
       }
+
+      orders.forEach(order => {
+        order.productNames = order.orderItems.map(oi => {
+          return oi.product.title;
+        });
+
+        delete order.orderItems;
+      });
 
       const result: IRes<Order> = {
         status: HttpStatus.OK,
         messages: [ResponseMessages.SUCCESS],
         data: orders
       };
-      console.info(result);
+
       resolve(result);
     });
   }
@@ -171,8 +184,8 @@ export class OrderController {
   }
 
   @httpPost(OrderRoute.AddItem, TYPES.CheckTokenMiddleware)
-  public addOne(request: Request, response: Response): Promise<IRes<Order>> {
-    return new Promise<IRes<Order>>(async (resolve, reject) => {
+  public addOne(request: Request, response: Response): Promise<IRes<IResAddOrderItem>> {
+    return new Promise<IRes<IResAddOrderItem>>(async (resolve, reject) => {
       try {
         const {productId, quantity} = request.body;
         const user = request.user;
@@ -188,20 +201,26 @@ export class OrderController {
         const product = await this.productService.findProductById(productId);
         if (!product) throw ('Product not found');
 
-        const orderItem = await this.orderService.findOrderItem(order, product);
-        if (!orderItem) await this.orderService.addItem(order, product, quantity);
-        else await this.orderService.updateItem(orderItem, quantity);
+        let orderItem = await this.orderService.findOrderItem(order, product);
+        if (!orderItem) {
+          orderItem = await this.orderService.addItem(order, product, quantity);
+        } else {
+          await this.orderService.updateItem(orderItem, quantity);
+        }
 
 
-        const result: IRes<Order> = {
+        const result: IRes<IResAddOrderItem> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
-          data: order
+          data: {
+            order,
+            orderItem
+          }
         };
         resolve(result);
       } catch (error) {
         console.error(error);
-        let result: IRes<Order> = null;
+        let result: IRes<IResAddOrderItem> = null;
 
         if (error == 'Product not found') {
           result = {
@@ -261,13 +280,13 @@ export class OrderController {
         const products = await this.productService.findListProductByIds(productIds) as Product[];
 
         await Promise.all(
-            orderItems.map(async (orderItem) => {
-              const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
-              if (!product) return orderItem;
-              const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
-              await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
-              return orderItem;
-            })
+          orderItems.map(async (orderItem) => {
+            const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+            if (!product) return orderItem;
+            const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
+            orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
+            return orderItem;
+          })
         );
 
         // update order items status: new => pending
@@ -281,6 +300,9 @@ export class OrderController {
 
         // update shipping and discount
         await this.orderService.updateCost(order._id, address);
+
+        // calculate total
+        order.total = await this.orderService.calculateTotal(order._id);
 
         if (this.prod) {
           await this.orderService.submitOrder(order);

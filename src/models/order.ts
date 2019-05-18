@@ -8,9 +8,7 @@ import { Address } from './address';
   next();
 })
 export class Order extends Typegoose {
-
-  @prop()
-  id: string;
+  _id: string;
 
   @prop({ ref: User, required: true })
   fromUser: Ref<User>;
@@ -35,6 +33,12 @@ export class Order extends Typegoose {
 
   @prop()
   note: string;
+
+  @prop()
+  total: number;
+
+  @prop()
+  code: string;
 }
 
 export default new Order().getModelForClass(Order);
