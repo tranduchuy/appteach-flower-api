@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import * as HttpStatus from 'http-status-codes';
-import { controller, httpGet } from 'inversify-express-utils';
+import { controller, httpPost } from 'inversify-express-utils';
 import { ResponseMessages } from '../constant/messages';
 import TYPES from '../constant/types';
 import { IRes } from '../interfaces/i-res';
@@ -10,6 +10,8 @@ import Joi from '@hapi/joi';
 import CheckDateValidationSchema from '../validation-schemas/statistic/check-date.schema';
 import { ShopService } from '../services/shop.service';
 import { inject } from 'inversify';
+import { Status } from '../constant/status';
+
 // schemas
 
 interface IResStatisticDashboard {
@@ -26,11 +28,11 @@ export class ShopStatisticController {
   ) {
   }
 
-  @httpGet('/order', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
-  public getStatisticDashboard(req: Request): Promise<IRes<IResStatisticDashboard>> {
+  @httpPost('/order', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
+  public getStatisticOrder(req: Request): Promise<IRes<IResStatisticDashboard>> {
     return new Promise<IRes<IResStatisticDashboard>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(req.query, CheckDateValidationSchema);
+        const {error} = Joi.validate(req.body, CheckDateValidationSchema);
 
         if (error) {
           const messages = error.details.map(detail => {
@@ -57,18 +59,117 @@ export class ShopStatisticController {
         }
 
 
-        let {startDate, endDate} = req.query;
+        let {startDate, endDate} = req.body;
 
         startDate = new Date(startDate);
         endDate = new Date(endDate);
 
         const orderItemCount = await OrderItemModel.count({shop: shop._id, createdAt: {$gte: startDate, $lt: endDate}});
+        const processingOrderItemCount = await OrderItemModel.count({
+          shop: shop._id,
+          createdAt: {$gte: startDate, $lt: endDate},
+          status: Status.ORDER_ITEM_PROCESSING
+        });
+        const onDeliveryOrderItemCount = await OrderItemModel.count({
+          shop: shop._id,
+          createdAt: {$gte: startDate, $lt: endDate},
+          status: Status.ORDER_ITEM_ON_DELIVERY
+        });
+        const finishedOrderItemCount = await OrderItemModel.count({
+          shop: shop._id,
+          createdAt: {$gte: startDate, $lt: endDate},
+          status: Status.ORDER_ITEM_FINISHED
+        });
+        const orderCount = await OrderItemModel.find({
+          shop: shop._id,
+          createdAt: {$gte: startDate, $lt: endDate}
+        }).distinct('order');
 
         const response: IRes<any> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: {
-            orderItemCount: orderItemCount,
+            orderItemCount,
+            finishedOrderItemCount,
+            processingOrderItemCount,
+            onDeliveryOrderItemCount,
+            orderCount: orderCount.length,
+          }
+        };
+
+        return resolve(response);
+      }
+      catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<IResStatisticDashboard> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages
+        };
+        return resolve(result);
+      }
+    });
+  }
+
+  @httpPost('/money', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
+  public getStatisticMoney(req: Request): Promise<IRes<IResStatisticDashboard>> {
+    return new Promise<IRes<IResStatisticDashboard>>(async (resolve) => {
+      try {
+        const {error} = Joi.validate(req.body, CheckDateValidationSchema);
+
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<any> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages
+          };
+
+          return resolve(result);
+        }
+
+        const shop: any = await this.shopService.findShopOfUser(req.user._id);
+
+        if (!shop) {
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.OrderItem.ORDER_ITEM_NOT_FOUND]
+          };
+
+          return resolve(result);
+        }
+
+        let {startDate, endDate} = req.body;
+
+        startDate = new Date(startDate);
+        endDate = new Date(endDate);
+
+        const finishedOrderItems = await OrderItemModel.find({
+          shop: shop._id,
+          createdAt: {$gte: startDate, $lt: endDate},
+          status: Status.ORDER_ITEM_FINISHED
+        });
+
+        let revenue = 0;
+        let shippingCost = 0;
+        let discountCost = 0;
+        finishedOrderItems.map(async item => {
+          revenue += item.total;
+          shippingCost += item.shippingCost;
+          discountCost += item.discount;
+        });
+
+        const response: IRes<any> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: {
+            revenue,
+            shippingCost,
+            discountCost
           }
         };
 
