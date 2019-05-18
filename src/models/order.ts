@@ -33,6 +33,9 @@ export class Order extends Typegoose {
 
   @prop()
   note: string;
+
+  @prop()
+  total: number;
 }
 
 export default new Order().getModelForClass(Order);

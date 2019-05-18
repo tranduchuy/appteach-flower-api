@@ -284,7 +284,7 @@ export class OrderController {
             const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
             if (!product) return orderItem;
             const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
-            await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
+            orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
             return orderItem;
           })
         );
@@ -300,6 +300,9 @@ export class OrderController {
 
         // update shipping and discount
         await this.orderService.updateCost(order._id, address);
+
+        // calculate total
+        order.total = await this.orderService.calculateTotal(order._id);
 
         if (this.prod) {
           await this.orderService.submitOrder(order);
