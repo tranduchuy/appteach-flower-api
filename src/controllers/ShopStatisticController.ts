@@ -8,6 +8,8 @@ import { IRes } from '../interfaces/i-res';
 import OrderItemModel from '../models/order-item';
 import Joi from '@hapi/joi';
 import CheckDateValidationSchema from '../validation-schemas/statistic/check-date.schema';
+import { ShopService } from '../services/shop.service';
+import { inject } from 'inversify';
 // schemas
 
 interface IResStatisticDashboard {
@@ -19,14 +21,16 @@ interface IResStatisticDashboard {
 
 @controller('/shop/statistic')
 export class ShopStatisticController {
-  constructor() {
+  constructor(
+      @inject(TYPES.ShopService) private shopService: ShopService
+  ) {
   }
 
   @httpGet('/order', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
   public getStatisticDashboard(req: Request): Promise<IRes<IResStatisticDashboard>> {
     return new Promise<IRes<IResStatisticDashboard>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(req.body, CheckDateValidationSchema);
+        const {error} = Joi.validate(req.query, CheckDateValidationSchema);
 
         if (error) {
           const messages = error.details.map(detail => {
@@ -41,25 +45,34 @@ export class ShopStatisticController {
           return resolve(result);
         }
 
+        const shop: any = await this.shopService.findShopOfUser(req.user._id);
 
-        let {startDate, endDate} = req.body;
+        if (!shop) {
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.OrderItem.ORDER_ITEM_NOT_FOUND]
+          };
+
+          return resolve(result);
+        }
+
+
+        let {startDate, endDate} = req.query;
 
         startDate = new Date(startDate);
         endDate = new Date(endDate);
 
-        const orderCount = await OrderItemModel.count({created_at: {$gte: startDate, $lt: endDate}});
-
-
+        const orderItemCount = await OrderItemModel.count({shop: shop._id, createdAt: {$gte: startDate, $lt: endDate}});
 
         const response: IRes<any> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: {
-            orderCount: orderCount,
+            orderItemCount: orderItemCount,
           }
         };
 
-        resolve(response);
+        return resolve(response);
       }
       catch (e) {
         const messages = Object.keys(e.errors).map(key => {
@@ -70,7 +83,7 @@ export class ShopStatisticController {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }

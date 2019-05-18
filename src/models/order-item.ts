@@ -65,6 +65,7 @@ export class OrderItem extends Typegoose {
 
   @prop()
   discount: number;
+
 }
 
 export default new OrderItem().getModelForClass(OrderItem);
