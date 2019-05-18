@@ -72,6 +72,9 @@ export class OrderService {
     if (address) {
       order.address = address;
     }
+    // generate order code
+    const date = new Date();
+    order.code = date.getTime();
 
     return await order.save();
   };
@@ -122,6 +125,7 @@ export class OrderService {
     if (quantity == 0) this.deleteItem(orderItem.id);
     if (price) orderItem.price = price;
     orderItem.quantity = quantity;
+    orderItem.total = orderItem.quantity * orderItem.price;
     return orderItem.save();
   };
 
@@ -155,6 +159,16 @@ export class OrderService {
       item.discount = discount;
       return await item.save();
     }));
+  };
+
+
+  calculateTotal = async (orderId) => {
+    const items = await OrderItemModel.find({order: orderId});
+    let total = 0;
+    items.forEach(item => {
+      total += item.total;
+    });
+    return total;
   };
 
   constructor(@inject(TYPES.CostService) private costService: CostService,
