@@ -80,10 +80,10 @@ export class ShopStatisticController {
           createdAt: {$gte: startDate, $lt: endDate},
           status: Status.ORDER_ITEM_FINISHED
         });
-        const orderCount = await OrderItemModel.find({
+        const orderCount = await OrderItemModel.count({
           shop: shop._id,
           createdAt: {$gte: startDate, $lt: endDate}
-        }).distinct('order');
+        });
 
         const response: IRes<any> = {
           status: HttpStatus.OK,
@@ -93,7 +93,7 @@ export class ShopStatisticController {
             finishedOrderItemCount,
             processingOrderItemCount,
             onDeliveryOrderItemCount,
-            orderCount: orderCount.length,
+            orderCount: orderCount,
           }
         };
 
@@ -158,7 +158,7 @@ export class ShopStatisticController {
         let shippingCost = 0;
         let discountCost = 0;
         finishedOrderItems.map(async item => {
-          revenue += item.total;
+          revenue += (item.total || 0);
           shippingCost += item.shippingCost;
           discountCost += item.discount;
         });
