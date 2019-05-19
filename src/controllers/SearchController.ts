@@ -31,6 +31,7 @@ interface ISearchResponse {
 
 const SLUG_CAT = 'danh-muc';
 const SLUG_DETAIL = 'chi-tiet-san-pham';
+const SLUG_TAG = 'tag';
 
 @controller('/search')
 export class SearchController {
@@ -106,6 +107,19 @@ export class SearchController {
         delete resultSuccess.data.product.shop;
         // update product view
         await this.productService.updateViews(eles[1]);
+      } else if (SLUG_TAG === eles[0]) {
+        const result = await this.searchService.searchListByTag({
+          tagSlug: eles[1],
+          limit: parseInt((req.query.limit || 10).toString()),
+          page: parseInt((req.query.page || 1).toString()),
+          sortBy: req.query.sb || '',
+          sortDirection: req.query.sd || ''
+        });
+        resultSuccess.data.isList = true;
+        resultSuccess.data.products = result.products;
+        resultSuccess.data.totalItems = result.total;
+        resultSuccess.data.searchQuery = await this.searchService.getSearchQueryFromUrlParam(eles[1]);
+
       }
 
       resolve(resultSuccess);

@@ -1,6 +1,7 @@
 import { injectable } from 'inversify';
 import UrlParamModel, { UrlParam } from '../models/url-param';
 import ProductModel, { Product } from '../models/product';
+import TagModel from '../models/tag';
 import { SelectorService } from './selector.service';
 import { SearchSelector } from '../constant/search-selector.constant';
 import urlSlug from 'url-slug';
@@ -87,6 +88,52 @@ export class SearchService {
         queryObj[f] = urlParam[f];
       }
     });
+
+    const stages: any[] = [
+      {
+        $match: queryObj
+      }
+    ];
+
+    if (condition.sortBy) {
+      const sortStage = {
+        $sort: {}
+      };
+      sortStage.$sort[condition.sortBy] = condition.sortDirection === 'DESC' ? -1 : 1;
+      stages.push(sortStage);
+    }
+
+    stages.push({
+      $facet: {
+        entries: [
+          {$skip: (condition.page - 1) * condition.limit},
+          {$limit: condition.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}}
+        ]
+      }
+    });
+
+    const result = (await ProductModel.aggregate(stages))[0];
+
+    return {
+      total: result.meta[0] ? result.meta[0].totalItems : 0,
+      products: result.entries
+    };
+  }
+
+  async searchListByTag(condition: { tagSlug: string, limit: number, page: number, sortBy?: string, sortDirection?: string }): Promise<{ total: number, products: Product[] }> {
+    const tag = await TagModel.findOne({slug: condition.tagSlug});
+    if (!tag) {
+      return {
+        total: 0,
+        products: []
+      };
+    }
+
+    const queryObj = {};
+    queryObj['tag'] = {'$contains': tag._id};
 
     const stages: any[] = [
       {
