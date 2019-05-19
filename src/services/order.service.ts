@@ -126,7 +126,14 @@ export class OrderService {
     if (price) orderItem.price = price;
     orderItem.quantity = quantity;
     orderItem.total = orderItem.quantity * orderItem.price;
-    return orderItem.save();
+    // update product sold quantity
+    const product = orderItem.product;
+    if (!product.sold) {
+      product.sold = 0;
+    }
+    product.sold += orderItem.quantity;
+    await product.save();
+    return await orderItem.save();
   };
 
   deleteItem = async (id: string) => OrderItemModel.findByIdAndRemove(id);

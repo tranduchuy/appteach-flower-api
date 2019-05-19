@@ -29,7 +29,7 @@ export interface IQueryProduct {
 export class ProductService {
   listProductFields = ['_id', 'status', 'title', 'images', 'originalPrice', 'saleOff', 'slug'];
   detailProductFields =
-    ['_id', 'status', 'title', 'description', 'user', 'images', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
+    ['_id', 'status', 'title', 'sold', 'description', 'user', 'images', 'originalPrice', 'saleOff', 'slug', 'sku', 'view', 'topic', 'design',
       'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'tags', 'seoImage', 'shop', 'priceRange'];
 
   static detectPriceRange(price: number): number {
