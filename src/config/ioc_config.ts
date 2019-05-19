@@ -33,6 +33,7 @@ import { OrderService } from '../services/order.service';
 import { OrderItemService } from '../services/order-item.service';
 import { FacebookGraphApiService } from '../services/facebook-graph-api.service';
 import { CostService } from '../services/cost.service';
+import { ShopStatisticController } from '../controllers/ShopStatisticController';
 
 const container = new Container();
 
@@ -45,12 +46,12 @@ container.bind<SearchController>(TYPES.SearchController).to(SearchController);
 container.bind<AddressController>(TYPES.AddressController).to(AddressController);
 container.bind<ShopController>(TYPES.ShopController).to(ShopController);
 container.bind<OrderItemController>(TYPES.OrderItemController).to(OrderItemController);
+container.bind<ShopStatisticController>(TYPES.ShopStatisticController).to(ShopStatisticController);
 // Bind Admin Controller
 container.bind<AdminUserController>(TYPES.Admin.UserController).to(AdminUserController);
 container.bind<AdminProductController>(TYPES.Admin.ProductController).to(AdminProductController);
 container.bind<AdminShopController>(TYPES.Admin.ShopController).to(AdminShopController);
 container.bind<AdminStatisticController>(TYPES.Admin.StatisticController).to(AdminStatisticController);
-
 // Bind Service
 container.bind<UserService>(TYPES.UserService).to(UserService);
 container.bind<ProductService>(TYPES.ProductService).to(ProductService);

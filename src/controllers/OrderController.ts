@@ -260,7 +260,7 @@ export class OrderController {
           return resolve(result);
         }
 
-        const order: any = await this.orderService.findPendingOrder(user.id);
+        let order: any = await this.orderService.findPendingOrder(user.id);
         if (!order) throw ('Order not found');
         const orderId = _.get(order, '_id').toString();
 
@@ -296,7 +296,7 @@ export class OrderController {
 
         const newOrder = {deliveryTime, note, address};
         // update delivery info for order.
-        await this.orderService.updateSubmitOrder(order, newOrder);
+        order = await this.orderService.updateSubmitOrder(order, newOrder);
 
         // update shipping and discount
         await this.orderService.updateCost(order._id, address);
