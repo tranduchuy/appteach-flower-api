@@ -267,14 +267,16 @@ export class ProductService {
   };
 
   getProductDetail = async (slug) => {
-    return await ProductModel.findOne({slug: slug}, this.detailProductFields);
+    return await ProductModel.findOne({slug: slug}, this.detailProductFields)
+      .populate({model: TagModel, path: 'tags'});
   };
 
   getProductDetailById = async (id) => {
     try {
       const product: any = await ProductModel
         .findOne({_id: id}, this.detailProductFields)
-        .populate('shop');
+        .populate({model: ShopModel, path: 'shop'})
+        .populate({model: TagModel, path: 'tags'});
 
       product.tags = await Promise.all(product.tags.map(async id => {
         const tag = await TagModel.findById(id);
