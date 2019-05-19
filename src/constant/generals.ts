@@ -38,5 +38,5 @@ export namespace General {
     OUT_OF_STOCK: 60
   };
 
-  export const costPerKm = 5000;
+  export const costPerKm = 8000; // 8k/km
 }

@@ -20,7 +20,7 @@ export class CostService {
     }
 
     if (minDistance !== null) {
-      const shippingCost = (minDistance * costPerKm) / 1000;
+      const shippingCost = ((minDistance / 1000 - 5) * costPerKm);
       return {
         shippingDistance: minDistance / 1000,
         shippingCost
@@ -29,6 +29,7 @@ export class CostService {
       return null;
     }
   };
+
   getMinDistance = (distances) => {
     if (distances.rows) {
       const values = distances.rows[0].elements.map(element => {
@@ -38,15 +39,16 @@ export class CostService {
     }
     return null;
   };
+
   calculateDiscount = async (shopId, price) => {
     const shop = await this.shopService.findShopById(shopId);
     return (price * shop.discountRate) / 100;
   };
 
   constructor(
-      @inject(TYPES.GoogleDistanceMatrixService) private googleDistanceMatrixService: GoogleDistanceMatrixService,
-      @inject(TYPES.AddressService) private addressService: AddressService,
-      @inject(TYPES.ShopService) private shopService: ShopService
+    @inject(TYPES.GoogleDistanceMatrixService) private googleDistanceMatrixService: GoogleDistanceMatrixService,
+    @inject(TYPES.AddressService) private addressService: AddressService,
+    @inject(TYPES.ShopService) private shopService: ShopService
   ) {
   }
 }

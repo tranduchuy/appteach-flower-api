@@ -24,7 +24,7 @@ interface IResStatisticDashboard {
 @controller('/shop/statistic')
 export class ShopStatisticController {
   constructor(
-      @inject(TYPES.ShopService) private shopService: ShopService
+    @inject(TYPES.ShopService) private shopService: ShopService
   ) {
   }
 
@@ -59,30 +59,43 @@ export class ShopStatisticController {
         }
 
 
-        let {startDate, endDate} = req.query;
+        const {startDate, endDate} = req.query;
+        const objectFilterByDate: any = {};
+        if (startDate) {
+          objectFilterByDate.createdAt = {
+            $gte: new Date(startDate)
+          };
+        }
 
-        startDate = new Date(startDate);
-        endDate = new Date(endDate);
+        if (endDate) {
+          objectFilterByDate.createdAt = objectFilterByDate.createdAt || {};
+          objectFilterByDate.createdAt['$lt'] = new Date(endDate);
+        }
 
-        const orderItemCount = await OrderItemModel.count({shop: shop._id, createdAt: {$gte: startDate, $lt: endDate}});
+        const orderItemCount = await OrderItemModel.count({
+          shop: shop._id,
+          ...objectFilterByDate,
+          status: {
+            $ne: Status.ORDER_ITEM_NEW
+          }
+        });
+
         const processingOrderItemCount = await OrderItemModel.count({
           shop: shop._id,
-          createdAt: {$gte: startDate, $lt: endDate},
-          status: Status.ORDER_ITEM_PROCESSING
+          status: Status.ORDER_ITEM_PROCESSING,
+          ...objectFilterByDate
         });
+
         const onDeliveryOrderItemCount = await OrderItemModel.count({
           shop: shop._id,
-          createdAt: {$gte: startDate, $lt: endDate},
-          status: Status.ORDER_ITEM_ON_DELIVERY
+          status: Status.ORDER_ITEM_ON_DELIVERY,
+          ...objectFilterByDate
         });
+
         const finishedOrderItemCount = await OrderItemModel.count({
           shop: shop._id,
-          createdAt: {$gte: startDate, $lt: endDate},
-          status: Status.ORDER_ITEM_FINISHED
-        });
-        const orderCount = await OrderItemModel.count({
-          shop: shop._id,
-          createdAt: {$gte: startDate, $lt: endDate}
+          status: Status.ORDER_ITEM_FINISHED,
+          ...objectFilterByDate
         });
 
         const response: IRes<any> = {
@@ -92,14 +105,12 @@ export class ShopStatisticController {
             orderItemCount,
             finishedOrderItemCount,
             processingOrderItemCount,
-            onDeliveryOrderItemCount,
-            orderCount: orderCount,
+            onDeliveryOrderItemCount
           }
         };
 
         return resolve(response);
-      }
-      catch (e) {
+      } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
@@ -143,15 +154,23 @@ export class ShopStatisticController {
           return resolve(result);
         }
 
-        let {startDate, endDate} = req.query;
+        const {startDate, endDate} = req.query;
+        const objectFilterByDate: any = {};
+        if (startDate) {
+          objectFilterByDate.createdAt = {
+            $gte: new Date(startDate)
+          };
+        }
 
-        startDate = new Date(startDate);
-        endDate = new Date(endDate);
+        if (endDate) {
+          objectFilterByDate.createdAt = objectFilterByDate.createdAt || {};
+          objectFilterByDate.createdAt['$lt'] = new Date(endDate);
+        }
 
         const finishedOrderItems = await OrderItemModel.find({
           shop: shop._id,
-          createdAt: {$gte: startDate, $lt: endDate},
-          status: Status.ORDER_ITEM_FINISHED
+          status: Status.ORDER_ITEM_FINISHED,
+          ...objectFilterByDate
         });
 
         let revenue = 0;
@@ -159,8 +178,8 @@ export class ShopStatisticController {
         let discountCost = 0;
         finishedOrderItems.map(async item => {
           revenue += (item.total || 0);
-          shippingCost += item.shippingCost;
-          discountCost += item.discount;
+          shippingCost += (item.shippingCost || 0);
+          discountCost += (item.discount || 0);
         });
 
         const response: IRes<any> = {
@@ -174,8 +193,7 @@ export class ShopStatisticController {
         };
 
         return resolve(response);
-      }
-      catch (e) {
+      } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
