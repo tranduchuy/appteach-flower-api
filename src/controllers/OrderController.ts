@@ -192,10 +192,8 @@ export class OrderController {
 
         let order = await this.orderService.findPendingOrder(user.id);
         if (!order) {
-          const addressList = await this.addressService.getDelieveryAddress(user);
-          order = await this.orderService.createOrder(user, addressList[0]);
+          order = await this.orderService.createOrder(user);
           order.fromUser = user._id;
-          order.address = addressList[0]._id;
         }
 
         const product = await this.productService.findProductById(productId);

@@ -29,7 +29,7 @@ export interface IQueryProduct {
 export class ProductService {
   listProductFields = ['_id', 'status', 'title', 'images', 'originalPrice', 'saleOff', 'slug'];
   detailProductFields =
-    ['_id', 'status', 'title', 'description', 'user', 'images', 'originalPrice', 'saleOff', 'slug', 'sku', 'topic', 'design',
+    ['_id', 'status', 'title', 'sold', 'description', 'user', 'images', 'originalPrice', 'saleOff', 'slug', 'sku', 'view', 'topic', 'design',
       'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'tags', 'seoImage', 'shop', 'priceRange'];
 
   static detectPriceRange(price: number): number {
@@ -267,14 +267,16 @@ export class ProductService {
   };
 
   getProductDetail = async (slug) => {
-    return await ProductModel.findOne({slug: slug}, this.detailProductFields);
+    return await ProductModel.findOne({slug: slug}, this.detailProductFields)
+      .populate({model: TagModel, path: 'tags'});
   };
 
   getProductDetailById = async (id) => {
     try {
       const product: any = await ProductModel
         .findOne({_id: id}, this.detailProductFields)
-        .populate('shop');
+        .populate({model: ShopModel, path: 'shop'})
+        .populate({model: TagModel, path: 'tags'});
 
       product.tags = await Promise.all(product.tags.map(async id => {
         const tag = await TagModel.findById(id);

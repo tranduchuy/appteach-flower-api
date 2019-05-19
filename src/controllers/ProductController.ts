@@ -27,9 +27,9 @@ interface IResUpdateProductsStatus {
 @controller('/product')
 export class ProductController {
   constructor(
-      @inject(TYPES.ProductService) private productService: ProductService,
-      @inject(TYPES.ImageService) private imageService: ImageService,
-      @inject(TYPES.ShopService) private shopService: ShopService
+    @inject(TYPES.ProductService) private productService: ProductService,
+    @inject(TYPES.ImageService) private imageService: ImageService,
+    @inject(TYPES.ShopService) private shopService: ShopService
   ) {
   }
 
@@ -57,8 +57,7 @@ export class ProductController {
       try {
         const id = request.params.id;
         const product = await this.productService.getProductDetailById(id);
-
-        const shop = await this.shopService.findShopById(product.shop.toString());
+        const shop = product.shop;
 
         if (!product || shop.user.toString() !== request.user._id.toString()) {
           const result: IRes<{}> = {
@@ -77,15 +76,12 @@ export class ProductController {
         };
         resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
+
         resolve(result);
       }
     });

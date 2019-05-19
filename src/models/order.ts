@@ -13,7 +13,7 @@ export class Order extends Typegoose {
   @prop({ ref: User, required: true })
   fromUser: Ref<User>;
 
-  @prop({ ref: Address, required: true })
+  @prop({ ref: Address })
   address: Ref<Address>;
 
   @prop({required: true, default: Status.ORDER_PENDING})
