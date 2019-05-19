@@ -31,7 +31,6 @@ interface ISearchResponse {
 
 const SLUG_CAT = 'danh-muc';
 const SLUG_DETAIL = 'chi-tiet-san-pham';
-const SLUG_TAG = 'tag';
 
 @controller('/search')
 export class SearchController {
