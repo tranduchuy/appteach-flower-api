@@ -147,12 +147,27 @@ export class OrderItemController {
         if (shop._id.toString() !== orderItem.shop.toString()) {
           const result = {
             status: HttpStatus.NOT_FOUND,
-            messages: [ResponseMessages.OrderItem.ORDER_ITEM_NOT_FOUND]
+            messages: [ResponseMessages.OrderItem.ORDER_ITEM_NOT_FOUND],
           };
           return resolve(result);
         }
 
         const {status} = request.body;
+
+        if (orderItem.status === Status.ORDER_ITEM_NEW) {
+          const result = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.OrderItem.WRONG_STATUS_FLOW]
+          };
+          return resolve(result);
+        }
+        if (status <= orderItem.status) {
+          const result = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.OrderItem.WRONG_STATUS_FLOW]
+          };
+          return resolve(result);
+        }
 
 
         await this.orderItemService.updateStatus(orderItem._id, status);
