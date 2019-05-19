@@ -2,6 +2,7 @@ import { Request } from 'express';
 import * as HttpStatus from 'http-status-codes';
 import { inject } from 'inversify';
 import { controller, httpGet, httpPut } from 'inversify-express-utils';
+import { General } from '../../constant/generals';
 import { HttpCodes } from '../../constant/http-codes';
 import { ResponseMessages } from '../../constant/messages';
 import TYPES from '../../constant/types';
@@ -9,10 +10,12 @@ import { IRes } from '../../interfaces/i-res';
 import ShopModel, { Shop } from '../../models/shop';
 import { ShopService } from '../../services/shop.service';
 import Joi from '@hapi/joi';
+import { UserService } from '../../services/user.service';
 
 // schemas
 import ListShopSchema from '../../validation-schemas/user/admin-list-shop.schema';
 import AdminShopChangeStatus from '../../validation-schemas/user/admin-shop-change-status.schema';
+import UserTypes = General.UserTypes;
 
 interface IResShops {
   meta: {
@@ -27,7 +30,8 @@ interface IResShopUpdateStatus {
 
 @controller('/admin/shop')
 export class AdminShopController {
-  constructor(@inject(TYPES.ShopService) private shopService: ShopService) {
+  constructor(@inject(TYPES.ShopService) private shopService: ShopService,
+              @inject(TYPES.UserService) private userService: UserService) {
 
   }
 
@@ -35,7 +39,7 @@ export class AdminShopController {
   public getList(req: Request): Promise<IRes<IResShops>> {
     return new Promise<IRes<IResShops>>(async (resolve) => {
       try {
-        const { error } = Joi.validate(req.query, ListShopSchema);
+        const {error} = Joi.validate(req.query, ListShopSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -48,7 +52,7 @@ export class AdminShopController {
           return resolve(result);
         }
 
-        const { name, limit, page, status, sb, sd } = req.query;
+        const {name, limit, page, status, sb, sd} = req.query;
         const stages: any[] = this.shopService.buildStageGetListShop({
           name: name ? name : null,
           limit: parseInt((limit || 10).toString()),
@@ -90,7 +94,7 @@ export class AdminShopController {
   public updateStatusShop(req: Request): Promise<IRes<IResShopUpdateStatus>> {
     return new Promise<IRes<IResShopUpdateStatus>>(async (resolve) => {
       try {
-        const { error } = Joi.validate(req.body, AdminShopChangeStatus);
+        const {error} = Joi.validate(req.body, AdminShopChangeStatus);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -104,7 +108,7 @@ export class AdminShopController {
           return resolve(result);
         }
 
-        const { shopId, status } = req.body;
+        const {shopId, status} = req.body;
 
         const shop = await ShopModel.findById(shopId);
         if (!shop) {
@@ -119,6 +123,10 @@ export class AdminShopController {
         // change status of shop
         shop.status = status;
         await shop.save();
+
+        const user: any = await this.userService.findById(shop.user.toString());
+        user.type = UserTypes.TYPE_SELLER;
+        await user.save();
 
         return resolve({
           status: HttpStatus.OK,

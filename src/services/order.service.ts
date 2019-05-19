@@ -5,7 +5,6 @@ import OrderItemModel, { OrderItem } from '../models/order-item';
 import ProductModel, { Product } from '../models/product';
 import ShopModel from '../models/shop';
 import { User } from '../models/user';
-import { Address } from '../models/address';
 import { Status } from '../constant/status';
 import { OrderItemService } from './order-item.service';
 import { AddressService } from './address.service';
@@ -17,8 +16,8 @@ export class OrderService {
   productInfoFields = ['id', 'status', 'title', 'images', 'originalPrice', 'shop', 'saleOff', 'slug'];
   shopInfoFields = ['id', 'name', 'slug'];
 
-  createOrder = async (user: User, address: Address): Promise<Order> => {
-    const newOrder = new OrderModel({fromUser: user, address});
+  createOrder = async (user: User): Promise<Order> => {
+    const newOrder = new OrderModel({fromUser: user});
     return await newOrder.save();
   };
 
