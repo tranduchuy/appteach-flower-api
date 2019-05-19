@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import * as HttpStatus from 'http-status-codes';
-import { controller, httpPost } from 'inversify-express-utils';
+import { controller, httpGet } from 'inversify-express-utils';
 import { ResponseMessages } from '../constant/messages';
 import TYPES from '../constant/types';
 import { IRes } from '../interfaces/i-res';
@@ -28,11 +28,11 @@ export class ShopStatisticController {
   ) {
   }
 
-  @httpPost('/order', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
+  @httpGet('/order', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
   public getStatisticOrder(req: Request): Promise<IRes<IResStatisticDashboard>> {
     return new Promise<IRes<IResStatisticDashboard>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(req.body, CheckDateValidationSchema);
+        const {error} = Joi.validate(req.query, CheckDateValidationSchema);
 
         if (error) {
           const messages = error.details.map(detail => {
@@ -59,7 +59,7 @@ export class ShopStatisticController {
         }
 
 
-        let {startDate, endDate} = req.body;
+        let {startDate, endDate} = req.query;
 
         startDate = new Date(startDate);
         endDate = new Date(endDate);
@@ -113,11 +113,11 @@ export class ShopStatisticController {
     });
   }
 
-  @httpPost('/money', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
+  @httpGet('/money', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
   public getStatisticMoney(req: Request): Promise<IRes<IResStatisticDashboard>> {
     return new Promise<IRes<IResStatisticDashboard>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(req.body, CheckDateValidationSchema);
+        const {error} = Joi.validate(req.query, CheckDateValidationSchema);
 
         if (error) {
           const messages = error.details.map(detail => {
@@ -143,7 +143,7 @@ export class ShopStatisticController {
           return resolve(result);
         }
 
-        let {startDate, endDate} = req.body;
+        let {startDate, endDate} = req.query;
 
         startDate = new Date(startDate);
         endDate = new Date(endDate);
