@@ -86,10 +86,27 @@ export class OrderItemService {
 
     stages.push({$unwind: {path: '$orderInfo'}});
 
+    stages.push({
+      $lookup: {
+        from: 'products',
+        localField: 'product',
+        foreignField: '_id',
+        as: 'product'
+      }
+    });
+
+    stages.push({$unwind: {path: '$product'}});
+
     if (queryCondition.sb) {
       stages.push({
         $sort: {
           [queryCondition.sb]: queryCondition.sd === 'ASC' ? 1 : -1
+        }
+      });
+    } else {
+      stages.push({
+        $sort: {
+          createdAt: -1
         }
       });
     }
