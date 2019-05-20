@@ -243,8 +243,7 @@ export class ProductController {
 
         const id = request.params.id;
         const product = await this.productService.getProductDetailById(id);
-        const shop = await this.shopService.findShopById(product.shop.toString());
-        if (!product || shop.user.toString() !== request.user._id.toString()) {
+        if (!product || product.shop.user.toString() !== request.user._id.toString()) {
           const result: IRes<{}> = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],

@@ -73,7 +73,7 @@ export class UserService {
 
       const newUser = {
         name: name || null,
-        avatar: avatar ? avatar[0].link : null,
+        avatar: avatar ? avatar.link : null,
         phone: phone || null,
         birthday: birthday || null,
         address: address || null,
@@ -83,7 +83,6 @@ export class UserService {
         ward: ward || null,
         gender: gender || null
       };
-
 
       Object.keys(newUser).map(key => {
         if (newUser[key] === null) {

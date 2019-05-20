@@ -254,9 +254,9 @@ export class UserController {
         }
 
         if (avatar) {
-          if (avatar[0].link !== user.avatar) {
+          if (avatar.link !== user.avatar) {
             const oldImages = [user.avatar] || [];
-            const newImages = avatar;
+            const newImages = [avatar];
             if (newImages) {
               this.imageService.updateImages(oldImages, newImages);
             }
@@ -287,7 +287,7 @@ export class UserController {
           type: user.type,
           birthday: birthday || user.birthday,
           status: user.status,
-          avatar: avatar[0].link || user.avatar,
+          avatar: avatar.link || user.avatar,
           gender: user.gender,
           city: city || user.city,
           district: district || user.district,
