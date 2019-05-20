@@ -133,7 +133,7 @@ export class SearchService {
     }
 
     const queryObj = {};
-    queryObj['tag'] = {'$contains': tag._id};
+    queryObj['tags'] = tag._id;
 
     const stages: any[] = [
       {
