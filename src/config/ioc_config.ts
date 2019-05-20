@@ -34,6 +34,8 @@ import { OrderItemService } from '../services/order-item.service';
 import { FacebookGraphApiService } from '../services/facebook-graph-api.service';
 import { CostService } from '../services/cost.service';
 import { ShopStatisticController } from '../controllers/ShopStatisticController';
+import { NotifyController } from '../controllers/NotifyController';
+import { NotifyService } from '../services/notify.service';
 
 const container = new Container();
 
@@ -47,6 +49,7 @@ container.bind<AddressController>(TYPES.AddressController).to(AddressController)
 container.bind<ShopController>(TYPES.ShopController).to(ShopController);
 container.bind<OrderItemController>(TYPES.OrderItemController).to(OrderItemController);
 container.bind<ShopStatisticController>(TYPES.ShopStatisticController).to(ShopStatisticController);
+container.bind<NotifyController>(TYPES.NotifyController).to(NotifyController);
 // Bind Admin Controller
 container.bind<AdminUserController>(TYPES.Admin.UserController).to(AdminUserController);
 container.bind<AdminProductController>(TYPES.Admin.ProductController).to(AdminProductController);
@@ -65,6 +68,7 @@ container.bind<ShopService>(TYPES.ShopService).to(ShopService);
 container.bind<GoogleDistanceMatrixService>(TYPES.GoogleDistanceMatrixService).to(GoogleDistanceMatrixService);
 container.bind<FacebookGraphApiService>(TYPES.FacebookGraphApiService).to(FacebookGraphApiService);
 container.bind<CostService>(TYPES.CostService).to(CostService);
+container.bind<NotifyService>(TYPES.NotifyService).to(NotifyService);
 
 
 // Bind model

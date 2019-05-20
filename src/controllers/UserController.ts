@@ -32,10 +32,10 @@ import { FacebookGraphApiService } from '../services/facebook-graph-api.service'
 @controller('/user')
 export class UserController {
   constructor(
-    @inject(TYPES.UserService) private userService: UserService,
-    @inject(TYPES.ImageService) private imageService: ImageService,
-    @inject(TYPES.MailerService) private mailerService: MailerService,
-    @inject(TYPES.FacebookGraphApiService) private fcebookGraphApiService: FacebookGraphApiService
+      @inject(TYPES.UserService) private userService: UserService,
+      @inject(TYPES.ImageService) private imageService: ImageService,
+      @inject(TYPES.MailerService) private mailerService: MailerService,
+      @inject(TYPES.FacebookGraphApiService) private fcebookGraphApiService: FacebookGraphApiService
   ) {
   }
 
@@ -221,15 +221,17 @@ export class UserController {
           password, newPassword, confirmedPassword, name, phone, birthday, address, city, district, ward, gender, avatar
         } = request.body;
 
-        if (phone !== user.phone) {
-          const duplicatedPhones = await UserModel.find({phone: phone});
-          if (duplicatedPhones.length !== 0) {
-            const result: IRes<{}> = {
-              status: HttpStatus.INTERNAL_SERVER_ERROR,
-              messages: [ResponseMessages.User.Register.PHONE_DUPLICATED],
-              data: {}
-            };
-            return resolve(result);
+        if (phone) {
+          if (phone !== user.phone) {
+            const duplicatedPhones = await UserModel.find({phone: phone});
+            if (duplicatedPhones.length !== 0) {
+              const result: IRes<{}> = {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                messages: [ResponseMessages.User.Register.PHONE_DUPLICATED],
+                data: {}
+              };
+              return resolve(result);
+            }
           }
         }
 
@@ -372,22 +374,22 @@ export class UserController {
         }
 
         const userInfoResponse = {
-            _id: user.id,
-            role: user.role,
-            email: user.email,
-            username: user.username,
-            name: user.name,
-            phone: user.phone,
-            address: user.address,
-            type: user.type,
-            status: user.status,
-            avatar: user.avatar,
-            gender: user.gender,
-            city: user.city,
-            district: user.district,
-            ward: user.ward,
-            registerBy: user.registerBy
-          }
+              _id: user.id,
+              role: user.role,
+              email: user.email,
+              username: user.username,
+              name: user.name,
+              phone: user.phone,
+              address: user.address,
+              type: user.type,
+              status: user.status,
+              avatar: user.avatar,
+              gender: user.gender,
+              city: user.city,
+              district: user.district,
+              ward: user.ward,
+              registerBy: user.registerBy
+            }
         ;
         const token = this.userService.generateToken({email: user.email});
 
