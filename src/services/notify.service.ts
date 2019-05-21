@@ -1,6 +1,12 @@
 import { injectable } from 'inversify';
 import { Status } from '../constant/status';
 import NotifyModel from '../models/notify';
+import ShopModel from '../models/shop';
+import OrderItemModel from '../models/order-item';
+import OrderModel from '../models/order';
+import { NotifyConstant, TypeCd2Content } from '../constant/notify-type';
+
+import * as Socket from '../utils/Socket';
 
 @injectable()
 export class NotifyService {
@@ -21,7 +27,7 @@ export class NotifyService {
     ].indexOf(status) !== -1;
   };
 
-  createNotify = async ({fromUser, toUser, status, title, type, content, params}) => {
+  createNotify = async ({fromUser, toUser, title, type, content, params}) => {
     const newNotify = new NotifyModel({
       fromUser,
       toUser,
@@ -35,6 +41,47 @@ export class NotifyService {
     return await newNotify.save();
   };
 
+  notifyNewOrderToShops = async (orderId) => {
+    const shopIds = await OrderItemModel.find({order: orderId}).distinct('shop');
+    return await Promise.all(shopIds.map(async shopId => {
+      const shop = await ShopModel.findOne({_id: shopId});
+      const notifyContent: any = TypeCd2Content(NotifyConstant.NEW_ORDER);
+
+      Socket.pushToUser(shop.user, notifyContent.title);
+      return await this.createNotify({
+        toUser: shopId,
+        fromUser: null,
+        type: NotifyConstant.NEW_ORDER,
+        title: notifyContent.title,
+        content: notifyContent.content,
+        params: {orderId: orderId}
+      });
+    }));
+  };
+
+  notifyUpdateOrderItemStatusToUser = async (orderItemId) => {
+    const orderItem: any = await OrderItemModel.findOne({_id: orderItemId})
+        .populate({model: OrderModel, path: 'order'});
+
+    let notifyContent;
+    if (orderItem.status === Status.ORDER_ITEM_ON_DELIVERY) {
+      notifyContent = TypeCd2Content(NotifyConstant.UPDATE_ORDER_ITEM_ON_DELIVERY);
+    } else if (orderItem.status === Status.ORDER_ITEM_FINISHED) {
+      notifyContent = TypeCd2Content(NotifyConstant.UPDATE_ORDER_ITEM_FINISHED);
+    }
+
+
+    Socket.pushToUser(orderItem['order'].fromUser, notifyContent.title);
+
+    return await this.createNotify({
+      toUser: orderItem['order'].fromUser,
+      fromUser: orderItem.shop,
+      type: NotifyConstant.UPDATE_ORDER_ITEM_STATUS,
+      title: notifyContent.title,
+      content: notifyContent.content,
+      params: {orderItemId: orderItemId}
+    });
+  };
 
   buildStageGetListNotify(queryCondition): any[] {
     const stages = [];

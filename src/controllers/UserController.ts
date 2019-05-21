@@ -235,6 +235,39 @@ export class UserController {
           }
         }
 
+        if (password) {
+          if (!newPassword && !confirmedPassword) {
+            const result: IRes<{}> = {
+              status: HttpStatus.BAD_REQUEST,
+              messages: [ResponseMessages.User.Login.WRONG_PASSWORD],
+              data: {}
+            };
+            return resolve(result);
+          }
+        }
+
+        if (newPassword) {
+          if (!password && !confirmedPassword) {
+            const result: IRes<{}> = {
+              status: HttpStatus.BAD_REQUEST,
+              messages: [ResponseMessages.User.Login.WRONG_PASSWORD],
+              data: {}
+            };
+            return resolve(result);
+          }
+        }
+
+        if (confirmedPassword) {
+          if (!newPassword && !confirmedPassword) {
+            const result: IRes<{}> = {
+              status: HttpStatus.BAD_REQUEST,
+              messages: [ResponseMessages.User.Login.WRONG_PASSWORD],
+              data: {}
+            };
+            return resolve(result);
+          }
+        }
+
         if (password && newPassword && confirmedPassword) {
           if (!this.userService.isValidHashPassword(user.passwordHash, password)) {
             const result: IRes<{}> = {
