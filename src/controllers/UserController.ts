@@ -236,7 +236,7 @@ export class UserController {
         }
 
         if (password) {
-          if (!newPassword && !confirmedPassword) {
+          if (!newPassword || !confirmedPassword) {
             const result: IRes<{}> = {
               status: HttpStatus.BAD_REQUEST,
               messages: [ResponseMessages.User.Login.WRONG_PASSWORD],
@@ -247,7 +247,7 @@ export class UserController {
         }
 
         if (newPassword) {
-          if (!password && !confirmedPassword) {
+          if (!password || !confirmedPassword) {
             const result: IRes<{}> = {
               status: HttpStatus.BAD_REQUEST,
               messages: [ResponseMessages.User.Login.WRONG_PASSWORD],
@@ -258,7 +258,7 @@ export class UserController {
         }
 
         if (confirmedPassword) {
-          if (!newPassword && !confirmedPassword) {
+          if (!newPassword || !confirmedPassword) {
             const result: IRes<{}> = {
               status: HttpStatus.BAD_REQUEST,
               messages: [ResponseMessages.User.Login.WRONG_PASSWORD],
