@@ -59,6 +59,18 @@ export class OrderItemService {
   buildStageGetListOrderItem(queryCondition): any[] {
     const stages = [];
     const matchStage: any = {};
+
+    if (queryCondition.startDate) {
+      matchStage.createdAt = {
+        $gte: new Date(queryCondition.startDate)
+      };
+    }
+
+    if (queryCondition.endDate) {
+      matchStage.createdAt = matchStage.createdAt || {};
+      matchStage.createdAt['$lt'] = new Date(queryCondition.endDate);
+    }
+
     if (queryCondition.shop) {
       matchStage['shop'] = queryCondition.shop;
     }

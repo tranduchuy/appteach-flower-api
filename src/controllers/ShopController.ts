@@ -264,12 +264,16 @@ export class ShopController {
           });
         }
 
-        const {limit, page, status} = req.query;
+        const {limit, sb, sd, page, status, startDate, endDate} = req.query;
         const stages: any[] = this.orderItemService.buildStageGetListOrderItem({
           shop: shop._id ? shop._id : null,
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
           status: status ? parseInt(status) : null,
+          sb: sb,
+          sd: sd,
+          startDate,
+          endDate
         });
 
         console.log(JSON.stringify(stages));
