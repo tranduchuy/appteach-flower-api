@@ -10,6 +10,8 @@ const TYPES = {
   ShopController: Symbol.for('ShopController'),
   AddressController: Symbol.for('AddressController'),
   ShopStatisticController: Symbol.for('ShopStatisticController'),
+  NotifyController: Symbol.for('NotifyController'),
+
 
   MailerService: Symbol.for('MailerService'),
   UserService: Symbol.for('UserService'),
@@ -24,6 +26,7 @@ const TYPES = {
   FacebookGraphApiService: Symbol.for('FacebookGraphApiService'),
   SystemConfigService: Symbol.for('SystemConfigService'),
   CostService: Symbol.for('CostService'),
+  NotifyService: Symbol.for('NotifyService'),
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),
   CheckAdminMiddleware: Symbol.for('CheckAdminMiddleware'),

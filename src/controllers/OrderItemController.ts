@@ -15,12 +15,14 @@ import UpdateOrderItemQuantityValidationSchema
 import { ObjectID } from 'bson';
 import { ShopService } from '../services/shop.service';
 import UpdateOrderItemStatusValidationSchema from '../validation-schemas/order-item/update-order-item-status.schema';
+import { NotifyService } from '../services/notify.service';
 
 @controller(OrderItemRoute.Name)
 export class OrderItemController {
   constructor(
       @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-      @inject(TYPES.ShopService) private shopService: ShopService
+      @inject(TYPES.ShopService) private shopService: ShopService,
+      @inject(TYPES.NotifyService) private notifyService: NotifyService
   ) {
   }
 
@@ -176,6 +178,8 @@ export class OrderItemController {
           messages: [ResponseMessages.SUCCESS],
           data: null
         };
+
+        await this.notifyService.notifyUpdateOrderItemStatusToUser(orderItem._id);
 
         return resolve(result);
       } catch (e) {

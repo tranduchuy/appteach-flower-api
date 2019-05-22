@@ -16,6 +16,9 @@ export class Notify extends Typegoose {
   status: number;
 
   @prop()
+  type: number;
+
+  @prop()
   params: Object;
 
   @prop()
@@ -24,10 +27,10 @@ export class Notify extends Typegoose {
   @prop()
   toUser?: Ref<User>;
 
-  @prop()
+  @prop({default: new Date()})
   createdAt: Date;
 
-  @prop()
+  @prop({default: new Date()})
   updatedAt: Date;
 }
 
