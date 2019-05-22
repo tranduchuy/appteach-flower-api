@@ -36,12 +36,12 @@ export class OrderController {
   prod = prod;
 
   constructor(
-    @inject(TYPES.ProductService) private productService: ProductService,
-    @inject(TYPES.CostService) private costService: CostService,
-    @inject(TYPES.OrderService) private orderService: OrderService,
-    @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-    @inject(TYPES.AddressService) private addressService: AddressService,
-    @inject(TYPES.NotifyService) private notifyService: NotifyService
+      @inject(TYPES.ProductService) private productService: ProductService,
+      @inject(TYPES.CostService) private costService: CostService,
+      @inject(TYPES.OrderService) private orderService: OrderService,
+      @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+      @inject(TYPES.AddressService) private addressService: AddressService,
+      @inject(TYPES.NotifyService) private notifyService: NotifyService
   ) {
   }
 
@@ -105,7 +105,7 @@ export class OrderController {
         let orderItems: OrderItem[] = null;
         if (orderId) orderItems = await this.orderItemService.findPendingOrderItems(orderId);
 
-        if (!orderItems) {
+        if (!orderItems || orderItems.length === 0) {
           const result = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Order.ORDER_EMPTY],
@@ -199,15 +199,21 @@ export class OrderController {
         }
 
         const product = await this.productService.findProductById(productId);
-        if (!product) throw ('Product not found');
-
-        let orderItem = await this.orderService.findOrderItem(order, product);
-        if (!orderItem) {
-          orderItem = await this.orderService.addItem(order, product, quantity);
-        } else {
-          await this.orderService.updateItem(orderItem, quantity);
+        if (!product) {
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
+            data: null
+          };
+          return resolve(result);
         }
 
+        let orderItem = await this.orderService.findOrderItem(order, product);
+        if (!orderItem && quantity > 0) {
+          orderItem = await this.orderService.addItem(order, product, quantity);
+        } else {
+          orderItem = await this.orderService.updateQuantityItem(orderItem, quantity);
+        }
 
         const result: IRes<IResAddOrderItem> = {
           status: HttpStatus.OK,
@@ -220,21 +226,12 @@ export class OrderController {
         resolve(result);
       } catch (error) {
         console.error(error);
-        let result: IRes<IResAddOrderItem> = null;
 
-        if (error == 'Product not found') {
-          result = {
-            status: HttpStatus.NOT_FOUND,
-            messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
-            data: null
-          };
-        } else {
-          result = {
-            status: HttpStatus.INTERNAL_SERVER_ERROR,
-            messages: error.messages,
-            data: null
-          };
-        }
+        const result: IRes<any> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: error.messages,
+          data: null
+        };
         resolve(result);
       }
     });
@@ -267,7 +264,7 @@ export class OrderController {
         let orderItems: OrderItem[] = null;
         if (orderId) orderItems = await this.orderService.findItemInOrder(orderId);
 
-        if (!orderItems) {
+        if (!orderItems || orderItems.length === 0) {
           const result = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
@@ -280,13 +277,13 @@ export class OrderController {
         const products = await this.productService.findListProductByIds(productIds) as Product[];
 
         await Promise.all(
-          orderItems.map(async (orderItem) => {
-            const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
-            if (!product) return orderItem;
-            const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
-            orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
-            return orderItem;
-          })
+            orderItems.map(async (orderItem) => {
+              const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+              if (!product) return orderItem;
+              const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
+              orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
+              return orderItem;
+            })
         );
 
         // update order items status: new => pending
