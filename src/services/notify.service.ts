@@ -6,7 +6,7 @@ import OrderItemModel from '../models/order-item';
 import OrderModel from '../models/order';
 import { NotifyConstant, TypeCd2Content } from '../constant/notify-type';
 
-import * as Socket from '../utils/Socket';
+import * as Socket from '../utils/socket';
 
 @injectable()
 export class NotifyService {
