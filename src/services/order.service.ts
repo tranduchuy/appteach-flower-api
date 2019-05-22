@@ -120,22 +120,43 @@ export class OrderService {
     return newOrderItem.save();
   };
 
-  updateItem = async (orderItem, quantity: number, price?: number): Promise<OrderItem> => {
-    if (quantity == 0) this.deleteItem(orderItem.id);
-    if (price) orderItem.price = price;
-    orderItem.quantity = quantity;
-    orderItem.total = orderItem.quantity * orderItem.price;
-    // update product sold quantity
-    const product = orderItem.product;
-    if (!product.sold) {
-      product.sold = 0;
+
+  updateQuantityItem = async (orderItem, quantity) => {
+    try {
+      if (quantity === 0) {
+        return await this.deleteItem(orderItem._id);
+      } else {
+        orderItem.quantity = quantity;
+        return await orderItem.save();
+      }
+    } catch (e) {
+      console.log(e);
+      return null;
     }
-    product.sold += orderItem.quantity;
-    await product.save();
-    return await orderItem.save();
   };
 
-  deleteItem = async (id: string) => OrderItemModel.findByIdAndRemove(id);
+  updateItem = async (orderItem, quantity: number, price?: number): Promise<OrderItem> => {
+    try {
+      if (quantity == 0) this.deleteItem(orderItem._id);
+      if (price) orderItem.price = price;
+      orderItem.quantity = quantity;
+      orderItem.total = orderItem.quantity * orderItem.price;
+      // update product sold quantity
+      const product = orderItem.product;
+      if (!product.sold) {
+        product.sold = 0;
+      }
+      product.sold += orderItem.quantity;
+      await product.save();
+      return await orderItem.save();
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+
+  };
+
+  deleteItem = async (id: string) => await OrderItemModel.findByIdAndRemove(id);
   findOrderById = async (orderId: string) => {
     return await OrderModel.findById(orderId);
   };

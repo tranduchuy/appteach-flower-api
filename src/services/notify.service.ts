@@ -49,7 +49,7 @@ export class NotifyService {
 
       Socket.pushToUser(shop.user, notifyContent.title);
       return await this.createNotify({
-        toUser: shopId,
+        toUser: shop.user,
         fromUser: null,
         type: NotifyConstant.NEW_ORDER,
         title: notifyContent.title,
@@ -75,7 +75,7 @@ export class NotifyService {
 
     return await this.createNotify({
       toUser: orderItem['order'].fromUser,
-      fromUser: orderItem.shop,
+      fromUser: orderItem.user,
       type: NotifyConstant.UPDATE_ORDER_ITEM_STATUS,
       title: notifyContent.title,
       content: notifyContent.content,
