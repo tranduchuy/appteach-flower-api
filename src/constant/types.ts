@@ -37,7 +37,8 @@ const TYPES = {
     UserController: Symbol.for('AdminUserController'),
     ProductController: Symbol.for('AdminProductController'),
     ShopController: Symbol.for('AdminShopController'),
-    StatisticController: Symbol.for('AdminStatisticController')
+    StatisticController: Symbol.for('AdminStatisticController'),
+    OrderController: Symbol.for('OrderController')
   }
 };
 

@@ -1,15 +1,31 @@
 import { inject, injectable } from 'inversify';
 import mongoose from 'mongoose';
+import { IResAddManyProducts } from '../controllers/OrderController';
 import OrderModel, { Order } from '../models/order';
 import OrderItemModel, { OrderItem } from '../models/order-item';
 import ProductModel, { Product } from '../models/product';
-import ShopModel from '../models/shop';
+import ShopModel, { Shop } from '../models/shop';
 import { User } from '../models/user';
 import { Status } from '../constant/status';
 import { OrderItemService } from './order-item.service';
 import { AddressService } from './address.service';
 import TYPES from '../constant/types';
 import { CostService } from './cost.service';
+import { ProductService } from './product.service';
+
+export interface IInputOrderItem {
+  productId: string;
+  quantity: number;
+}
+
+export interface IQueryOrderAdmin {
+  code: string;
+  limit: number;
+  page: number;
+  status: number;
+  sb?: string;
+  sd?: string;
+}
 
 @injectable()
 export class OrderService {
@@ -200,7 +216,124 @@ export class OrderService {
 
   constructor(@inject(TYPES.CostService) private costService: CostService,
               @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+              @inject(TYPES.ProductService) private productService: ProductService,
               @inject(TYPES.AddressService) private addressService: AddressService) {
 
   }
+
+  buildStageGetListOrderAdmin(queryCondition: IQueryOrderAdmin): any[] {
+    const stages = [];
+    const matchStage: any = {};
+    if (queryCondition.code) {
+      matchStage['code'] = queryCondition.code;
+    }
+
+    if (queryCondition.status) {
+      matchStage['status'] = queryCondition.status;
+    } else {
+      matchStage['status'] = {
+        $ne: Status.ORDER_PENDING
+      };
+    }
+
+    if (Object.keys(matchStage).length > 0) {
+      stages.push({$match: matchStage});
+    }
+
+    if (queryCondition.sb) {
+      stages.push({
+        $sort: {
+          [queryCondition.sb]: queryCondition.sd === 'ASC' ? 1 : -1
+        }
+      });
+    } else {
+      stages.push({
+        $sort: {
+          createdAt: -1
+        }
+      });
+    }
+
+    stages.push({
+      $lookup: {
+        from: 'users',
+        localField: 'fromUser',
+        foreignField: '_id',
+        as: 'userInfo'
+      }
+    });
+
+    stages.push({$unwind: {path: '$userInfo'}});
+
+    stages.push({
+      $lookup: {
+        from: 'addresses',
+        localField: 'address',
+        foreignField: '_id',
+        as: 'addressInfo'
+      }
+    });
+
+    stages.push({$unwind: {path: '$addressInfo'}});
+
+    stages.push({
+      $facet: {
+        entries: [
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}},
+        ],
+      }
+    });
+
+    return stages;
+  }
+
+  updateStatus = async (id: string, status: number): Promise<Order> => {
+    return await OrderModel.findOneAndUpdate({_id: id}, {status: status});
+  }
+
+  public async addProductToCart(order: Order, productId: string, quantity: number): Promise<IResAddManyProducts | null> {
+    const result: IResAddManyProducts = {
+      product: null,
+      shop: null,
+      quantity
+    };
+
+    const product = await this.productService.findProductById(productId);
+    if (!product) {
+      console.warn('OrderService::addProductToCart. Product not found: ', productId);
+      return Promise.resolve(null);
+    }
+
+    const orderItem = await this.findOrderItem(order, product);
+    if (!orderItem && quantity > 0) {
+      await this.addItem(order, product, quantity);
+    } else {
+      await this.updateQuantityItem(orderItem, quantity);
+    }
+
+    result.product = product;
+    result.shop = product.shop as Shop;
+
+    return Promise.resolve(result);
+  }
+
+  addManyProductsToCart = async (order: Order, items: IInputOrderItem[]): Promise<IResAddManyProducts[]> => {
+    const results: IResAddManyProducts[] = [];
+    if (items.length === 0) {
+      return Promise.resolve([]);
+    }
+
+    await Promise.all(items.map(async (item: IInputOrderItem) => {
+      const orderItem = await this.addProductToCart(order, item.productId, item.quantity);
+      if (orderItem) {
+        results.push(orderItem);
+      }
+    }));
+
+    return Promise.resolve(results);
+  };
 }

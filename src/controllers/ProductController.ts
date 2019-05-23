@@ -19,6 +19,7 @@ import updateProductSchema from '../validation-schemas/product/update-one.schema
 import updateStatusValidationSchema from '../validation-schemas/product/update-status.schema';
 import { ResponseMessages } from '../constant/messages';
 import { ImageService } from '../services/image.service';
+import GetInfoByIdsValidationSchema from '../validation-schemas/product/get-info-by-ids.schema';
 
 interface IResUpdateProductsStatus {
   notFoundProducts?: string[];
@@ -103,6 +104,54 @@ export class ProductController {
             entries: {
               featuredProducts: featuredProducts,
               saleProducts: saleProducts
+            }
+          }
+        };
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
+  @httpGet('/info')
+  public getInfoByIds(request: Request): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve) => {
+      try {
+        const {error} = Joi.validate(request.query, GetInfoByIdsValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+        const {productIds} = request.query;
+        const productIdsArray = productIds.split(',');
+
+        const products = await this.productService.findProductsByProductIds(productIdsArray);
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.Product.Add.ADD_PRODUCT_SUCCESS],
+          data: {
+            meta: {},
+            entries: {
+              products: products
             }
           }
         };
