@@ -1,12 +1,11 @@
 import { injectable } from 'inversify';
+import { FRONT_END_DOMAIN } from '../utils/secrets';
 
 const NodeMailer = require('nodemailer');
 const hbs = require('nodemailer-express-handlebars');
 
 @injectable()
 export class MailerService {
-
-  server = 'http://157.230.248.161:4000/#/';
 
   transporter = NodeMailer
     .createTransport({
@@ -44,7 +43,7 @@ export class MailerService {
         template: 'confirm',
         context: {
           name: name,
-          link: `${this.server}xac-nhan-tai-khoan/${token}`
+          link: `${FRONT_END_DOMAIN}/xac-nhan-tai-khoan/${token}`
         }
       };
 
@@ -80,7 +79,7 @@ export class MailerService {
         template: 'reset-password',
         context: {
           name: name,
-          link: `${this.server}dat-lai-mat-khau/${token}`
+          link: `${FRONT_END_DOMAIN}/dat-lai-mat-khau/${token}`
         }
       };
 
