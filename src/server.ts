@@ -7,7 +7,7 @@ import { init } from './utils/socket';
 
 app.use(errorHandler());
 
-const console = process['console'];
+// const console = process['console'];
 
 const server = app.listen(app.get('port'), () => {
   console.log(

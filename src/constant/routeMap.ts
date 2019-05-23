@@ -11,6 +11,7 @@ export enum OrderRoute {
 
     // CREATE
     AddItem = '/',
+    AddMany = '/many',
 
     // DELETE
     DeleteItem = '/item/:itemId',
