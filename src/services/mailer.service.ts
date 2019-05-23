@@ -1,4 +1,5 @@
 import { injectable } from 'inversify';
+import { FRONT_END_DOMAIN } from '../utils/secrets';
 
 const NodeMailer = require('nodemailer');
 
@@ -25,7 +26,7 @@ export class MailerService {
       from: 'cskh.hecta@gmail.com',
       to: email,
       subject: 'Flower VN - Xác nhận đăng kí',
-      text: 'http://157.230.248.161:4000/#/xac-nhan-tai-khoan/' + token
+      text: `${FRONT_END_DOMAIN}/xac-nhan-tai-khoan/${token}`
     };
 
     this.transporter.sendMail(mailOptions, function (error, info) {
@@ -43,7 +44,7 @@ export class MailerService {
         from: 'cskh.hecta@gmail.com',
         to: email,
         subject: 'Flower VN - Đổi mật khẩu',
-        text: 'http://localhost:4200/reset-password/' + token
+        text: `${FRONT_END_DOMAIN}/dat-lai-mat-khau/${token}`
       };
 
       this.transporter.sendMail(mailOptions, (err) => {

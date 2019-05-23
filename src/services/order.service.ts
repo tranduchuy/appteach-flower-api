@@ -12,7 +12,6 @@ import { AddressService } from './address.service';
 import TYPES from '../constant/types';
 import { CostService } from './cost.service';
 import { ProductService } from './product.service';
-import { ShopService } from './shop.service';
 
 export interface IInputOrderItem {
   productId: string;
