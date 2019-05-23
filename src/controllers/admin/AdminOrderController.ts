@@ -113,7 +113,7 @@ export class AdminOrderController {
             return detail.message;
           });
 
-          const result: IRes<{ Order }> = {
+          const result: IRes<Order> = {
             status: HttpStatus.BAD_REQUEST,
             messages: messages
           };
