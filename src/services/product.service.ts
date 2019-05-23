@@ -430,4 +430,15 @@ export class ProductService {
       priceRange: priceRange
     };
   }
+
+  findProductsByProductIds =  async (productIds: string[]) => {
+    try {
+      return await ProductModel.find({
+        _id: { $in: productIds }
+      }).populate({model: ShopModel, path: 'shop'});
+    } catch (e) {
+      console.log(e);
+      return [];
+    }
+  }
 }
