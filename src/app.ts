@@ -6,8 +6,8 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import cors from 'cors';
 
-const scribe = require('scribe-js')();
-const console = process['console'];
+// const scribe = require('scribe-js')();
+// const console = process['console'];
 
 import { MONGODB_URI } from './utils/secrets';
 
@@ -37,7 +37,7 @@ server.setConfig((app) => {
   }));
   app.use(bodyParser.json());
   app.use(helmet());
-  app.use('/logs', scribe.webPanel());
+  // app.use('/logs', scribe.webPanel());
 });
 
 const app = server.build();

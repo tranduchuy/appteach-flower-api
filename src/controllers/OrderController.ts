@@ -4,9 +4,9 @@ import { controller, httpPost, httpGet, httpDelete, httpPut } from 'inversify-ex
 import { inject } from 'inversify';
 import { Request, Response } from 'express';
 import Joi from '@hapi/joi';
-
 import TYPES from '../constant/types';
 import { IRes } from '../interfaces/i-res';
+import { Shop } from '../models/shop';
 import { OrderService } from '../services/order.service';
 import { OrderRoute } from '../constant/routeMap';
 import { Order } from '../models/order';
@@ -23,12 +23,20 @@ import SubmitOrderValidationSchema from '../validation-schemas/order/submit-orde
 import GetOrderShippingCostValidationSchema from '../validation-schemas/order/get-order-shipping-cost.schema';
 import { CostService } from '../services/cost.service';
 import { NotifyService } from '../services/notify.service';
+import addOneProductToCart from '../validation-schemas/order/add-one-product-to-cart.schema';
+import addManyProductsToCart from '../validation-schemas/order/add-many-products-to-cart.schema';
 
-const console = process['console'];
+// const console = process['console'];
 
 interface IResAddOrderItem {
   order: Order;
   orderItem: OrderItem;
+}
+
+export interface IResAddManyProducts {
+  product: Product;
+  quantity: number;
+  shop: Shop;
 }
 
 @controller(OrderRoute.Name)
@@ -36,12 +44,12 @@ export class OrderController {
   prod = prod;
 
   constructor(
-      @inject(TYPES.ProductService) private productService: ProductService,
-      @inject(TYPES.CostService) private costService: CostService,
-      @inject(TYPES.OrderService) private orderService: OrderService,
-      @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-      @inject(TYPES.AddressService) private addressService: AddressService,
-      @inject(TYPES.NotifyService) private notifyService: NotifyService
+    @inject(TYPES.ProductService) private productService: ProductService,
+    @inject(TYPES.CostService) private costService: CostService,
+    @inject(TYPES.OrderService) private orderService: OrderService,
+    @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+    @inject(TYPES.AddressService) private addressService: AddressService,
+    @inject(TYPES.NotifyService) private notifyService: NotifyService
   ) {
   }
 
@@ -185,10 +193,61 @@ export class OrderController {
     });
   }
 
+  @httpPost(OrderRoute.AddMany, TYPES.CheckTokenMiddleware)
+  public addMany(req: Request): Promise<IRes<IResAddManyProducts[]>> {
+    return new Promise<IRes<IResAddManyProducts[]>>(async resolve => {
+      const {error} = Joi.validate(req.body, addManyProductsToCart);
+      if (error) {
+        const messages = error.details.map(detail => {
+          return detail.message;
+        });
+
+        const result: IRes<IResAddManyProducts[]> = {
+          status: HttpStatus.BAD_REQUEST,
+          messages: messages
+        };
+
+        return resolve(result);
+      }
+
+      const user = req.user;
+      let order = await this.orderService.findPendingOrder(user.id);
+      if (!order) {
+        order = await this.orderService.createOrder(user);
+        order.fromUser = user._id;
+      }
+
+      const results: IResAddManyProducts[] = await this.orderService.addManyProductsToCart(order, req.body.items || []);
+      console.log('Add many product to cart successfully. UserId: ', req.user._id.toString(), '. Items: ', JSON.stringify(req.body.items || []));
+
+      const result: IRes<IResAddManyProducts[]> = {
+        status: HttpStatus.OK,
+        messages: [],
+        data: results
+      };
+
+      return resolve(result);
+    });
+  }
+
   @httpPost(OrderRoute.AddItem, TYPES.CheckTokenMiddleware)
   public addOne(request: Request, response: Response): Promise<IRes<IResAddOrderItem>> {
     return new Promise<IRes<IResAddOrderItem>>(async (resolve, reject) => {
       try {
+        const {error} = Joi.validate(request.body, addOneProductToCart);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<IResAddOrderItem> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages
+          };
+
+          return resolve(result);
+        }
+
         const {productId, quantity} = request.body;
         const user = request.user;
 
@@ -277,13 +336,13 @@ export class OrderController {
         const products = await this.productService.findListProductByIds(productIds) as Product[];
 
         await Promise.all(
-            orderItems.map(async (orderItem) => {
-              const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
-              if (!product) return orderItem;
-              const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
-              orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
-              return orderItem;
-            })
+          orderItems.map(async (orderItem) => {
+            const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+            if (!product) return orderItem;
+            const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
+            orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
+            return orderItem;
+          })
         );
 
         // update order items status: new => pending

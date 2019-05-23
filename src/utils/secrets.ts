@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import fs from 'fs';
 
-const console = process['console'];
+// // const console = process['console'];
 
 if (fs.existsSync('.env')) {
   console.info('Using .env file to supply config environment variables');

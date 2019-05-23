@@ -1,15 +1,23 @@
 import { inject, injectable } from 'inversify';
 import mongoose from 'mongoose';
+import { IResAddManyProducts } from '../controllers/OrderController';
 import OrderModel, { Order } from '../models/order';
 import OrderItemModel, { OrderItem } from '../models/order-item';
 import ProductModel, { Product } from '../models/product';
-import ShopModel from '../models/shop';
+import ShopModel, { Shop } from '../models/shop';
 import { User } from '../models/user';
 import { Status } from '../constant/status';
 import { OrderItemService } from './order-item.service';
 import { AddressService } from './address.service';
 import TYPES from '../constant/types';
 import { CostService } from './cost.service';
+import { ProductService } from './product.service';
+import { ShopService } from './shop.service';
+
+export interface IInputOrderItem {
+  productId: string;
+  quantity: number;
+}
 
 @injectable()
 export class OrderService {
@@ -200,7 +208,50 @@ export class OrderService {
 
   constructor(@inject(TYPES.CostService) private costService: CostService,
               @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+              @inject(TYPES.ProductService) private productService: ProductService,
               @inject(TYPES.AddressService) private addressService: AddressService) {
 
   }
+
+  public async addProductToCart(order: Order, productId: string, quantity: number): Promise<IResAddManyProducts | null> {
+    const result: IResAddManyProducts = {
+      product: null,
+      shop: null,
+      quantity
+    };
+
+    const product = await this.productService.findProductById(productId);
+    if (!product) {
+      console.warn('OrderService::addProductToCart. Product not found: ', productId);
+      return Promise.resolve(null);
+    }
+
+    const orderItem = await this.findOrderItem(order, product);
+    if (!orderItem && quantity > 0) {
+      await this.addItem(order, product, quantity);
+    } else {
+      await this.updateQuantityItem(orderItem, quantity);
+    }
+
+    result.product = product;
+    result.shop = product.shop as Shop;
+
+    return Promise.resolve(result);
+  }
+
+  addManyProductsToCart = async (order: Order, items: IInputOrderItem[]): Promise<IResAddManyProducts[]> => {
+    const results: IResAddManyProducts[] = [];
+    if (items.length === 0) {
+      return Promise.resolve([]);
+    }
+
+    await Promise.all(items.map(async (item: IInputOrderItem) => {
+      const orderItem = await this.addProductToCart(order, item.productId, item.quantity);
+      if (orderItem) {
+        results.push(orderItem);
+      }
+    }));
+
+    return Promise.resolve(results);
+  };
 }
