@@ -222,6 +222,10 @@ export class OrderService {
 
     if (queryCondition.status) {
       matchStage['status'] = queryCondition.status;
+    } else {
+      matchStage['status'] = {
+        $ne: Status.ORDER_PENDING
+      };
     }
 
     if (Object.keys(matchStage).length > 0) {

@@ -46,14 +46,15 @@ export class AdminOrderController {
         }
 
         const {code, limit, page, status, sb, sd} = req.query;
-        const stages: any[] = this.orderService.buildStageGetListOrderAdmin({
+        const queryCondition = {
           code: code ? code : null,
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
           status: status ? parseInt(status) : null,
           sb: sb,
           sd: sd,
-        });
+        };
+        const stages: any[] = this.orderService.buildStageGetListOrderAdmin(queryCondition);
 
 
         const result: any = await OrderModel.aggregate(stages);
@@ -77,7 +78,10 @@ export class AdminOrderController {
           messages: [ResponseMessages.SUCCESS],
           data: {
             meta: {
-              totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0
+              totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0,
+              item: result[0].entries.length,
+              limit: queryCondition.limit,
+              page: queryCondition.page,
             },
             orders: orders
           }
