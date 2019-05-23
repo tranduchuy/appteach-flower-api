@@ -322,7 +322,7 @@ export class UserController {
           type: user.type,
           birthday: birthday || user.birthday,
           status: user.status,
-          avatar: avatar.link || user.avatar,
+          avatar: avatar ? avatar.link : user.avatar,
           gender: user.gender,
           city: city || user.city,
           district: district || user.district,

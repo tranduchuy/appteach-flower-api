@@ -36,6 +36,7 @@ import { CostService } from '../services/cost.service';
 import { ShopStatisticController } from '../controllers/ShopStatisticController';
 import { NotifyController } from '../controllers/NotifyController';
 import { NotifyService } from '../services/notify.service';
+import { AdminOrderController } from '../controllers/admin/AdminOrderController';
 
 const container = new Container();
 
@@ -55,6 +56,7 @@ container.bind<AdminUserController>(TYPES.Admin.UserController).to(AdminUserCont
 container.bind<AdminProductController>(TYPES.Admin.ProductController).to(AdminProductController);
 container.bind<AdminShopController>(TYPES.Admin.ShopController).to(AdminShopController);
 container.bind<AdminStatisticController>(TYPES.Admin.StatisticController).to(AdminStatisticController);
+container.bind<AdminOrderController>(TYPES.Admin.OrderController).to(AdminOrderController);
 // Bind Service
 container.bind<UserService>(TYPES.UserService).to(UserService);
 container.bind<ProductService>(TYPES.ProductService).to(ProductService);

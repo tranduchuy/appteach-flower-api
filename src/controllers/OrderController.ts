@@ -22,7 +22,6 @@ import { prod } from '../utils/secrets';
 import SubmitOrderValidationSchema from '../validation-schemas/order/submit-order.schema';
 import GetOrderShippingCostValidationSchema from '../validation-schemas/order/get-order-shipping-cost.schema';
 import { CostService } from '../services/cost.service';
-import { NotifyService } from '../services/notify.service';
 import addOneProductToCart from '../validation-schemas/order/add-one-product-to-cart.schema';
 import addManyProductsToCart from '../validation-schemas/order/add-many-products-to-cart.schema';
 
@@ -48,8 +47,7 @@ export class OrderController {
     @inject(TYPES.CostService) private costService: CostService,
     @inject(TYPES.OrderService) private orderService: OrderService,
     @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-    @inject(TYPES.AddressService) private addressService: AddressService,
-    @inject(TYPES.NotifyService) private notifyService: NotifyService
+    @inject(TYPES.AddressService) private addressService: AddressService
   ) {
   }
 
@@ -365,9 +363,6 @@ export class OrderController {
         } else {
           await this.orderService.submitOrderDev(order);
         }
-
-        // notify to shop
-        await this.notifyService.notifyNewOrderToShops(order._id);
 
         const result: IRes<Order> = {
           status: HttpStatus.OK,
