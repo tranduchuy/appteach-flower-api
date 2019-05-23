@@ -64,10 +64,13 @@ export class NotifyService {
         .populate({model: OrderModel, path: 'order'});
 
     let notifyContent;
+    let type;
     if (orderItem.status === Status.ORDER_ITEM_ON_DELIVERY) {
       notifyContent = TypeCd2Content(NotifyConstant.UPDATE_ORDER_ITEM_ON_DELIVERY);
+      type = NotifyConstant.UPDATE_ORDER_ITEM_ON_DELIVERY;
     } else if (orderItem.status === Status.ORDER_ITEM_FINISHED) {
       notifyContent = TypeCd2Content(NotifyConstant.UPDATE_ORDER_ITEM_FINISHED);
+      type = NotifyConstant.UPDATE_ORDER_ITEM_FINISHED;
     }
 
 
@@ -76,7 +79,7 @@ export class NotifyService {
     return await this.createNotify({
       toUser: orderItem['order'].fromUser,
       fromUser: orderItem.user,
-      type: NotifyConstant.UPDATE_ORDER_ITEM_STATUS,
+      type: type,
       title: notifyContent.title,
       content: notifyContent.content,
       params: {orderItemId: orderItemId}
@@ -99,13 +102,11 @@ export class NotifyService {
       stages.push({$match: matchStage});
     }
 
-    if (queryCondition.sb) {
-      stages.push({
-        $sort: {
-          [queryCondition.sb]: queryCondition.sd === 'ASC' ? 1 : -1
-        }
-      });
-    }
+    stages.push({
+      $sort: {
+        createdAt: -1
+      }
+    });
 
     stages.push({
       $facet: {

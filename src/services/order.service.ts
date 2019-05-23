@@ -11,6 +11,15 @@ import { AddressService } from './address.service';
 import TYPES from '../constant/types';
 import { CostService } from './cost.service';
 
+export interface IQueryOrderAdmin {
+  code: string;
+  limit: number;
+  page: number;
+  status: number;
+  sb?: string;
+  sd?: string;
+}
+
 @injectable()
 export class OrderService {
   productInfoFields = ['id', 'status', 'title', 'images', 'originalPrice', 'shop', 'saleOff', 'slug'];
@@ -203,4 +212,74 @@ export class OrderService {
               @inject(TYPES.AddressService) private addressService: AddressService) {
 
   }
+
+  buildStageGetListOrderAdmin(queryCondition: IQueryOrderAdmin): any[] {
+    const stages = [];
+    const matchStage: any = {};
+    if (queryCondition.code) {
+      matchStage['code'] = queryCondition.code;
+    }
+
+    if (queryCondition.status) {
+      matchStage['status'] = queryCondition.status;
+    }
+
+    if (Object.keys(matchStage).length > 0) {
+      stages.push({$match: matchStage});
+    }
+
+    if (queryCondition.sb) {
+      stages.push({
+        $sort: {
+          [queryCondition.sb]: queryCondition.sd === 'ASC' ? 1 : -1
+        }
+      });
+    } else {
+      stages.push({
+        $sort: {
+          createdAt: -1
+        }
+      });
+    }
+
+    stages.push({
+      $lookup: {
+        from: 'users',
+        localField: 'fromUser',
+        foreignField: '_id',
+        as: 'userInfo'
+      }
+    });
+
+    stages.push({$unwind: {path: '$userInfo'}});
+
+    stages.push({
+      $lookup: {
+        from: 'addresses',
+        localField: 'address',
+        foreignField: '_id',
+        as: 'addressInfo'
+      }
+    });
+
+    stages.push({$unwind: {path: '$addressInfo'}});
+
+    stages.push({
+      $facet: {
+        entries: [
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}},
+        ],
+      }
+    });
+
+    return stages;
+  }
+
+  updateStatus = async (id: string, status: number): Promise<Order> => {
+    return await OrderModel.findOneAndUpdate({_id: id}, {status: status});
+  };
 }
