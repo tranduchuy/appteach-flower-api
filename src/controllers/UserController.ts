@@ -169,7 +169,7 @@ export class UserController {
           await newUser.save();
         } else {
           // Send email
-          this.mailerService.sendConfirmEmail(email, newUser.tokenEmailConfirm);
+          this.mailerService.sendConfirmEmail(email, name, newUser.tokenEmailConfirm);
         }
 
         const result: IRes<{}> = {
@@ -715,7 +715,7 @@ export class UserController {
         }
 
         await this.userService.generateForgetPasswordToken(user);
-        await this.mailerService.sendResetPassword(user.email, user.passwordReminderToken);
+        await this.mailerService.sendResetPassword(user.email, user.name, user.passwordReminderToken);
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
