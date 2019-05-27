@@ -50,7 +50,7 @@ export class ProductService {
 
   createProduct = async ({
                            title, sku, status, description, topic, shopId, images, salePrice, originalPrice, keywordList,
-                           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
+                           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage, startDate, endDate
                          }) => {
     const priceRange = ProductService.detectPriceRange(originalPrice);
 
@@ -74,8 +74,8 @@ export class ProductService {
     if (salePrice) {
       saleOff = {
         price: salePrice,
-        startDate: Date.now(),
-        endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+        startDate: startDate || new Date(),
+        endDate: endDate || new Date(new Date().setMonth(new Date().getMonth() + 1)),
         active: true
       };
     }

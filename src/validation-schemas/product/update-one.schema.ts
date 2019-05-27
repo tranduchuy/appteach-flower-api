@@ -8,12 +8,8 @@ const UpdateOneValidationSchema = Joi.object().keys({
       topic: Joi.number(),
       originalPrice: Joi.number().min(0),
       salePrice: Joi.number().min(0),
-      saleOff: Joi.object().keys({
-        price: Joi.number().min(0),
-        startDate: Joi.date(),
-        endDate: Joi.date(),
-        active: Joi.boolean()
-      }),
+      startDate: Joi.date(),
+      endDate: Joi.date(),
       design: Joi.number(),
       specialOccasion: Joi.number(),
       floret: Joi.number(),
