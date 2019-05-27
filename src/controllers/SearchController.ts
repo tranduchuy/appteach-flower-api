@@ -118,6 +118,7 @@ export class SearchController {
         resultSuccess.data.isList = true;
         resultSuccess.data.products = result.products;
         resultSuccess.data.totalItems = result.total;
+        resultSuccess.data.searchQuery = result.searchQuery;
       }
 
       resolve(resultSuccess);

@@ -20,6 +20,7 @@ import updateStatusValidationSchema from '../validation-schemas/product/update-s
 import { ResponseMessages } from '../constant/messages';
 import { ImageService } from '../services/image.service';
 import GetInfoByIdsValidationSchema from '../validation-schemas/product/get-info-by-ids.schema';
+import { ProductWorkerService } from '../services/product-worker.service';
 
 interface IResUpdateProductsStatus {
   notFoundProducts?: string[];
@@ -30,8 +31,10 @@ export class ProductController {
   constructor(
       @inject(TYPES.ProductService) private productService: ProductService,
       @inject(TYPES.ImageService) private imageService: ImageService,
-      @inject(TYPES.ShopService) private shopService: ShopService
+      @inject(TYPES.ShopService) private shopService: ShopService,
+      @inject(TYPES.ProductWorkerService) private productWorkerService: ProductWorkerService
   ) {
+    this.productWorkerService.runChangeProductSaleJob();
   }
 
   @httpGet('/', TYPES.CheckTokenMiddleware)

@@ -27,6 +27,7 @@ const TYPES = {
   SystemConfigService: Symbol.for('SystemConfigService'),
   CostService: Symbol.for('CostService'),
   NotifyService: Symbol.for('NotifyService'),
+  ProductWorkerService: Symbol.for('ProductWorkerService'),
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),
   CheckAdminMiddleware: Symbol.for('CheckAdminMiddleware'),
