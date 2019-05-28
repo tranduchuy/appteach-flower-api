@@ -150,7 +150,7 @@ export class ProductController {
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
-          messages: [ResponseMessages.Product.Add.ADD_PRODUCT_SUCCESS],
+          messages: [ResponseMessages.SUCCESS],
           data: {
             meta: {},
             entries: {
