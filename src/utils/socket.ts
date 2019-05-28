@@ -15,8 +15,8 @@ export const onConnectFn = (socket) => {
       if (!data.userId) {
         return;
       }
+
       socket.join(data.userId); // using room of socket io
-      pushToUser(data.userId, JSON.stringify({title: 'Hello'}));
     } else {
       return;
     }
