@@ -29,28 +29,11 @@ export interface IQueryProduct {
 export class ProductService {
   listProductFields = ['_id', 'status', 'title', 'images', 'originalPrice', 'saleOff', 'slug'];
   detailProductFields =
-    ['_id', 'status', 'title', 'sold', 'description', 'user', 'images', 'originalPrice', 'saleOff', 'slug', 'sku', 'view', 'topic', 'design',
-      'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'tags', 'seoImage', 'shop', 'priceRange'];
-
-  static detectPriceRange(price: number): number {
-    let priceRange = null;
-    const range = PriceRanges.find(range => {
-      if (range.min && range.max) {
-        return (range.min <= price && price < range.max);
-      } else {
-        return (range.min <= price);
-      }
-    });
-    if (range) {
-      priceRange = range.value;
-    }
-
-    return priceRange;
-  }
-
+      ['_id', 'status', 'title', 'sold', 'description', 'user', 'images', 'originalPrice', 'saleOff', 'slug', 'sku', 'view', 'topic', 'design',
+        'specialOccasion', 'floret', 'city', 'district', 'color', 'seoUrl', 'seoDescription', 'tags', 'seoImage', 'shop', 'priceRange'];
   createProduct = async ({
                            title, sku, status, description, topic, shopId, images, salePrice, originalPrice, keywordList,
-                           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage, startDate, endDate
+                           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage, saleActive, startDate, endDate
                          }) => {
     const priceRange = ProductService.detectPriceRange(originalPrice);
 
@@ -71,7 +54,7 @@ export class ProductService {
       endDate: null,
       active: false
     };
-    if (salePrice) {
+    if (saleActive && salePrice) {
       saleOff = {
         price: salePrice,
         startDate: startDate || new Date(),
@@ -127,19 +110,16 @@ export class ProductService {
 
     return await newProduct.save();
   };
-
   findProductById = async (productId) => {
     try {
       return await ProductModel.findOne({_id: productId})
-        .populate({model: ShopModel, path: 'shop'});
+          .populate({model: ShopModel, path: 'shop'});
     } catch (e) {
       console.log(e);
     }
 
   };
-
   findListProductByIds = async (productIds) => ProductModel.find({_id: {$in: productIds}});
-
   updateProduct = async (product, {
     title, sku, description, topic, images, saleOff, originalPrice, keywordList,
     design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
@@ -211,14 +191,12 @@ export class ProductService {
       console.log(e);
     }
   };
-
   updateProductStatus = async (product, status) => {
     return await ProductModel.findOneAndUpdate({_id: product._id}, {
       status: status || product.status,
       updatedAt: new Date()
     });
   };
-
   updateViews = async (slug) => {
     try {
       const product = await ProductModel.findOne({slug: slug});
@@ -230,53 +208,49 @@ export class ProductService {
       console.log(e);
     }
   };
-
   getFeaturedProducts = async () => {
     try {
       return await ProductModel.find({
         status: Status.ACTIVE
       }, this.listProductFields)
-        .sort({
-          view: -1
-        })
-        .limit(General.HOME_PRODUCT_LIMIT);
+          .sort({
+            view: -1
+          })
+          .limit(General.HOME_PRODUCT_LIMIT);
     } catch (e) {
       console.error(e);
       return [];
     }
   };
-
   getSaleProducts = async () => {
     try {
       return await ProductModel
-        .find(
-          {
-            'saleOff.active': true,
-            status: Status.ACTIVE
-          },
-          this.listProductFields
-        )
-        .sort({
-          updatedAt: -1
-        })
-        .limit(General.HOME_PRODUCT_LIMIT);
+          .find(
+              {
+                'saleOff.active': true,
+                status: Status.ACTIVE
+              },
+              this.listProductFields
+          )
+          .sort({
+            updatedAt: -1
+          })
+          .limit(General.HOME_PRODUCT_LIMIT);
     } catch (e) {
       console.error(e);
       return [];
     }
   };
-
   getProductDetail = async (slug) => {
     return await ProductModel.findOne({slug: slug}, this.detailProductFields)
-      .populate({model: TagModel, path: 'tags'});
+        .populate({model: TagModel, path: 'tags'});
   };
-
   getProductDetailById = async (id) => {
     try {
       const product: any = await ProductModel
-        .findOne({_id: id}, this.detailProductFields)
-        .populate({model: ShopModel, path: 'shop'})
-        .populate({model: TagModel, path: 'tags'});
+          .findOne({_id: id}, this.detailProductFields)
+          .populate({model: ShopModel, path: 'shop'})
+          .populate({model: TagModel, path: 'tags'});
 
       product.tags = await Promise.all(product.tags.map(async id => {
         const tag = await TagModel.findById(id);
@@ -289,7 +263,6 @@ export class ProductService {
       return null;
     }
   };
-
   getRelatedProducts = async (product) => {
     try {
       const queryArr = [];
@@ -329,6 +302,32 @@ export class ProductService {
       return null;
     }
   };
+  findProductsByProductIds = async (productIds: string[]) => {
+    try {
+      return await ProductModel.find({
+        _id: {$in: productIds}
+      }).populate({model: ShopModel, path: 'shop'});
+    } catch (e) {
+      console.log(e);
+      return [];
+    }
+  }
+
+  static detectPriceRange(price: number): number {
+    let priceRange = null;
+    const range = PriceRanges.find(range => {
+      if (range.min && range.max) {
+        return (range.min <= price && price < range.max);
+      } else {
+        return (range.min <= price);
+      }
+    });
+    if (range) {
+      priceRange = range.value;
+    }
+
+    return priceRange;
+  }
 
   buildStageGetListProduct(queryCondition: IQueryProduct): any[] {
     const stages = [];
@@ -401,15 +400,15 @@ export class ProductService {
 
   updateMultipleProducts(shopId: string, productIds: string[], status: number) {
     return ProductModel.updateMany(
-      {
-        _id: {$in: productIds.map(pId => new mongoose.Types.ObjectId(pId))},
-        shop: new mongoose.Types.ObjectId(shopId)
-      },
-      {
-        $set: {
-          status
+        {
+          _id: {$in: productIds.map(pId => new mongoose.Types.ObjectId(pId))},
+          shop: new mongoose.Types.ObjectId(shopId)
+        },
+        {
+          $set: {
+            status
+          }
         }
-      }
     );
   }
 
@@ -429,16 +428,5 @@ export class ProductService {
       color: product.color,
       priceRange: priceRange
     };
-  }
-
-  findProductsByProductIds =  async (productIds: string[]) => {
-    try {
-      return await ProductModel.find({
-        _id: { $in: productIds }
-      }).populate({model: ShopModel, path: 'shop'});
-    } catch (e) {
-      console.log(e);
-      return [];
-    }
   }
 }
