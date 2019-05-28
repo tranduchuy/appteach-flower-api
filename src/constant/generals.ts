@@ -39,4 +39,6 @@ export namespace General {
   };
 
   export const costPerKm = 8000; // 8k/km
+
+  export const checkSaleOffIntervalTime = 5; // 5 minutes
 }

@@ -34,7 +34,7 @@ export class ProductController {
       @inject(TYPES.ShopService) private shopService: ShopService,
       @inject(TYPES.ProductWorkerService) private productWorkerService: ProductWorkerService
   ) {
-    this.productWorkerService.runChangeProductSaleJob();
+    this.productWorkerService.runChangeProductSaleOffJob();
   }
 
   @httpGet('/', TYPES.CheckTokenMiddleware)

@@ -3,6 +3,7 @@ import { injectable } from 'inversify';
 const moment = require('moment');
 import ProductModel from '../models/product';
 import schedule from 'node-schedule';
+import { General } from '../constant/generals';
 
 @injectable()
 export class ProductWorkerService {
@@ -16,6 +17,7 @@ export class ProductWorkerService {
         });
     return activeProducts.filter((product) => {
       if (!product.saleOff.endDate) {
+        console.log('WORKER::ChangeProductSaleOffJob::findProductScheduleNeedToBeUpdateSale::Not defined endDate of product id', product._id);
         return false;
       }
       return moment(now).isAfter(product.saleOff.endDate);
@@ -33,6 +35,7 @@ export class ProductWorkerService {
               {
                 saleOff: defaultSaleOff
               });
+          console.log('WORKER::ChangeProductSaleOffJob::shouldUnactiveSaleOnProducts::Change SaleOff.active to false of product id', product._id);
           return product;
         }));
       }
@@ -43,10 +46,13 @@ export class ProductWorkerService {
     }
   };
 
-  runChangeProductSaleJob = () => {
-    return schedule.scheduleJob(`5 * * * * *`, async () => {
+  runChangeProductSaleOffJob = () => {
+    console.log('WORKER::ChangeProductSaleOffJob::Init: Change sale off active to unactive of expired saleOff time product');
+    return schedule.scheduleJob(`*/${General.checkSaleOffIntervalTime} * * * *`, async () => {
       try {
-        await this.shouldUnactiveSaleOnProducts();
+        console.log('WORKER::ChangeProductSaleOffJob::Start at', new Date());
+        const updatedProducts = await this.shouldUnactiveSaleOnProducts();
+        console.log(`WORKER::ChangeProductSaleOffJob::Finish at ${new Date()}, update on number of products `, updatedProducts.length);
       } catch (e) {
         console.error(e);
       }
