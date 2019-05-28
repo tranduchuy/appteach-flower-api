@@ -123,12 +123,13 @@ export class SearchService {
     };
   }
 
-  async searchListByTag(condition: { tagSlug: string, limit: number, page: number, sortBy?: string, sortDirection?: string }): Promise<{ total: number, products: Product[] }> {
+  async searchListByTag(condition: { tagSlug: string, limit: number, page: number, sortBy?: string, sortDirection?: string }): Promise<{ total: number, products: Product[], searchQuery: Object }> {
     const tag = await TagModel.findOne({slug: condition.tagSlug});
     if (!tag) {
       return {
         total: 0,
-        products: []
+        products: [],
+        searchQuery: {}
       };
     }
 
@@ -162,10 +163,29 @@ export class SearchService {
     });
 
     const result = (await ProductModel.aggregate(stages))[0];
+    let searchQuery = {};
+    if (result.entries.length > 0) {
+      searchQuery = this.getSearchQueryFromProduct(result.entries[1]);
+    }
 
     return {
       total: result.meta[0] ? result.meta[0].totalItems : 0,
-      products: result.entries
+      products: result.entries,
+      searchQuery
+    };
+  }
+
+  getSearchQueryFromProduct(product: Product): Object {
+
+    return {
+      topic: product.topic,
+      specialOccasion: product.specialOccasion,
+      design: product.design,
+      floret: product.floret,
+      city: product.city,
+      district: product.district,
+      color: product.color,
+      priceRange: product.priceRange
     };
   }
 

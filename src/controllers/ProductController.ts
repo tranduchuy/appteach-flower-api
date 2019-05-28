@@ -20,6 +20,7 @@ import updateStatusValidationSchema from '../validation-schemas/product/update-s
 import { ResponseMessages } from '../constant/messages';
 import { ImageService } from '../services/image.service';
 import GetInfoByIdsValidationSchema from '../validation-schemas/product/get-info-by-ids.schema';
+import { ProductWorkerService } from '../services/product-worker.service';
 
 interface IResUpdateProductsStatus {
   notFoundProducts?: string[];
@@ -28,10 +29,12 @@ interface IResUpdateProductsStatus {
 @controller('/product')
 export class ProductController {
   constructor(
-    @inject(TYPES.ProductService) private productService: ProductService,
-    @inject(TYPES.ImageService) private imageService: ImageService,
-    @inject(TYPES.ShopService) private shopService: ShopService
+      @inject(TYPES.ProductService) private productService: ProductService,
+      @inject(TYPES.ImageService) private imageService: ImageService,
+      @inject(TYPES.ShopService) private shopService: ShopService,
+      @inject(TYPES.ProductWorkerService) private productWorkerService: ProductWorkerService
   ) {
+    this.productWorkerService.runChangeProductSaleOffJob();
   }
 
   @httpGet('/', TYPES.CheckTokenMiddleware)
@@ -192,7 +195,7 @@ export class ProductController {
         const user = request.user;
         const {
           title, sku, description, images, topic, salePrice, originalPrice,
-          keywordList,
+          keywordList, startDate, endDate,
           design, specialOccasion, floret, status, city, district, color, seoUrl, seoDescription, seoImage
         } = request.body;
 
@@ -222,6 +225,8 @@ export class ProductController {
           sku,
           description,
           topic,
+          startDate: startDate || null,
+          endDate: endDate || null,
           originalPrice,
           status,
           shopId: shop._id.toString(),
@@ -313,18 +318,14 @@ export class ProductController {
 
         const {
           title, sku, description, images, topic, salePrice, originalPrice,
-          keywordList,
+          keywordList, startDate, endDate,
           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
         } = request.body;
 
-        let {saleOff} = request.body;
+        let saleOff;
 
-        const saleOffObject = {
-          price: 0,
-          startDate: null,
-          endDate: null,
-          active: false
-        };
+        const saleOffObject = product.saleOff;
+
 
         if (salePrice && salePrice !== product.saleOff.price) {
           if (salePrice === 0) {
@@ -344,6 +345,13 @@ export class ProductController {
           }
         } else {
           saleOff = saleOffObject;
+        }
+        if (startDate) {
+          saleOff.startDate = startDate;
+        }
+
+        if (endDate) {
+          saleOff.endDate = endDate;
         }
 
         const salePriceCheck = salePrice || product.saleOff.price;
