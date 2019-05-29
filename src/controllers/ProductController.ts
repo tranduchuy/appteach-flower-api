@@ -150,7 +150,7 @@ export class ProductController {
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
-          messages: [ResponseMessages.Product.Add.ADD_PRODUCT_SUCCESS],
+          messages: [ResponseMessages.SUCCESS],
           data: {
             meta: {},
             entries: {
@@ -195,7 +195,7 @@ export class ProductController {
         const user = request.user;
         const {
           title, sku, description, images, topic, salePrice, originalPrice,
-          keywordList, startDate, endDate,
+          keywordList, startDate, endDate, saleActive,
           design, specialOccasion, floret, status, city, district, color, seoUrl, seoDescription, seoImage
         } = request.body;
 
@@ -225,6 +225,7 @@ export class ProductController {
           sku,
           description,
           topic,
+          saleActive,
           startDate: startDate || null,
           endDate: endDate || null,
           originalPrice,
@@ -318,7 +319,7 @@ export class ProductController {
 
         const {
           title, sku, description, images, topic, salePrice, originalPrice,
-          keywordList, startDate, endDate,
+          keywordList, startDate, endDate, saleActive,
           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
         } = request.body;
 
@@ -339,20 +340,28 @@ export class ProductController {
             saleOff = {
               price: salePrice,
               startDate: Date.now(),
-              endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+              endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
               active: true
             };
           }
         } else {
           saleOff = saleOffObject;
         }
-        if (startDate) {
-          saleOff.startDate = startDate;
+        if (saleActive) {
+          if (salePrice) {
+            saleOff.price = salePrice;
+          }
+          if (startDate) {
+            saleOff.startDate = startDate;
+          }
+
+          if (endDate) {
+            saleOff.endDate = endDate;
+          }
+        } else {
+          saleOff.active = false;
         }
 
-        if (endDate) {
-          saleOff.endDate = endDate;
-        }
 
         const salePriceCheck = salePrice || product.saleOff.price;
         const price = originalPrice || product.originalPrice;

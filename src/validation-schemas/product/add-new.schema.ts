@@ -9,6 +9,7 @@ const AddNewValidationSchema = Joi.object().keys({
       topic: Joi.number().required(),
       originalPrice: Joi.number().required().min(0),
       salePrice: Joi.number().min(0),
+      saleActive: Joi.boolean(),
       startDate: Joi.date(),
       endDate: Joi.date(),
       design: Joi.number(),
