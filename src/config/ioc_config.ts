@@ -38,6 +38,7 @@ import { NotifyController } from '../controllers/NotifyController';
 import { NotifyService } from '../services/notify.service';
 import { AdminOrderController } from '../controllers/admin/AdminOrderController';
 import { ProductWorkerService } from '../services/product-worker.service';
+import { GoogleGeocodingService } from '../services/google-geocoding.service';
 
 const container = new Container();
 
@@ -73,6 +74,7 @@ container.bind<FacebookGraphApiService>(TYPES.FacebookGraphApiService).to(Facebo
 container.bind<CostService>(TYPES.CostService).to(CostService);
 container.bind<NotifyService>(TYPES.NotifyService).to(NotifyService);
 container.bind<ProductWorkerService>(TYPES.ProductWorkerService).to(ProductWorkerService);
+container.bind<GoogleGeocodingService>(TYPES.GoogleGeocodingService).to(GoogleGeocodingService);
 
 
 // Bind model

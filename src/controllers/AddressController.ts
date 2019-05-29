@@ -16,13 +16,17 @@ import { AddressService } from '../services/address.service';
 import { General } from '../constant/generals';
 import UserTypes = General.UserTypes;
 import updateDeliveryAddressSchema from '../validation-schemas/address/update-delivery-address.schema';
+import CheckAddressValidationSchema from '../validation-schemas/address/check-address.schema';
+import { GoogleGeocodingService } from '../services/google-geocoding.service';
 
 @controller('/address')
 export class AddressController {
   constructor(
-    @inject(TYPES.AddressService) private addressService: AddressService,
-    @inject(TYPES.ShopService) private shopService: ShopService
-  ) {}
+      @inject(TYPES.AddressService) private addressService: AddressService,
+      @inject(TYPES.ShopService) private shopService: ShopService,
+      @inject(TYPES.GoogleGeocodingService) private googleGeocodingService: GoogleGeocodingService
+  ) {
+  }
 
   @httpGet('/delivery', TYPES.CheckTokenMiddleware)
   public getAddress(request: Request, response: Response): Promise<{}> {
@@ -326,6 +330,59 @@ export class AddressController {
           }
         };
 
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
+
+  @httpGet('/check', TYPES.CheckTokenMiddleware)
+  public checkAddress(request: Request, response: Response): Promise<{}> {
+    return new Promise<{}>(async (resolve, reject) => {
+      try {
+        const {error} = Joi.validate(request.query, CheckAddressValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+        const {addressText} = request.query;
+        const addresses: any = await this.googleGeocodingService.checkAddress(addressText);
+        if (addresses.length === 0) {
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Address.ADDRESS_NOT_FOUND],
+            data: {
+              entries: addresses
+            }
+          };
+          resolve(result);
+        }
+        const result = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: {
+            entries: addresses
+          }
+        };
         resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
