@@ -118,7 +118,7 @@ export class AddressController {
         const user = request.user;
         const {name, phone, city, ward, district, address} = request.body;
 
-        const newAddress = await this.addressService.createDeliveryAddress({
+        let newAddress = await this.addressService.createDeliveryAddress({
           name,
           phone,
           city,
@@ -127,6 +127,25 @@ export class AddressController {
           ward,
           address
         });
+
+
+        const addresses: any = await this.googleGeocodingService.checkAddress(newAddress.addressText);
+
+        if (addresses.length === 0) {
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Address.ADDRESS_NOT_FOUND],
+            data: {
+              entries: addresses
+            }
+          };
+          resolve(result);
+        }
+
+        const latitude = addresses[0].latitude;
+        const longitude = addresses[0].longitude;
+
+        newAddress = await this.addressService.updateGeoAddress(newAddress, {latitude, longitude});
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -267,7 +286,7 @@ export class AddressController {
 
         const {name, phone, city, district, ward, address} = request.body;
 
-        await this.addressService.updateDeliveryAddress(deliveryAddress._id, {
+        let newAddress = await this.addressService.updateDeliveryAddress(deliveryAddress._id, {
           name,
           phone,
           city,
@@ -276,13 +295,31 @@ export class AddressController {
           address
         });
 
+        const addresses: any = await this.googleGeocodingService.checkAddress(newAddress.addressText);
+
+        if (addresses.length === 0) {
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Address.ADDRESS_NOT_FOUND],
+            data: {
+              entries: addresses
+            }
+          };
+          resolve(result);
+        }
+
+        const latitude = addresses[0].latitude;
+        const longitude = addresses[0].longitude;
+
+        newAddress = await this.addressService.updateGeoAddress(newAddress, {latitude, longitude});
+
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.Address.Update.UPDATE_ADDRESS_SUCCESS],
           data: {
             meta: {},
-            entries: []
+            entries: [newAddress]
           }
         };
 

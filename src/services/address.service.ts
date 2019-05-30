@@ -8,7 +8,7 @@ import Cities = SearchSelector.Cities;
 
 @injectable()
 export class AddressService {
-  listDeliveryAddressFields = ['name', 'user', 'phone', 'city', 'district', 'ward', 'address'];
+  listDeliveryAddressFields = ['name', 'user', 'phone', 'city', 'district', 'ward', 'address', 'addressText'];
   listPossibleDeliveryAddressFields = ['city', 'district'];
   createDeliveryAddress = async ({name, user, ward, phone, city, district, address}) => {
     const cityObject = this.getCityByCode(city);
@@ -76,6 +76,10 @@ export class AddressService {
     address,
     ward
   }) => {
+    const cityObject = this.getCityByCode(city);
+    const districtObject = this.getDistrictByValue(cityObject, district);
+    const wardObject = this.getWardByValue(districtObject, ward);
+    const addressText = `${address}, ${wardObject.pre} ${wardObject.name}, ${districtObject.pre} ${districtObject.name}, ${cityObject.name}`;
     const newAddress = {
       name: name || null,
       city: city || null,
@@ -83,6 +87,7 @@ export class AddressService {
       phone: phone || null,
       address: address || null,
       ward: ward || null,
+      addressText: addressText || null,
       updatedAt: new Date()
     };
 
@@ -92,7 +97,19 @@ export class AddressService {
       }
     });
 
-    return await AddressModel.findOneAndUpdate({_id: addressId}, newAddress);
+    await AddressModel.findOneAndUpdate({_id: addressId}, newAddress);
+
+    return await AddressModel.findById(addressId);
+  };
+
+
+  updateGeoAddress = async (address, {
+    latitude, longitude
+  }) => {
+    address.latitude = latitude;
+    address.longitude = longitude;
+
+    return await address.save();
   };
 
   findDeliveryAddressById = async (addressId, userId) => {
