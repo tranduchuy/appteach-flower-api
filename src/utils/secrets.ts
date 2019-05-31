@@ -16,6 +16,7 @@ export const prod = ENVIRONMENT === 'production'; // Anything else is treated as
 export const SESSION_SECRET = process.env['SESSION_SECRET'];
 export const MONGODB_URI = prod ? process.env['MONGODB_URI'] : process.env['MONGODB_URI_LOCAL'];
 export const GOOGLE_DISTANCE_MATRIX = process.env['GOOGLE_DISTANCE_MATRIX'];
+export const GOOGLE_GEOCODING = process.env['GOOGLE_GEOCODING'];
 export const FRONT_END_DOMAIN = process.env['FRONT_END_DOMAIN'];
 
 if (!SESSION_SECRET) {
