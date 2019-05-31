@@ -31,15 +31,13 @@ export class AddressService {
   };
 
   createNoLoginDeliveryAddress = async ({name, phone, address, latitude, longitude}) => {
-    const cityObject = this.getCityByCode(city);
-    const districtObject = this.getDistrictByValue(cityObject, district);
-    const wardObject = this.getWardByValue(districtObject, ward);
     const newAddress = new AddressModel({
       name,
       phone,
       address,
       latitude,
       longitude,
+      addressText: address,
       user: null,
       type: AddressTypes.DELIVERY
     });

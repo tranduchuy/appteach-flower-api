@@ -6,9 +6,7 @@ const addressInfoSchema = Joi.object().keys({
   address: Joi.string().required(),
   longitude: Joi.number().required(),
   latitude: Joi.number().required(),
-  deliveryTime: Joi.date().required(),
-  note: Joi.string()
-});
+}).required();
 
 const orderItemSchema = Joi.object().keys({
   productId: Joi.string().required(),
@@ -17,7 +15,9 @@ const orderItemSchema = Joi.object().keys({
 
 const SubmitNoLoginOrderValidationSchema = Joi.object().keys({
   addressInfo: addressInfoSchema,
-  items: Joi.array(orderItemSchema)
+  items: Joi.array().items(orderItemSchema).required(),
+  note: Joi.string(),
+  deliveryTime: Joi.date().required()
 });
 
 export default SubmitNoLoginOrderValidationSchema;

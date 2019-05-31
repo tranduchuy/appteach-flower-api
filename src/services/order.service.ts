@@ -213,6 +213,24 @@ export class OrderService {
     });
     return total;
   };
+  updateStatus = async (id: string, status: number): Promise<Order> => {
+    return await OrderModel.findOneAndUpdate({_id: id}, {status: status});
+  }
+  addManyProductsToCart = async (order: Order, items: IInputOrderItem[]): Promise<IResAddManyProducts[]> => {
+    const results: IResAddManyProducts[] = [];
+    if (items.length === 0) {
+      return Promise.resolve([]);
+    }
+
+    await Promise.all(items.map(async (item: IInputOrderItem) => {
+      const orderItem = await this.addProductToCart(order, item.productId, item.quantity);
+      if (orderItem) {
+        results.push(orderItem);
+      }
+    }));
+
+    return Promise.resolve(results);
+  };
 
   constructor(@inject(TYPES.CostService) private costService: CostService,
               @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
@@ -291,10 +309,6 @@ export class OrderService {
     return stages;
   }
 
-  updateStatus = async (id: string, status: number): Promise<Order> => {
-    return await OrderModel.findOneAndUpdate({_id: id}, {status: status});
-  }
-
   public async addProductToCart(order: Order, productId: string, quantity: number): Promise<IResAddManyProducts | null> {
     const result: IResAddManyProducts = {
       product: null,
@@ -320,20 +334,4 @@ export class OrderService {
 
     return Promise.resolve(result);
   }
-
-  addManyProductsToCart = async (order: Order, items: IInputOrderItem[]): Promise<IResAddManyProducts[]> => {
-    const results: IResAddManyProducts[] = [];
-    if (items.length === 0) {
-      return Promise.resolve([]);
-    }
-
-    await Promise.all(items.map(async (item: IInputOrderItem) => {
-      const orderItem = await this.addProductToCart(order, item.productId, item.quantity);
-      if (orderItem) {
-        results.push(orderItem);
-      }
-    }));
-
-    return Promise.resolve(results);
-  };
 }

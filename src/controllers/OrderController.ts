@@ -44,11 +44,11 @@ export class OrderController {
   prod = prod;
 
   constructor(
-    @inject(TYPES.ProductService) private productService: ProductService,
-    @inject(TYPES.CostService) private costService: CostService,
-    @inject(TYPES.OrderService) private orderService: OrderService,
-    @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-    @inject(TYPES.AddressService) private addressService: AddressService
+      @inject(TYPES.ProductService) private productService: ProductService,
+      @inject(TYPES.CostService) private costService: CostService,
+      @inject(TYPES.OrderService) private orderService: OrderService,
+      @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+      @inject(TYPES.AddressService) private addressService: AddressService
   ) {
   }
 
@@ -335,13 +335,13 @@ export class OrderController {
         const products = await this.productService.findListProductByIds(productIds) as Product[];
 
         await Promise.all(
-          orderItems.map(async (orderItem) => {
-            const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
-            if (!product) return orderItem;
-            const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
-            orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
-            return orderItem;
-          })
+            orderItems.map(async (orderItem) => {
+              const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+              if (!product) return orderItem;
+              const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
+              orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
+              return orderItem;
+            })
         );
 
         // update order items status: new => pending
@@ -413,26 +413,58 @@ export class OrderController {
           return resolve(result);
         }
 
-        let order: any = new OrderModel();
+        const order: any = new OrderModel();
+        const {addressInfo, items, deliveryTime, note} = request.body;
 
-        const {addressInfo, orderItems} = request.body;
-
-        if (!orderItems || orderItems.length === 0) {
+        if (!items || items.length === 0) {
           const result = {
             status: HttpStatus.NOT_FOUND,
-            messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
+            messages: [ResponseMessages.Order.ORDER_EMPTY],
             data: null
           };
           resolve(result);
         }
 
-        const productIds = orderItems.map(($) => $.product);
+        const productIds = items.map(item => {
+          return item.productId;
+        });
+
         const products = await this.productService.findListProductByIds(productIds) as Product[];
+
+        if (productIds.length < products.length) {
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
+            data: null
+          };
+          return resolve(result);
+        }
+
+
+        const orderItems: any = await Promise.all(items.map(async item => {
+          const product = products.find(product => {
+            return item.productId.toString() === product['_id'].toString();
+          });
+          return await this.orderService.addItem(order, product, item.quantity);
+        }));
+
+        console.log(orderItems);
+
+        const address = await this.addressService.createNoLoginDeliveryAddress(addressInfo);
+
+        // update delivery info for order.
+        order.deliveryTime = deliveryTime;
+        order.address = address._id;
+        if (note) {
+          order.note = note;
+        }
+
 
         await Promise.all(
             orderItems.map(async (orderItem) => {
               const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
               if (!product) return orderItem;
+              orderItem.product = product;
               const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
               orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
               return orderItem;
@@ -441,18 +473,12 @@ export class OrderController {
 
         // update order items status: new => pending
         await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PROCESSING);
-
-        const {deliveryTime, note, address} = request.body;
-
-        const newOrder = {deliveryTime, note, address};
-        // update delivery info for order.
-        order = await this.orderService.updateSubmitOrder(order, newOrder);
-
         // update shipping and discount
         await this.orderService.updateCost(order._id, address);
-
         // calculate total
         order.total = await this.orderService.calculateTotal(order._id);
+
+        console.log(order);
 
         if (this.prod) {
           await this.orderService.submitOrder(order);
@@ -466,24 +492,18 @@ export class OrderController {
           data: order
         };
         resolve(result);
-      } catch (error) {
-        console.error(error);
-        let result: IRes<Order> = null;
+      } catch (e) {
+        console.error(e);
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
 
-        if (error == 'Order not found') {
-          result = {
-            status: HttpStatus.NOT_FOUND,
-            messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
-            data: null
-          };
-        } else {
-          result = {
-            status: HttpStatus.INTERNAL_SERVER_ERROR,
-            messages: error.messages,
-            data: null
-          };
-        }
-        resolve(result);
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        return resolve(result);
       }
     });
   }
