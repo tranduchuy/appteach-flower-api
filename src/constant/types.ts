@@ -23,6 +23,7 @@ const TYPES = {
   AddressService: Symbol.for('AddressService'),
   ShopService: Symbol.for('ShopService'),
   GoogleDistanceMatrixService: Symbol.for('GoogleDistanceMatrixService'),
+  GoogleGeocodingService: Symbol.for('GoogleGeocodingService'),
   FacebookGraphApiService: Symbol.for('FacebookGraphApiService'),
   SystemConfigService: Symbol.for('SystemConfigService'),
   CostService: Symbol.for('CostService'),
