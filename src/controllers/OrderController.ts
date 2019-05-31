@@ -9,7 +9,7 @@ import { IRes } from '../interfaces/i-res';
 import { Shop } from '../models/shop';
 import { OrderService } from '../services/order.service';
 import { OrderRoute } from '../constant/routeMap';
-import { Order } from '../models/order';
+import OrderModel, { Order } from '../models/order';
 import { ResponseMessages } from '../constant/messages';
 import { ProductService } from '../services/product.service';
 import { AddressService } from '../services/address.service';
@@ -24,6 +24,7 @@ import GetOrderShippingCostValidationSchema from '../validation-schemas/order/ge
 import { CostService } from '../services/cost.service';
 import addOneProductToCart from '../validation-schemas/order/add-one-product-to-cart.schema';
 import addManyProductsToCart from '../validation-schemas/order/add-many-products-to-cart.schema';
+import SubmitNoLoginOrderValidationSchema from '../validation-schemas/order/submit-no-login-order.schema';
 
 // const console = process['console'];
 
@@ -341,6 +342,101 @@ export class OrderController {
             orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
             return orderItem;
           })
+        );
+
+        // update order items status: new => pending
+        await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PROCESSING);
+
+        const {deliveryTime, note, address} = request.body;
+
+        const newOrder = {deliveryTime, note, address};
+        // update delivery info for order.
+        order = await this.orderService.updateSubmitOrder(order, newOrder);
+
+        // update shipping and discount
+        await this.orderService.updateCost(order._id, address);
+
+        // calculate total
+        order.total = await this.orderService.calculateTotal(order._id);
+
+        if (this.prod) {
+          await this.orderService.submitOrder(order);
+        } else {
+          await this.orderService.submitOrderDev(order);
+        }
+
+        const result: IRes<Order> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: order
+        };
+        resolve(result);
+      } catch (error) {
+        console.error(error);
+        let result: IRes<Order> = null;
+
+        if (error == 'Order not found') {
+          result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
+            data: null
+          };
+        } else {
+          result = {
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            messages: error.messages,
+            data: null
+          };
+        }
+        resolve(result);
+      }
+    });
+  }
+
+
+  @httpPost(OrderRoute.SubmitNoLoginOrder)
+  public submitNoLoginOrder(request: Request, response: Response): Promise<IRes<any>> {
+    return new Promise<IRes<any>>(async (resolve, reject) => {
+      try {
+
+        const {error} = Joi.validate(request.body, SubmitNoLoginOrderValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        let order: any = new OrderModel();
+
+        const {addressInfo, orderItems} = request.body;
+
+        if (!orderItems || orderItems.length === 0) {
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
+            data: null
+          };
+          resolve(result);
+        }
+
+        const productIds = orderItems.map(($) => $.product);
+        const products = await this.productService.findListProductByIds(productIds) as Product[];
+
+        await Promise.all(
+            orderItems.map(async (orderItem) => {
+              const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+              if (!product) return orderItem;
+              const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
+              orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
+              return orderItem;
+            })
         );
 
         // update order items status: new => pending
