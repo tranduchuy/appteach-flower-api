@@ -3,6 +3,7 @@ export namespace ResponseMessages {
   export const INVALID_ID = 'ID không hợp lệ';
   export namespace User {
     export const USER_NOT_FOUND = 'Tài khoản không tồn tại';
+    export const RESEND_CONFIRM_EMAIL = 'Hệ thống đã gửi lại email xác nhận tài khoản. Vui lòng kiểm tra email';
 
     export namespace Register {
       export const PHONE_DUPLICATED = 'Số điện thoại đã được đăng kí';

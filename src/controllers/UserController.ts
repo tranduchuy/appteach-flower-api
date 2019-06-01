@@ -28,6 +28,11 @@ import resetPasswordValidationSchema from '../validation-schemas/user/reset-pass
 import { ImageService } from '../services/image.service';
 import LoginFacebookValidationSchema from '../validation-schemas/user/login-facebook.schema';
 import { FacebookGraphApiService } from '../services/facebook-graph-api.service';
+import ResendConfirmAccountSchema from '../validation-schemas/user/resend-confirm-email.schema';
+import { UserConstant } from '../constant/users';
+import RandomString from 'randomstring';
+
+interface IResResendConfirmEmail { }
 
 @controller('/user')
 export class UserController {
@@ -134,17 +139,6 @@ export class UserController {
           return resolve(result);
         }
 
-        let _gender;
-
-        if (isNaN(gender)) {
-          _gender = null;
-        } else {
-          _gender = gender;
-          if (gender === 0) {
-            _gender = Genders.GENDER_FEMALE;
-          }
-        }
-
         const newUserData = {
           email,
           username,
@@ -153,7 +147,7 @@ export class UserController {
           type: UserTypes.TYPE_CUSTOMER,
           role: null,
           phone: phone || null,
-          gender: _gender,
+          gender,
           city: city || null,
           district: district || null,
           ward: ward || null,
@@ -815,4 +809,45 @@ export class UserController {
     });
   }
 
+  @httpPost('/resend-confirm')
+  public resendConfirmAccount(req: Request): Promise<IRes<IResResendConfirmEmail>> {
+    return new Promise(async (resolve) => {
+      const {error} = Joi.validate(req.body, ResendConfirmAccountSchema);
+      if (error) {
+        const messages = error.details.map(detail => {
+          return detail.message;
+        });
+
+        const result: IRes<IResResendConfirmEmail> = {
+          status: HttpStatus.BAD_REQUEST,
+          messages: messages
+        };
+        return resolve(result);
+      }
+
+      const user: any = await this.userService.findByEmail(req.body.email);
+      if (!user || user.status !== Status.PENDING_OR_WAIT_CONFIRM) {
+        const result: IRes<IResResendConfirmEmail> = {
+          status: HttpStatus.BAD_REQUEST,
+          messages: [ResponseMessages.User.USER_NOT_FOUND]
+        };
+        return resolve(result);
+      }
+
+      const tokenEmailConfirm = RandomString.generate({
+        length: UserConstant.tokenConfirmEmailLength,
+        charset: 'alphabetic'
+      });
+      user.tokenEmailConfirm = tokenEmailConfirm;
+      await user.save();
+      this.mailerService.sendConfirmEmail(user.email, user.name, tokenEmailConfirm);
+
+
+      const result: IRes<IResResendConfirmEmail> = {
+        status: HttpStatus.OK,
+        messages: [ResponseMessages.User.RESEND_CONFIRM_EMAIL]
+      };
+      return resolve(result);
+    });
+  }
 }
