@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 import Joi from '@hapi/joi';
 import TYPES from '../constant/types';
 import { IRes } from '../interfaces/i-res';
+import { Address } from '../models/address';
 import { Shop } from '../models/shop';
 import { OrderService } from '../services/order.service';
 import { OrderRoute } from '../constant/routeMap';
@@ -37,6 +38,38 @@ export interface IResAddManyProducts {
   product: Product;
   quantity: number;
   shop: Shop;
+}
+
+interface IResGuestDetailOrder {
+  addressInfo: {
+    name: string;
+    phone: string;
+    address: string;
+  };
+  order: {
+    status: number;
+    createdAt: Date;
+    paidAt: Date;
+    note: string;
+    code: string;
+    total: number;
+    deliveryTime: Date;
+    expectedDeliveryTime: string;
+  };
+  orderItems: {
+    product: {
+      title: string;
+      slug: string;
+      images: string[]
+    };
+    shop: {
+      name: string;
+    },
+    quantity: number;
+    status: number;
+    deliveryAt: Date;
+    price: number;
+  }[];
 }
 
 @controller(OrderRoute.Name)
@@ -346,19 +379,14 @@ export class OrderController {
 
         // update order items status: new => pending
         await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PROCESSING);
-
-        const {deliveryTime, note, address} = request.body;
-
-        const newOrder = {deliveryTime, note, address};
+        const {deliveryTime, note, address, expectedDeliveryTime} = request.body;
+        const newOrder = {deliveryTime, note, address, expectedDeliveryTime};
         // update delivery info for order.
         order = await this.orderService.updateSubmitOrder(order, newOrder);
-
         // update shipping and discount
         await this.orderService.updateCost(order._id, address);
-
         // calculate total
         order.total = await this.orderService.calculateTotal(order._id);
-
         if (this.prod) {
           await this.orderService.submitOrder(order);
         } else {
@@ -515,7 +543,6 @@ export class OrderController {
     });
   }
 
-
   @httpPost(OrderRoute.GetOrderShippingCost, TYPES.CheckTokenMiddleware)
   public getOrderShippingCost(request: Request, response: Response): Promise<IRes<any>> {
     return new Promise<IRes<any>>(async (resolve, reject) => {
@@ -588,6 +615,67 @@ export class OrderController {
         };
         return resolve(result);
       }
+    });
+  }
+
+  @httpGet(OrderRoute.GuestGetOrderDetail)
+  public guestCheckOrderDetail(req: Request): Promise<IRes<IResGuestDetailOrder>> {
+    return new Promise<IRes<IResGuestDetailOrder>>(async resolve => {
+      const orderCode = req.params.code;
+      const order = await this.orderService.findOrderByCode(orderCode);
+
+      // not found order
+      if (!order) {
+        return resolve({
+          messages: [
+            ResponseMessages.Order.ORDER_NOT_FOUND
+          ],
+          status: HttpStatus.NOT_FOUND
+        });
+      }
+
+      const orderItems: any[] = await this.orderService.findItemInOrder(order._id.toString());
+      const address: Address | null = await this.addressService.findAddress(order.address);
+
+      const result: IResGuestDetailOrder = {
+        addressInfo: {
+          address: address.addressText,
+          name: address.name,
+          phone: address.phone
+        },
+        order: {
+          code: order.code,
+          createdAt: order.createdAt,
+          deliveryTime: order.deliveryTime,
+          expectedDeliveryTime: order.expectedDeliveryTime,
+          note: order.note,
+          paidAt: order.paidAt,
+          status: order.status,
+          total: order.total
+        },
+        orderItems: orderItems.map(o => {
+          return {
+            product: {
+              images: o.product.images,
+              title: o.product.title,
+              slug: o.product.slug
+            },
+            quantity: o.quantity,
+            status: o.status,
+            deliveryAt: o.deliveryAt,
+            price: o.price,
+            shop: {
+              name: o.shop.name
+            }
+          };
+        })
+      };
+
+      return resolve({
+        status: HttpStatus.OK,
+        messages: [ResponseMessages.SUCCESS],
+        data: result
+      });
     });
   }
 }

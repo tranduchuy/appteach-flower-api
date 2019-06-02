@@ -32,6 +32,9 @@ export class Order extends Typegoose {
   deliveryTime: Date;
 
   @prop()
+  expectedDeliveryTime: string;
+
+  @prop()
   note: string;
 
   @prop()

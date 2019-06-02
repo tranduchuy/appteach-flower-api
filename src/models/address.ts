@@ -16,10 +16,10 @@ export class Address extends Typegoose {
   @prop({})
   addressText: string;
 
-  @prop({required: true})
+  @prop({})
   city: string;
 
-  @prop({required: true})
+  @prop({})
   district: number;
 
   @prop({})

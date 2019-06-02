@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import mongoose from 'mongoose';
-import AddressModel from '../models/address';
+import AddressModel, { Address } from '../models/address';
 import { General } from '../constant/generals';
 import AddressTypes = General.AddressTypes;
 import { SearchSelector } from '../constant/search-selector.constant';
@@ -10,19 +10,14 @@ import Cities = SearchSelector.Cities;
 export class AddressService {
   listDeliveryAddressFields = ['name', 'user', 'phone', 'city', 'district', 'ward', 'address', 'addressText'];
   listPossibleDeliveryAddressFields = ['city', 'district'];
-  createDeliveryAddress = async ({name, user, ward, phone, city, district, address}) => {
-    const cityObject = this.getCityByCode(city);
-    const districtObject = this.getDistrictByValue(cityObject, district);
-    const wardObject = this.getWardByValue(districtObject, ward);
-    const addressText = `${address}, ${wardObject.pre} ${wardObject.name}, ${districtObject.pre} ${districtObject.name}, ${cityObject.name}`;
+  createDeliveryAddress = async ({name, user, phone, address, latitude, longitude}) => {
     const newAddress = new AddressModel({
       name,
       phone,
-      city,
-      district,
       address,
-      ward,
-      addressText,
+      addressText: address,
+      latitude,
+      longitude,
       user: user._id,
       type: AddressTypes.DELIVERY
     });
@@ -88,23 +83,17 @@ export class AddressService {
   updateDeliveryAddress = async (addressId, {
     name,
     phone,
-    city,
-    district,
     address,
-    ward
+    longitude,
+    latitude
   }) => {
-    const cityObject = this.getCityByCode(city);
-    const districtObject = this.getDistrictByValue(cityObject, district);
-    const wardObject = this.getWardByValue(districtObject, ward);
-    const addressText = `${address}, ${wardObject.pre} ${wardObject.name}, ${districtObject.pre} ${districtObject.name}, ${cityObject.name}`;
     const newAddress = {
       name: name || null,
-      city: city || null,
-      district: district || null,
       phone: phone || null,
       address: address || null,
-      ward: ward || null,
-      addressText: addressText || null,
+      addressText: address || null,
+      longitude,
+      latitude,
       updatedAt: new Date()
     };
 
@@ -113,7 +102,6 @@ export class AddressService {
         delete newAddress[key];
       }
     });
-
     await AddressModel.findOneAndUpdate({_id: addressId}, newAddress);
 
     return await AddressModel.findById(addressId);
@@ -176,13 +164,14 @@ export class AddressService {
 
   };
 
-  findAddress = async (addressId) => {
+  findAddress = async (addressId): Promise<Address | null> => {
     try {
       return await AddressModel.findOne({
         _id: addressId
       });
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      return  null;
     }
   };
 
