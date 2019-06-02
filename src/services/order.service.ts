@@ -50,6 +50,8 @@ export class OrderService {
 
   findOrder = async (userId: string): Promise<Order[]> => OrderModel.find({fromUser: userId});
 
+  findOrderByCode = async (code: string): Promise<Order> => OrderModel.findOne({code});
+
   findOrders = async (userId: string, status: number): Promise<Array<any>> => {
     try {
       const query = {

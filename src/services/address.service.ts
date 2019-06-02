@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import mongoose from 'mongoose';
-import AddressModel from '../models/address';
+import AddressModel, { Address } from '../models/address';
 import { General } from '../constant/generals';
 import AddressTypes = General.AddressTypes;
 import { SearchSelector } from '../constant/search-selector.constant';
@@ -147,13 +147,14 @@ export class AddressService {
 
   };
 
-  findAddress = async (addressId) => {
+  findAddress = async (addressId): Promise<Address | null> => {
     try {
       return await AddressModel.findOne({
         _id: addressId
       });
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      return  null;
     }
   };
 
