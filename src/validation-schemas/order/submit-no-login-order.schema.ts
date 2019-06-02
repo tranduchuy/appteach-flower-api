@@ -16,8 +16,8 @@ const orderItemSchema = Joi.object().keys({
 const SubmitNoLoginOrderValidationSchema = Joi.object().keys({
   addressInfo: addressInfoSchema,
   items: Joi.array().items(orderItemSchema).required(),
-  note: Joi.string(),
-  deliveryTime: Joi.date().required()
+  deliveryTime: Joi.date().required(),
+  expectedDeliveryTime: Joi.string()
 });
 
 export default SubmitNoLoginOrderValidationSchema;

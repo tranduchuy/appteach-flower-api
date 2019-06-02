@@ -344,7 +344,7 @@ export class OrderService {
     return Promise.resolve(results);
   };
 
-  private generateOrderCode(): string {
+  generateOrderCode(): string {
     // TODO: generate order code
     const date = new Date();
     return date.getTime().toString();

@@ -442,7 +442,7 @@ export class OrderController {
         }
 
         const order: any = new OrderModel();
-        const {addressInfo, items, deliveryTime, note} = request.body;
+        const {addressInfo, items, deliveryTime, note, expectedDeliveryTime} = request.body;
 
         if (!items || items.length === 0) {
           const result = {
@@ -480,9 +480,9 @@ export class OrderController {
         // update delivery info for order.
         order.deliveryTime = deliveryTime;
         order.address = address._id;
-        if (note) {
-          order.note = note;
-        }
+        order.note = note || '';
+        order.code = this.orderService.generateOrderCode();
+        order.expectedDeliveryTime = expectedDeliveryTime;
 
         await Promise.all(
           orderItems.map(async (orderItem) => {
