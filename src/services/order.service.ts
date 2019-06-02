@@ -77,19 +77,24 @@ export class OrderService {
     }
   };
 
-  updateSubmitOrder = async (order, {deliveryTime, note, address}) => {
+  updateSubmitOrder = async (order, {deliveryTime, note, address, expectedDeliveryTime}) => {
     if (deliveryTime) {
       order.deliveryTime = deliveryTime;
     }
+
     if (note) {
       order.note = note;
     }
+
     if (address) {
       order.address = address;
     }
-    // generate order code
-    const date = new Date();
-    order.code = date.getTime();
+
+    if (expectedDeliveryTime) {
+      order.expectedDeliveryTime = expectedDeliveryTime;
+    }
+
+    order.code = this.generateOrderCode();
 
     return await order.save();
   };
@@ -293,7 +298,7 @@ export class OrderService {
 
   updateStatus = async (id: string, status: number): Promise<Order> => {
     return await OrderModel.findOneAndUpdate({_id: id}, {status: status});
-  }
+  };
 
   public async addProductToCart(order: Order, productId: string, quantity: number): Promise<IResAddManyProducts | null> {
     const result: IResAddManyProducts = {
@@ -336,4 +341,10 @@ export class OrderService {
 
     return Promise.resolve(results);
   };
+
+  private generateOrderCode(): string {
+    // TODO: generate order code
+    const date = new Date();
+    return date.getTime().toString();
+  }
 }

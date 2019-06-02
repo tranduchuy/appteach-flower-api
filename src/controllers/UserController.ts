@@ -11,7 +11,6 @@ import { General } from '../constant/generals';
 import UserRoles = General.UserRoles;
 import { Status } from '../constant/status';
 import UserTypes = General.UserTypes;
-import Genders = General.Genders;
 import { MailerService } from '../services/mailer.service';
 import RegisterByTypes = General.RegisterByTypes;
 import * as HttpStatus from 'http-status-codes';

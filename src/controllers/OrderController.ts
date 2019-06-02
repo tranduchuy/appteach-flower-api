@@ -345,19 +345,14 @@ export class OrderController {
 
         // update order items status: new => pending
         await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PROCESSING);
-
-        const {deliveryTime, note, address} = request.body;
-
-        const newOrder = {deliveryTime, note, address};
+        const {deliveryTime, note, address, expectedDeliveryTime} = request.body;
+        const newOrder = {deliveryTime, note, address, expectedDeliveryTime};
         // update delivery info for order.
         order = await this.orderService.updateSubmitOrder(order, newOrder);
-
         // update shipping and discount
         await this.orderService.updateCost(order._id, address);
-
         // calculate total
         order.total = await this.orderService.calculateTotal(order._id);
-
         if (this.prod) {
           await this.orderService.submitOrder(order);
         } else {
