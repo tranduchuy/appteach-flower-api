@@ -77,11 +77,11 @@ export class OrderController {
   prod = prod;
 
   constructor(
-      @inject(TYPES.ProductService) private productService: ProductService,
-      @inject(TYPES.CostService) private costService: CostService,
-      @inject(TYPES.OrderService) private orderService: OrderService,
-      @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-      @inject(TYPES.AddressService) private addressService: AddressService
+    @inject(TYPES.ProductService) private productService: ProductService,
+    @inject(TYPES.CostService) private costService: CostService,
+    @inject(TYPES.OrderService) private orderService: OrderService,
+    @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+    @inject(TYPES.AddressService) private addressService: AddressService
   ) {
   }
 
@@ -368,13 +368,13 @@ export class OrderController {
         const products = await this.productService.findListProductByIds(productIds) as Product[];
 
         await Promise.all(
-            orderItems.map(async (orderItem) => {
-              const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
-              if (!product) return orderItem;
-              const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
-              orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
-              return orderItem;
-            })
+          orderItems.map(async (orderItem) => {
+            const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+            if (!product) return orderItem;
+            const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
+            orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
+            return orderItem;
+          })
         );
 
         // update order items status: new => pending
@@ -468,15 +468,12 @@ export class OrderController {
           return resolve(result);
         }
 
-
         const orderItems: any = await Promise.all(items.map(async item => {
           const product = products.find(product => {
             return item.productId.toString() === product['_id'].toString();
           });
           return await this.orderService.addItem(order, product, item.quantity);
         }));
-
-        console.log(orderItems);
 
         const address = await this.addressService.createNoLoginDeliveryAddress(addressInfo);
 
@@ -487,16 +484,15 @@ export class OrderController {
           order.note = note;
         }
 
-
         await Promise.all(
-            orderItems.map(async (orderItem) => {
-              const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
-              if (!product) return orderItem;
-              orderItem.product = product;
-              const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
-              orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
-              return orderItem;
-            })
+          orderItems.map(async (orderItem) => {
+            const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+            if (!product) return orderItem;
+            orderItem.product = product;
+            const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
+            orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
+            return orderItem;
+          })
         );
 
         // update order items status: new => pending
@@ -505,9 +501,6 @@ export class OrderController {
         await this.orderService.updateCost(order._id, address);
         // calculate total
         order.total = await this.orderService.calculateTotal(order._id);
-
-        console.log(order);
-
         if (this.prod) {
           await this.orderService.submitOrder(order);
         } else {
