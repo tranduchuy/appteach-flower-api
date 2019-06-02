@@ -13,6 +13,7 @@ export enum OrderRoute {
     // CREATE
     AddItem = '/',
     AddMany = '/many',
+    SubmitNoLoginOrder = '/no-login',
 
     // DELETE
     DeleteItem = '/item/:itemId',
