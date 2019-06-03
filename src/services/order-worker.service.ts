@@ -18,7 +18,7 @@ export class OrderWorkerService {
         });
 
     const searchDate = new Date();
-    searchDate.setMinutes(searchDate.getHours() - 2);
+    searchDate.setHours(searchDate.getHours() - 2);
     return notYetPayOrders.filter((order) => {
       if (!order.submitAt) {
         console.log('WORKER::ChangeProductSaleOffJob::findNotYetPayOrdersScheduleNeedToBeCancel::Not defined submitAt of order id', order._id);
