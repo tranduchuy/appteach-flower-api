@@ -25,10 +25,11 @@ export class AddressService {
     return await newAddress.save();
   };
 
-  createNoLoginDeliveryAddress = async ({name, phone, address, latitude, longitude}) => {
+  createNoLoginDeliveryAddress = async ({name, phone, address, latitude, email, longitude}) => {
     const newAddress = new AddressModel({
       name,
       phone,
+      email,
       address,
       latitude,
       longitude,
