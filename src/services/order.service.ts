@@ -220,6 +220,71 @@ export class OrderService {
     });
     return total;
   };
+  updateStatus = async (id: string, status: number): Promise<Order> => {
+    return await OrderModel.findOneAndUpdate({_id: id}, {status: status});
+  };
+  addManyProductsToCart = async (order: Order, items: IInputOrderItem[]): Promise<IResAddManyProducts[]> => {
+    const results: IResAddManyProducts[] = [];
+    if (items.length === 0) {
+      return Promise.resolve([]);
+    }
+
+    await Promise.all(items.map(async (item: IInputOrderItem) => {
+      const orderItem = await this.addProductToCart(order, item.productId, item.quantity);
+      if (orderItem) {
+        results.push(orderItem);
+      }
+    }));
+
+    return Promise.resolve(results);
+  };
+  generateOrderCode = async () => {
+    // TODO: generate order code
+    const date = new Date();
+    const mm = date.getMonth() + 1;
+    const dd = date.getDate();
+    const yyyy = date.getFullYear();
+    const yyyymmdd = [yyyy,
+      (mm > 9 ? '' : '0') + mm,
+      (dd > 9 ? '' : '0') + dd
+    ].join('');
+    const yymmdd = yyyymmdd.slice(2);
+
+
+    const todayString = new Date([yyyy,
+      (mm > 9 ? '' : '0') + mm,
+      (dd > 9 ? '' : '0') + dd
+    ].join('-'));
+    const yesterday = (new Date(todayString)).setDate((new Date(todayString)).getDate() - 1);
+    const tomorrow = (new Date(todayString)).setDate((new Date(todayString)).getDate() + 1);
+    const orderCount = await OrderModel.count({
+      submitAt: {
+        '$gt': yesterday,
+        '$lt': tomorrow
+      }
+    });
+
+    let count = orderCount + 1;
+    let countString = count.toString();
+    let splitChar = 'A';
+    if (count > 9999) {
+      const index = count / 10000;
+      count = count % 10000;
+      splitChar = String.fromCharCode(65 + index);
+    }
+
+    if (count > 999) {
+      countString = count.toString();
+    } else if (count > 99) {
+      countString = '0' + count;
+    } else if (count > 9) {
+      countString = '00' + count;
+    } else {
+      countString = '000' + count;
+    }
+
+    return yymmdd + splitChar + countString;
+  }
 
   constructor(@inject(TYPES.CostService) private costService: CostService,
               @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
@@ -298,10 +363,6 @@ export class OrderService {
     return stages;
   }
 
-  updateStatus = async (id: string, status: number): Promise<Order> => {
-    return await OrderModel.findOneAndUpdate({_id: id}, {status: status});
-  };
-
   public async addProductToCart(order: Order, productId: string, quantity: number): Promise<IResAddManyProducts | null> {
     const result: IResAddManyProducts = {
       product: null,
@@ -326,27 +387,5 @@ export class OrderService {
     result.shop = product.shop as Shop;
 
     return Promise.resolve(result);
-  }
-
-  addManyProductsToCart = async (order: Order, items: IInputOrderItem[]): Promise<IResAddManyProducts[]> => {
-    const results: IResAddManyProducts[] = [];
-    if (items.length === 0) {
-      return Promise.resolve([]);
-    }
-
-    await Promise.all(items.map(async (item: IInputOrderItem) => {
-      const orderItem = await this.addProductToCart(order, item.productId, item.quantity);
-      if (orderItem) {
-        results.push(orderItem);
-      }
-    }));
-
-    return Promise.resolve(results);
-  };
-
-  generateOrderCode(): string {
-    // TODO: generate order code
-    const date = new Date();
-    return date.getTime().toString();
   }
 }
