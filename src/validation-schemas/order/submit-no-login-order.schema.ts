@@ -3,6 +3,7 @@ import Joi from '@hapi/joi';
 const addressInfoSchema = Joi.object().keys({
   name: Joi.string().required().min(3),
   phone: Joi.string().required().min(10).max(11).regex(/^[0-9]*$/),
+  email: Joi.string().required().max(100).email(),
   address: Joi.string().required(),
   longitude: Joi.number().required(),
   latitude: Joi.number().required(),

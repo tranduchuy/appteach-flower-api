@@ -32,6 +32,9 @@ export class Address extends Typegoose {
   phone: string;
 
   @prop({})
+  email: string;
+
+  @prop({})
   latitude: number;
 
   @prop({})
