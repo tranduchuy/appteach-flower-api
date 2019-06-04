@@ -21,6 +21,7 @@ import { ResponseMessages } from '../constant/messages';
 import { ImageService } from '../services/image.service';
 import GetInfoByIdsValidationSchema from '../validation-schemas/product/get-info-by-ids.schema';
 import { ProductWorkerService } from '../services/product-worker.service';
+import ListProductsValidationSchema from '../validation-schemas/product/list-products.schema';
 
 interface IResUpdateProductsStatus {
   notFoundProducts?: string[];
@@ -159,6 +160,66 @@ export class ProductController {
           }
         };
         resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
+  @httpGet('/featured')
+  public getFeaturedProducts(req: Request): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve) => {
+      try {
+        const {error} = Joi.validate(req.query, ListProductsValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const {limit, page, sb, sd} = req.query;
+        const queryCondition = {
+          limit: parseInt((limit || 10).toString()),
+          page: parseInt((page || 1).toString()),
+          sortBy: sb || null,
+          sortDirection: sd || null
+        };
+
+        const result = await this.productService.listFeaturedProducts(queryCondition);
+
+        const products = this.productService.mappingListProducts(result[0].entries);
+
+        const resultSuccess: IRes<any> = {
+          status: HttpStatus.OK,
+          messages: ['Success'],
+          data: {
+            meta: {
+              totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0,
+              item: result[0].entries.length,
+              limit: queryCondition.limit,
+              page: queryCondition.page,
+            },
+            products: products
+          }
+        };
+
+        resolve(resultSuccess);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
