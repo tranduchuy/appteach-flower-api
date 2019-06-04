@@ -312,6 +312,20 @@ export class ProductService {
       return [];
     }
   }
+  mappingListProducts = (products) => {
+    return products.map(product => {
+      return {
+        _id: product._id,
+        status: product.status,
+        title: product.title,
+        images: product.images,
+        originalPrice: product.originalPrice,
+        saleOff: product.saleOff,
+        slug: product.slug
+      };
+    });
+
+  }
 
   static detectPriceRange(price: number): number {
     let priceRange = null;
@@ -428,5 +442,94 @@ export class ProductService {
       color: product.color,
       priceRange: priceRange
     };
+  }
+
+  async listFeaturedProducts(condition: { limit: number, page: number, sortBy?: string, sortDirection?: string }) {
+
+    const queryObj = {};
+    queryObj['status'] = Status.ACTIVE;
+
+    const stages: any[] = [
+      {
+        $match: queryObj
+      }
+    ];
+
+    if (condition.sortBy) {
+      const sortStage = {
+        $sort: {
+          'view': -1
+        }
+      };
+      sortStage.$sort[condition.sortBy] = condition.sortDirection === 'DESC' ? -1 : 1;
+      stages.push(sortStage);
+    } else {
+      stages.push({
+        $sort: {
+          'view': -1
+        }
+      });
+    }
+
+
+
+    stages.push({
+      $facet: {
+        entries: [
+          {$skip: (condition.page - 1) * condition.limit},
+          {$limit: condition.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}}
+        ]
+      }
+    });
+
+
+    return await ProductModel.aggregate(stages);
+  }
+
+  async listSaleProducts(condition: { limit: number, page: number, sortBy?: string, sortDirection?: string }) {
+
+    const queryObj = {};
+    queryObj['status'] = Status.ACTIVE;
+    queryObj['saleOff.active'] = true;
+
+    const stages: any[] = [
+      {
+        $match: queryObj
+      }
+    ];
+
+    if (condition.sortBy) {
+      const sortStage = {
+        $sort: {
+          'updatedAt': -1
+        }
+      };
+      sortStage.$sort[condition.sortBy] = condition.sortDirection === 'DESC' ? -1 : 1;
+      stages.push(sortStage);
+    } else {
+      stages.push({
+        $sort: {
+          'updatedAt': -1
+        }
+      });
+    }
+
+    stages.push({
+      $facet: {
+        entries: [
+          {$skip: (condition.page - 1) * condition.limit},
+          {$limit: condition.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}}
+        ]
+      }
+    });
+
+
+    return await ProductModel.aggregate(stages);
   }
 }
