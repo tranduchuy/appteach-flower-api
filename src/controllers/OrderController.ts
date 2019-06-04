@@ -481,7 +481,7 @@ export class OrderController {
         order.deliveryTime = deliveryTime;
         order.address = address._id;
         order.note = note || '';
-        order.code = this.orderService.generateOrderCode();
+        order.code = await this.orderService.generateOrderCode();
         order.expectedDeliveryTime = expectedDeliveryTime;
 
         await Promise.all(

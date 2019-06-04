@@ -96,7 +96,7 @@ export class OrderService {
       order.expectedDeliveryTime = expectedDeliveryTime;
     }
 
-    order.code = this.generateOrderCode();
+    order.code = await this.generateOrderCode();
 
     return await order.save();
   };
@@ -283,8 +283,8 @@ export class OrderService {
       countString = '000' + count;
     }
 
-    return yymmdd + splitChar + countString;
-  }
+    return (yymmdd + splitChar + countString).toString();
+  };
 
   constructor(@inject(TYPES.CostService) private costService: CostService,
               @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
