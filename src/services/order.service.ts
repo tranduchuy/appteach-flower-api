@@ -269,7 +269,7 @@ export class OrderService {
     let splitChar = 'A';
     if (count > 9999) {
       const index = count / 10000;
-      count = count % 10000;
+      count = (count + 1) % 10000;
       splitChar = String.fromCharCode(65 + index);
     }
 
