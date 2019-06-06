@@ -26,6 +26,7 @@ import { CostService } from '../services/cost.service';
 import addOneProductToCart from '../validation-schemas/order/add-one-product-to-cart.schema';
 import addManyProductsToCart from '../validation-schemas/order/add-many-products-to-cart.schema';
 import SubmitNoLoginOrderValidationSchema from '../validation-schemas/order/submit-no-login-order.schema';
+import { OrderWorkerService } from '../services/order-worker.service';
 
 // const console = process['console'];
 
@@ -81,8 +82,10 @@ export class OrderController {
     @inject(TYPES.CostService) private costService: CostService,
     @inject(TYPES.OrderService) private orderService: OrderService,
     @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-    @inject(TYPES.AddressService) private addressService: AddressService
+    @inject(TYPES.AddressService) private addressService: AddressService,
+    @inject(TYPES.OrderWorkerService) private orderWorkerService: OrderWorkerService
   ) {
+    this.orderWorkerService.runCancelOrderJob();
   }
 
   @httpGet(OrderRoute.GetOrder, TYPES.CheckTokenMiddleware)
@@ -387,6 +390,9 @@ export class OrderController {
         await this.orderService.updateCost(order._id, address);
         // calculate total
         order.total = await this.orderService.calculateTotal(order._id);
+
+        // set submit time
+        order.submitAt = new Date();
         if (this.prod) {
           await this.orderService.submitOrder(order);
         } else {
@@ -481,8 +487,9 @@ export class OrderController {
         order.deliveryTime = deliveryTime;
         order.address = address._id;
         order.note = note || '';
-        order.code = this.orderService.generateOrderCode();
+        order.code = await this.orderService.generateOrderCode();
         order.expectedDeliveryTime = expectedDeliveryTime;
+        order.submitAt = new Date();
 
         await Promise.all(
           orderItems.map(async (orderItem) => {

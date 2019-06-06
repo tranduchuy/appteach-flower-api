@@ -39,6 +39,7 @@ import { NotifyService } from '../services/notify.service';
 import { AdminOrderController } from '../controllers/admin/AdminOrderController';
 import { ProductWorkerService } from '../services/product-worker.service';
 import { GoogleGeocodingService } from '../services/google-geocoding.service';
+import { OrderWorkerService } from '../services/order-worker.service';
 
 const container = new Container();
 
@@ -74,6 +75,7 @@ container.bind<FacebookGraphApiService>(TYPES.FacebookGraphApiService).to(Facebo
 container.bind<CostService>(TYPES.CostService).to(CostService);
 container.bind<NotifyService>(TYPES.NotifyService).to(NotifyService);
 container.bind<ProductWorkerService>(TYPES.ProductWorkerService).to(ProductWorkerService);
+container.bind<OrderWorkerService>(TYPES.OrderWorkerService).to(OrderWorkerService);
 container.bind<GoogleGeocodingService>(TYPES.GoogleGeocodingService).to(GoogleGeocodingService);
 
 

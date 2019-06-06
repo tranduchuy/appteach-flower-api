@@ -29,6 +29,7 @@ const TYPES = {
   CostService: Symbol.for('CostService'),
   NotifyService: Symbol.for('NotifyService'),
   ProductWorkerService: Symbol.for('ProductWorkerService'),
+  OrderWorkerService: Symbol.for('OrderWorkerService'),
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),
   CheckAdminMiddleware: Symbol.for('CheckAdminMiddleware'),

@@ -29,6 +29,9 @@ export class Order extends Typegoose {
   paidAt: Date;
 
   @prop()
+  submitAt: Date;
+
+  @prop()
   deliveryTime: Date;
 
   @prop()
