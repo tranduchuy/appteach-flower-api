@@ -11,6 +11,7 @@ import { Shop } from '../models/shop';
 import { OrderService } from '../services/order.service';
 import { OrderRoute } from '../constant/routeMap';
 import OrderModel, { Order } from '../models/order';
+import ShopModel from '../models/shop';
 import { ResponseMessages } from '../constant/messages';
 import { ProductService } from '../services/product.service';
 import { AddressService } from '../services/address.service';
@@ -78,12 +79,12 @@ export class OrderController {
   prod = prod;
 
   constructor(
-    @inject(TYPES.ProductService) private productService: ProductService,
-    @inject(TYPES.CostService) private costService: CostService,
-    @inject(TYPES.OrderService) private orderService: OrderService,
-    @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-    @inject(TYPES.AddressService) private addressService: AddressService,
-    @inject(TYPES.OrderWorkerService) private orderWorkerService: OrderWorkerService
+      @inject(TYPES.ProductService) private productService: ProductService,
+      @inject(TYPES.CostService) private costService: CostService,
+      @inject(TYPES.OrderService) private orderService: OrderService,
+      @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+      @inject(TYPES.AddressService) private addressService: AddressService,
+      @inject(TYPES.OrderWorkerService) private orderWorkerService: OrderWorkerService
   ) {
     this.orderWorkerService.runCancelOrderJob();
   }
@@ -286,12 +287,6 @@ export class OrderController {
         const {productId, quantity} = request.body;
         const user = request.user;
 
-        let order = await this.orderService.findPendingOrder(user.id);
-        if (!order) {
-          order = await this.orderService.createOrder(user);
-          order.fromUser = user._id;
-        }
-
         const product = await this.productService.findProductById(productId);
         if (!product) {
           const result = {
@@ -300,6 +295,25 @@ export class OrderController {
             data: null
           };
           return resolve(result);
+        }
+
+        const shop = await ShopModel.findOne({user: user._id});
+        if (shop) {
+          if (shop._id.toString() === product.shop['_id'].toString()) {
+            const result = {
+              status: HttpStatus.BAD_REQUEST,
+              messages: [ResponseMessages.Product.NO_ADD_ITEM_PERMISSION],
+              data: null
+            };
+            return resolve(result);
+          }
+        }
+
+
+        let order = await this.orderService.findPendingOrder(user.id);
+        if (!order) {
+          order = await this.orderService.createOrder(user);
+          order.fromUser = user._id;
         }
 
         let orderItem = await this.orderService.findOrderItem(order, product);
@@ -371,13 +385,13 @@ export class OrderController {
         const products = await this.productService.findListProductByIds(productIds) as Product[];
 
         await Promise.all(
-          orderItems.map(async (orderItem) => {
-            const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
-            if (!product) return orderItem;
-            const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
-            orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
-            return orderItem;
-          })
+            orderItems.map(async (orderItem) => {
+              const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+              if (!product) return orderItem;
+              const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
+              orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
+              return orderItem;
+            })
         );
 
         // update order items status: new => pending
@@ -492,14 +506,14 @@ export class OrderController {
         order.submitAt = new Date();
 
         await Promise.all(
-          orderItems.map(async (orderItem) => {
-            const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
-            if (!product) return orderItem;
-            orderItem.product = product;
-            const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
-            orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
-            return orderItem;
-          })
+            orderItems.map(async (orderItem) => {
+              const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+              if (!product) return orderItem;
+              orderItem.product = product;
+              const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
+              orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
+              return orderItem;
+            })
         );
 
         // update order items status: new => pending
