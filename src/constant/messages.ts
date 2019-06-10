@@ -37,6 +37,7 @@ export namespace ResponseMessages {
   export namespace Product {
     export const PRODUCT_NOT_FOUND = 'Không tìm thấy sản phẩm';
     export const NOT_VALID_PRICE = 'Giá khuyến mãi phải nhỏ hơn giá bình thường';
+    export const NO_ADD_ITEM_PERMISSION = 'Bạn không thể thêm sản phẩm của shop bạn';
     export namespace Add {
       export const ADD_PRODUCT_SUCCESS = 'Thêm sản phẩm thành công';
       export const NO_ADD_PRODUCT_PERMISSION = 'Chỉ có người bán được phép thêm sản phẩm';
