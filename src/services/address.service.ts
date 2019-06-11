@@ -25,11 +25,10 @@ export class AddressService {
     return await newAddress.save();
   };
 
-  createNoLoginDeliveryAddress = async ({name, phone, address, latitude, email, longitude}) => {
+  createNoLoginDeliveryAddress = async ({name, phone, address, latitude, longitude}) => {
     const newAddress = new AddressModel({
       name,
       phone,
-      email,
       address,
       latitude,
       longitude,
@@ -51,34 +50,18 @@ export class AddressService {
 
     return await newAddress.save();
   };
-
-  async createShopAddress(shopId: string, city: string, district: number, ward: number | null, address: string) {
-    const newAddress = new AddressModel({
-      city,
-      district,
-      ward,
-      address,
-      shop: new mongoose.Types.ObjectId(shopId),
-      type: AddressTypes.SHOP_ADDRESS
-    });
-
-    return await newAddress.save();
-  }
-
   getDelieveryAddress = async (user) => {
     return await AddressModel.find({
       user: user._id,
       type: AddressTypes.DELIVERY
     }, this.listDeliveryAddressFields).sort({updatedAt: -1});
   };
-
   getPossibleDelieveryAddress = async (user) => {
     return await AddressModel.find({
       user: user._id,
       type: AddressTypes.POSSIBLE_DELIVERY
     }, this.listPossibleDeliveryAddressFields).sort({updatedAt: -1});
   };
-
   updateDeliveryAddress = async (addressId, {
     name,
     phone,
@@ -105,8 +88,6 @@ export class AddressService {
 
     return await AddressModel.findById(addressId);
   };
-
-
   updateGeoAddress = async (address, {
     latitude, longitude
   }) => {
@@ -115,7 +96,6 @@ export class AddressService {
 
     return await address.save();
   };
-
   findDeliveryAddressById = async (addressId, userId) => {
     try {
       return await AddressModel.findOne({
@@ -127,7 +107,6 @@ export class AddressService {
     }
 
   };
-
   findPossibleDeliveryAddress = async ({city, district, user}) => {
     try {
       return await AddressModel.findOne({
@@ -140,7 +119,6 @@ export class AddressService {
       console.log(e);
     }
   };
-
   findAddressById = async (addressId, userId) => {
     try {
       return await AddressModel.findOne({
@@ -151,7 +129,6 @@ export class AddressService {
       console.log(e);
     }
   };
-
   findDeliveryAddressByShopId = async (shopId) => {
     try {
       return await AddressModel.findOne({
@@ -162,7 +139,6 @@ export class AddressService {
     }
 
   };
-
   findAddress = async (addressId): Promise<Address | null> => {
     try {
       return await AddressModel.findOne({
@@ -170,10 +146,9 @@ export class AddressService {
       });
     } catch (e) {
       console.error(e);
-      return  null;
+      return null;
     }
   };
-
   deleteAddress = async (id) => {
     try {
       return await AddressModel.findByIdAndRemove(id);
@@ -181,6 +156,19 @@ export class AddressService {
       console.log(e);
     }
   };
+
+  async createShopAddress(shopId: string, city: string, district: number, ward: number | null, address: string) {
+    const newAddress = new AddressModel({
+      city,
+      district,
+      ward,
+      address,
+      shop: new mongoose.Types.ObjectId(shopId),
+      type: AddressTypes.SHOP_ADDRESS
+    });
+
+    return await newAddress.save();
+  }
 
   getCityByCode(cd: string): any {
     return Cities.find(city => {
