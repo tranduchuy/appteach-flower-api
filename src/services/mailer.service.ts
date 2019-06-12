@@ -101,7 +101,7 @@ export class MailerService {
         from: 'cskh.hecta@gmail.com',
         to: email,
         subject: 'FLOWER VIỆT NAM - Thông tin thanh toán',
-        text: `Đơn hàng ${orderId} đã thanh toán thành công`
+        text: `Đơn hàng #${orderId} đã thanh toán thành công`
       };
 
       this.transporter.sendMail(mailOptions, function (error) {

@@ -1,9 +1,8 @@
 import { injectable } from 'inversify';
-import { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_NUMBER } from '../utils/secrets';
+import { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } from '../utils/secrets';
 
 const accountSid = TWILIO_ACCOUNT_SID;
 const authToken = TWILIO_AUTH_TOKEN;
-const serviceNumber = TWILIO_NUMBER;
 import Twilio from 'twilio';
 
 @injectable()
@@ -11,12 +10,13 @@ export class SmsService {
 
   transporter = Twilio(accountSid, authToken);
 
-  sendPaymentSuccesSMS = (phone, orderId) => {
+  sendPaymentSuccesSMS = (phone, orderCode) => {
     try {
+      const convertedPhone = '+84' + phone.slice(1);
       const smsOptions = {
-            body: `Đơn hàng ${orderId} đã thanh toán thành công`,
-            from: '+15017122661',
-            to: serviceNumber
+            body: `Đơn hàng #${orderCode} đã thanh toán thành công`,
+            from: '+16027867610',
+            to: convertedPhone
           };
 
       this.transporter.messages.create(smsOptions, function (error) {

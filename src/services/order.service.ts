@@ -336,7 +336,7 @@ export class OrderService {
     } else {
       stages.push({
         $sort: {
-          createdAt: -1
+          submitAt: -1
         }
       });
     }
