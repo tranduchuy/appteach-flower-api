@@ -462,7 +462,7 @@ export class OrderController {
         }
 
         const order: any = new OrderModel();
-        const {addressInfo, buyerInfo, items, deliveryTime, note, expectedDeliveryTime} = request.body;
+        const {receiverInfo, buyerInfo, items, deliveryTime, note, expectedDeliveryTime} = request.body;
 
         if (!items || items.length === 0) {
           const result = {
@@ -495,7 +495,7 @@ export class OrderController {
           return await this.orderService.addItem(order, product, item.quantity);
         }));
 
-        const address = await this.addressService.createNoLoginDeliveryAddress(addressInfo);
+        const address = await this.addressService.createNoLoginDeliveryAddress(receiverInfo);
 
         // update delivery info for order.
         order.deliveryTime = deliveryTime;
