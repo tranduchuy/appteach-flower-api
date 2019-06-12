@@ -106,13 +106,13 @@ export class MailerService {
 
       this.transporter.sendMail(mailOptions, function (error) {
         if (error) {
-          console.log('MailService::sendConfirmEmail::error', error);
+          console.log('MailService::sendPaymentSuccesEmail::error', error);
         } else {
-          console.log(`MailService::sendConfirmEmail::success. Send mail to ${email} successfully`);
+          console.log(`MailService::sendPaymentSuccesEmail::success. Send mail to ${email} successfully`);
         }
       });
     } catch (e) {
-      console.log('MailService::sendConfirmEmail::error::catch', e);
+      console.log('MailService::sendPaymentSuccesEmail::error::catch', e);
     }
   };
 

@@ -13,6 +13,8 @@ import { ObjectID } from 'bson';
 import AdminUpdateOrderStatusValidationSchema from '../../validation-schemas/order/admin-update-status-order.schema';
 import { NotifyService } from '../../services/notify.service';
 import { Status } from '../../constant/status';
+import { SmsService } from '../../services/sms.service';
+import { MailerService } from '../../services/mailer.service';
 
 interface IResProducts {
   meta: {
@@ -24,6 +26,8 @@ interface IResProducts {
 @controller('/admin/order')
 export class AdminOrderController {
   constructor(@inject(TYPES.OrderService) private orderService: OrderService,
+              @inject(TYPES.SmsService) private smsService: SmsService,
+              @inject(TYPES.MailerService) private mailerService: MailerService,
               @inject(TYPES.NotifyService) private notifyService: NotifyService) {
 
   }
@@ -150,6 +154,17 @@ export class AdminOrderController {
           data: null
         };
         if (status === Status.ORDER_PAID) {
+          // notify to user
+          let phone;
+          let email;
+          if (order.buyerInfo !== null) {
+            phone = buyerInfo.phone;
+            email = buyerInfo.email;
+          }
+
+          this.mailerService.sendPaymentSuccesEmail(email, order._id);
+          this.smsService.sendPaymentSuccesSMS(phone, order._id);
+
           // notify to shop
           await this.notifyService.notifyNewOrderToShops(order._id);
         }
