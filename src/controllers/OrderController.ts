@@ -462,7 +462,7 @@ export class OrderController {
         }
 
         const order: any = new OrderModel();
-        const {addressInfo, items, deliveryTime, note, expectedDeliveryTime} = request.body;
+        const {addressInfo, buyerInfo, items, deliveryTime, note, expectedDeliveryTime} = request.body;
 
         if (!items || items.length === 0) {
           const result = {
@@ -504,6 +504,10 @@ export class OrderController {
         order.code = await this.orderService.generateOrderCode();
         order.expectedDeliveryTime = expectedDeliveryTime;
         order.submitAt = new Date();
+
+        // save user info
+        order.buyerInfo = buyerInfo;
+        order.user = null;
 
         await Promise.all(
             orderItems.map(async (orderItem) => {
