@@ -395,7 +395,16 @@ export class AdminUserController {
           return resolve(result);
         }
 
-        const {password, userId} = request.body;
+        const {confirmedPassword, password, userId} = request.body;
+
+        if (password !== confirmedPassword) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.Register.PASSWORD_DONT_MATCH],
+            data: {}
+          };
+          return resolve(result);
+        }
 
         const user = await UserModel.findById(userId);
 
