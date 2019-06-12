@@ -7,6 +7,7 @@ import TYPES from '../../constant/types';
 import { IRes } from '../../interfaces/i-res';
 import OrderModel, { Order } from '../../models/order';
 import UserModel from '../../models/user';
+import OrderItemModel from '../../models/order-item';
 import Joi from '@hapi/joi';
 import ListOrderSchema from '../../validation-schemas/order/admin-list-order.schema';
 import { OrderService } from '../../services/order.service';
@@ -64,7 +65,14 @@ export class AdminOrderController {
 
         const result: any = await OrderModel.aggregate(stages);
 
-        const orders = result[0].entries.map(order => {
+        const orders = await Promise.all(result[0].entries.map(async order => {
+          const orderItems = await OrderItemModel.find({
+            order: order._id
+          });
+          const numberOfProducts = orderItems.reduce((accumulator, item) => {
+            return accumulator + item.quantity;
+          }, 0);
+          order.numberOfProducts = numberOfProducts;
           order.address = order.addressInfo.addressText;
           order.user = {
             _id: order.userInfo._id,
@@ -76,7 +84,7 @@ export class AdminOrderController {
           delete order.userInfo;
           delete order.addressInfo;
           return order;
-        });
+        }));
 
         const response: IRes<any> = {
           status: HttpStatus.OK,
