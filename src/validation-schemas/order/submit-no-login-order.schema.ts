@@ -1,6 +1,6 @@
 import Joi from '@hapi/joi';
 
-const addressInfoSchema = Joi.object().keys({
+const receiverInfoSchema = Joi.object().keys({
   name: Joi.string().required().min(3),
   phone: Joi.string().required().min(10).max(11).regex(/^[0-9]*$/),
   address: Joi.string().required(),
@@ -20,7 +20,7 @@ const buyerInfoSchema = Joi.object().keys({
 });
 
 const SubmitNoLoginOrderValidationSchema = Joi.object().keys({
-  addressInfo: addressInfoSchema,
+  receiverInfo: receiverInfoSchema,
   buyerInfo: buyerInfoSchema,
   items: Joi.array().items(orderItemSchema).required(),
   deliveryTime: Joi.date().required(),
