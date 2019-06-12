@@ -2,7 +2,7 @@ import { inject } from 'inversify';
 import { controller, httpGet, httpPost, httpPut } from 'inversify-express-utils';
 import * as HttpStatus from 'http-status-codes';
 import mongoose from 'mongoose';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { General } from '../../constant/generals';
 import { HttpCodes } from '../../constant/http-codes';
 import { ResponseMessages } from '../../constant/messages';
@@ -22,6 +22,7 @@ import AcceptShopSchema from '../../validation-schemas/user/admin-accept-shop.sc
 import ListUserSchema from '../../validation-schemas/user/admin-list-user.schema';
 import AdminUserChangeStatus from '../../validation-schemas/user/admin-user-change-status.schema';
 import UserTypes = General.UserTypes;
+import AdminResetPasswordValidationSchema from '../../validation-schemas/user/admin-reset-password.schema';
 
 interface IResUserLogin {
   meta: {
@@ -124,22 +125,22 @@ export class AdminUserController {
         }
 
         const userInfoResponse = {
-            id: user.id,
-            role: user.role,
-            email: user.email,
-            username: user.username,
-            name: user.name,
-            phone: user.phone,
-            address: user.address,
-            type: user.type,
-            status: user.status,
-            avatar: user.avatar,
-            gender: user.gender,
-            city: user.city,
-            district: user.district,
-            ward: user.ward,
-            registerBy: user.registerBy
-          }
+              id: user.id,
+              role: user.role,
+              email: user.email,
+              username: user.username,
+              name: user.name,
+              phone: user.phone,
+              address: user.address,
+              type: user.type,
+              status: user.status,
+              avatar: user.avatar,
+              gender: user.gender,
+              city: user.city,
+              district: user.district,
+              ward: user.ward,
+              registerBy: user.registerBy
+            }
         ;
         const token = this.userService.generateToken({email: user.email});
 
@@ -372,6 +373,72 @@ export class AdminUserController {
           messages: messages
         };
         return resolve(result);
+      }
+    });
+  }
+
+  @httpPost('/reset-password', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
+  public resetPassword(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const {error} = Joi.validate(request.body, AdminResetPasswordValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const {confirmedPassword, password, userId} = request.body;
+
+        if (password !== confirmedPassword) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.Register.PASSWORD_DONT_MATCH],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const user = await UserModel.findById(userId);
+
+        if (!user) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.USER_NOT_FOUND],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        await this.userService.resetPassword(password, user);
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.User.ResetPassword.RESET_PASSWORD_SUCCESS],
+          data: {
+            meta: {},
+            entries: []
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        resolve(result);
       }
     });
   }
