@@ -6,6 +6,7 @@ import { ResponseMessages } from '../../constant/messages';
 import TYPES from '../../constant/types';
 import { IRes } from '../../interfaces/i-res';
 import OrderModel, { Order } from '../../models/order';
+import UserModel from '../../models/user';
 import Joi from '@hapi/joi';
 import ListOrderSchema from '../../validation-schemas/order/admin-list-order.schema';
 import { OrderService } from '../../services/order.service';
@@ -158,8 +159,12 @@ export class AdminOrderController {
           let phone;
           let email;
           if (order.buyerInfo !== null) {
-            phone = buyerInfo.phone;
-            email = buyerInfo.email;
+            phone = order.buyerInfo.phone;
+            email = order.buyerInfo.email;
+          } else {
+            const user = await UserModel.findOne({_id: order.fromUser});
+            phone = user.phone;
+            email = user.email;
           }
 
           this.mailerService.sendPaymentSuccesEmail(email, order._id);
