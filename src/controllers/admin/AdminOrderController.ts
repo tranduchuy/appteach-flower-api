@@ -9,6 +9,7 @@ import OrderModel, { Order } from '../../models/order';
 import UserModel from '../../models/user';
 import OrderItemModel from '../../models/order-item';
 import Joi from '@hapi/joi';
+import { UserService } from '../../services/user.service';
 import ListOrderSchema from '../../validation-schemas/order/admin-list-order.schema';
 import { OrderService } from '../../services/order.service';
 import { ObjectID } from 'bson';
@@ -29,6 +30,7 @@ interface IResProducts {
 export class AdminOrderController {
   constructor(@inject(TYPES.OrderService) private orderService: OrderService,
               @inject(TYPES.SmsService) private smsService: SmsService,
+              @inject(TYPES.UserService) private userService: UserService,
               @inject(TYPES.MailerService) private mailerService: MailerService,
               @inject(TYPES.NotifyService) private notifyService: NotifyService) {
 
@@ -69,18 +71,24 @@ export class AdminOrderController {
           const orderItems = await OrderItemModel.find({
             order: order._id
           });
+
           const numberOfProducts = orderItems.reduce((accumulator, item) => {
             return accumulator + item.quantity;
           }, 0);
+
           order.numberOfProducts = numberOfProducts;
-          order.address = order.addressInfo.addressText;
-          order.user = {
-            _id: order.userInfo._id,
-            email: order.userInfo.email,
-            name: order.userInfo.name,
-            username: order.userInfo.username,
-            phone: order.userInfo.phone
-          };
+          order.address = order.addressInfo;
+
+          if (order.fromUser) {
+            const user = await this.userService.findById(order.fromUser);
+            order.buyerInfo = {
+              email: user.email,
+              name: user.name,
+              username: user.username,
+              phone: user.phone
+            };
+          }
+
           delete order.userInfo;
           delete order.addressInfo;
           return order;
@@ -101,9 +109,9 @@ export class AdminOrderController {
         };
 
         resolve(response);
-      }
-      catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
+      } catch (e) {
+        console.error(e);
+        const messages = Object.keys(e.errors || {}).map(key => {
           return e.errors[key].message;
         });
 
@@ -117,7 +125,7 @@ export class AdminOrderController {
   }
 
   @httpPut('/status/:id', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
-  public updateOrderItemStatus(request: Request): Promise<IRes<Order>> {
+  public updateOrderStatus(request: Request): Promise<IRes<Order>> {
     return new Promise<IRes<any>>(async (resolve) => {
       try {
         const {error} = Joi.validate(request.body, AdminUpdateOrderStatusValidationSchema);
