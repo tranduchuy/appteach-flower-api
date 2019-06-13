@@ -40,6 +40,7 @@ import { AdminOrderController } from '../controllers/admin/AdminOrderController'
 import { ProductWorkerService } from '../services/product-worker.service';
 import { GoogleGeocodingService } from '../services/google-geocoding.service';
 import { OrderWorkerService } from '../services/order-worker.service';
+import { SmsService } from '../services/sms.service';
 
 const container = new Container();
 
@@ -77,6 +78,7 @@ container.bind<NotifyService>(TYPES.NotifyService).to(NotifyService);
 container.bind<ProductWorkerService>(TYPES.ProductWorkerService).to(ProductWorkerService);
 container.bind<OrderWorkerService>(TYPES.OrderWorkerService).to(OrderWorkerService);
 container.bind<GoogleGeocodingService>(TYPES.GoogleGeocodingService).to(GoogleGeocodingService);
+container.bind<SmsService>(TYPES.SmsService).to(SmsService);
 
 
 // Bind model

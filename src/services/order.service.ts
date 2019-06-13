@@ -221,7 +221,22 @@ export class OrderService {
     return total;
   };
   updateStatus = async (id: string, status: number): Promise<Order> => {
-    return await OrderModel.findOneAndUpdate({_id: id}, {status: status});
+    const order = await OrderModel.findOne({_id: id});
+    order.status = status;
+
+    const orderItems = await OrderItemModel.find({order: order._id});
+    if (status === Status.ORDER_CANCEL) {
+      await Promise.all(orderItems.map(async item => {
+        item.status = Status.ORDER_ITEM_CANCEL;
+        return await item.save();
+      }));
+    } else {
+      await Promise.all(orderItems.map(async item => {
+        item.status = Status.ORDER_ITEM_PROCESSING;
+        return await item.save();
+      }));
+    }
+    return await order.save();
   };
   addManyProductsToCart = async (order: Order, items: IInputOrderItem[]): Promise<IResAddManyProducts[]> => {
     const results: IResAddManyProducts[] = [];
@@ -321,7 +336,7 @@ export class OrderService {
     } else {
       stages.push({
         $sort: {
-          createdAt: -1
+          submitAt: -1
         }
       });
     }

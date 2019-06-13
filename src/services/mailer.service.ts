@@ -95,4 +95,25 @@ export class MailerService {
     }
   };
 
+  sendPaymentSuccesEmail = (email, orderId) => {
+    try {
+      const mailOptions = {
+        from: 'cskh.hecta@gmail.com',
+        to: email,
+        subject: 'FLOWER VIỆT NAM - Thông tin thanh toán',
+        text: `Đơn hàng #${orderId} đã thanh toán thành công`
+      };
+
+      this.transporter.sendMail(mailOptions, function (error) {
+        if (error) {
+          console.log('MailService::sendPaymentSuccesEmail::error', error);
+        } else {
+          console.log(`MailService::sendPaymentSuccesEmail::success. Send mail to ${email} successfully`);
+        }
+      });
+    } catch (e) {
+      console.log('MailService::sendPaymentSuccesEmail::error::catch', e);
+    }
+  };
+
 }

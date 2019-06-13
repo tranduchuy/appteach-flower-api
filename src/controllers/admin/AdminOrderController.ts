@@ -6,6 +6,8 @@ import { ResponseMessages } from '../../constant/messages';
 import TYPES from '../../constant/types';
 import { IRes } from '../../interfaces/i-res';
 import OrderModel, { Order } from '../../models/order';
+import UserModel from '../../models/user';
+import OrderItemModel from '../../models/order-item';
 import Joi from '@hapi/joi';
 import ListOrderSchema from '../../validation-schemas/order/admin-list-order.schema';
 import { OrderService } from '../../services/order.service';
@@ -13,6 +15,8 @@ import { ObjectID } from 'bson';
 import AdminUpdateOrderStatusValidationSchema from '../../validation-schemas/order/admin-update-status-order.schema';
 import { NotifyService } from '../../services/notify.service';
 import { Status } from '../../constant/status';
+import { SmsService } from '../../services/sms.service';
+import { MailerService } from '../../services/mailer.service';
 
 interface IResProducts {
   meta: {
@@ -24,6 +28,8 @@ interface IResProducts {
 @controller('/admin/order')
 export class AdminOrderController {
   constructor(@inject(TYPES.OrderService) private orderService: OrderService,
+              @inject(TYPES.SmsService) private smsService: SmsService,
+              @inject(TYPES.MailerService) private mailerService: MailerService,
               @inject(TYPES.NotifyService) private notifyService: NotifyService) {
 
   }
@@ -59,7 +65,14 @@ export class AdminOrderController {
 
         const result: any = await OrderModel.aggregate(stages);
 
-        const orders = result[0].entries.map(order => {
+        const orders = await Promise.all(result[0].entries.map(async order => {
+          const orderItems = await OrderItemModel.find({
+            order: order._id
+          });
+          const numberOfProducts = orderItems.reduce((accumulator, item) => {
+            return accumulator + item.quantity;
+          }, 0);
+          order.numberOfProducts = numberOfProducts;
           order.address = order.addressInfo.addressText;
           order.user = {
             _id: order.userInfo._id,
@@ -71,7 +84,7 @@ export class AdminOrderController {
           delete order.userInfo;
           delete order.addressInfo;
           return order;
-        });
+        }));
 
         const response: IRes<any> = {
           status: HttpStatus.OK,
@@ -150,6 +163,21 @@ export class AdminOrderController {
           data: null
         };
         if (status === Status.ORDER_PAID) {
+          // notify to user
+          let phone;
+          let email;
+          if (order.buyerInfo !== null) {
+            phone = order.buyerInfo.phone;
+            email = order.buyerInfo.email;
+          } else {
+            const user = await UserModel.findOne({_id: order.fromUser});
+            phone = user.phone;
+            email = user.email;
+          }
+
+          this.mailerService.sendPaymentSuccesEmail(email, order.code);
+          this.smsService.sendPaymentSuccesSMS(phone, order.code);
+
           // notify to shop
           await this.notifyService.notifyNewOrderToShops(order._id);
         }
