@@ -16,7 +16,7 @@ const orderItemSchema = Joi.object().keys({
 const buyerInfoSchema = Joi.object().keys({
   name: Joi.string().required().min(3),
   phone: Joi.string().required().min(10).max(11).regex(/^[0-9]*$/),
-  email: Joi.string().max(100).email(),
+  email: Joi.string().email().allow('', null)
 });
 
 const SubmitNoLoginOrderValidationSchema = Joi.object().keys({
