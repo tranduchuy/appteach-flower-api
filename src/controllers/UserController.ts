@@ -31,7 +31,8 @@ import ResendConfirmAccountSchema from '../validation-schemas/user/resend-confir
 import { UserConstant } from '../constant/users';
 import RandomString from 'randomstring';
 
-interface IResResendConfirmEmail { }
+interface IResResendConfirmEmail {
+}
 
 @controller('/user')
 export class UserController {
@@ -366,9 +367,9 @@ export class UserController {
           return resolve(result);
         }
 
-        const {email, username, password} = request.body;
+        const {email, username, phone, password} = request.body;
 
-        const user = await this.userService.findByEmailOrUsername(email, username);
+        const user = await this.userService.findByEmailOrPhoneOrUsername(email, username, phone);
 
         if (!user) {
           const result: IRes<{}> = {
