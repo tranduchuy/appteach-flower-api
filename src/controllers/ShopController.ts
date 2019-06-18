@@ -14,6 +14,8 @@ import listProductsOfShopSchema from '../validation-schemas/shop/list-product-of
 import checkUpdateStatusProducts from '../validation-schemas/shop/check-update-status-products.schema';
 import Joi from '@hapi/joi';
 import ShopModel, { Shop } from '../models/shop';
+import UserModel from '../models/user';
+import AddressModel from '../models/address';
 import ProductModel, { Product } from '../models/product';
 import ListShopSchema from '../validation-schemas/user/admin-list-shop.schema';
 import { OrderItemService } from '../services/order-item.service';
@@ -370,6 +372,23 @@ export class ShopController {
 
         console.log(JSON.stringify(stages));
         const result: any = await OrderItemModel.aggregate(stages);
+
+        const orderItems = await Promise.all(result[0].entries.map(async oi => {
+          if (!oi.orderInfo.buyerInfo || oi.orderInfo.buyerInfo === null) {
+            const buyer = await UserModel.findOne({_id: oi.orderInfo.fromUser});
+            oi.buyerInfo = {
+              name: buyer.name,
+              phone: buyer.phone
+            };
+          } else {
+            oi.buyerInfo = oi.orderInfo.buyerInfo;
+          }
+          delete oi.orderInfo.buyerInfo;
+          oi.receiverInfo = await AddressModel.findOne({_id: oi.orderInfo.address});
+          return oi;
+        }));
+
+
         const response: IRes<any> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
@@ -377,7 +396,7 @@ export class ShopController {
             meta: {
               totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0
             },
-            orderItems: result[0].entries
+            orderItems: orderItems
           }
         };
 
