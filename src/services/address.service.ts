@@ -50,6 +50,11 @@ export class AddressService {
 
     return await newAddress.save();
   };
+
+  deleteOldPossibleDeliveryAddress = async (shopId: string) => {
+
+    return await AddressModel.remove({ shop: shopId, type: AddressTypes.POSSIBLE_DELIVERY});
+  };
   getDelieveryAddress = async (user) => {
     return await AddressModel.find({
       user: user._id,
@@ -88,6 +93,37 @@ export class AddressService {
 
     return await AddressModel.findById(addressId);
   };
+
+  updateShopAddress = async (shopId, {
+    city,
+    district,
+    ward,
+    address,
+    longitude,
+    latitude
+  }) => {
+    const newAddress = {
+      city: null,
+      district: null,
+      ward: null,
+      address: address || null,
+      addressText: address || null,
+      longitude,
+      latitude,
+      updatedAt: new Date()
+    };
+
+    Object.keys(newAddress).map(key => {
+      if (newAddress[key] === null) {
+        delete newAddress[key];
+      }
+    });
+
+    console.log(newAddress);
+
+    return await AddressModel.findOneAndUpdate({shop: shopId, type: AddressTypes.SHOP_ADDRESS}, newAddress);
+  };
+
   updateGeoAddress = async (address, {
     latitude, longitude
   }) => {
@@ -114,6 +150,26 @@ export class AddressService {
         district,
         type: AddressTypes.POSSIBLE_DELIVERY,
         user: user._id
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  getShopPossibleDeliveryAddress = async (shopId: string) => {
+    try {
+      return await AddressModel.find({
+        type: AddressTypes.POSSIBLE_DELIVERY,
+        shop: shopId
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  getShopAddress = async (shopId: string) => {
+    try {
+      return await AddressModel.findOne({
+        type: AddressTypes.SHOP_ADDRESS,
+        shop: shopId
       });
     } catch (e) {
       console.log(e);

@@ -1,5 +1,5 @@
 import { inject } from 'inversify';
-import { controller, httpGet, httpPost } from 'inversify-express-utils';
+import { controller, httpGet, httpPost, httpPut } from 'inversify-express-utils';
 import { ResponseMessages } from '../constant/messages';
 import TYPES from '../constant/types';
 import { Request } from 'express';
@@ -14,10 +14,13 @@ import listProductsOfShopSchema from '../validation-schemas/shop/list-product-of
 import checkUpdateStatusProducts from '../validation-schemas/shop/check-update-status-products.schema';
 import Joi from '@hapi/joi';
 import ShopModel, { Shop } from '../models/shop';
+import UserModel from '../models/user';
+import AddressModel from '../models/address';
 import ProductModel, { Product } from '../models/product';
 import ListShopSchema from '../validation-schemas/user/admin-list-shop.schema';
 import { OrderItemService } from '../services/order-item.service';
 import OrderItemModel from '../models/order-item';
+import UpdateShopSchema from '../validation-schemas/shop/update-shop.schema';
 
 interface IResRegisterShop {
   shop: Shop;
@@ -113,6 +116,97 @@ export class ShopController {
       return resolve(result);
     });
   }
+
+  @httpPut('/', TYPES.CheckTokenMiddleware)
+  public updateShop(req: Request): Promise<IRes<IResRegisterShop>> {
+    return new Promise<IRes<any>>(async resolve => {
+      const {error} = Joi.validate(req.body, UpdateShopSchema);
+      if (error) {
+        const messages = error.details.map(detail => {
+          return detail.message;
+        });
+
+        const result: IRes<IResRegisterShop> = {
+          status: HttpStatus.BAD_REQUEST,
+          messages: messages
+        };
+
+        return resolve(result);
+      }
+
+      let shop = await this.shopService.findShopOfUser(req.user._id.toString());
+      if (!shop) {
+        const result: IRes<IResRegisterShop> = {
+          status: HttpStatus.BAD_REQUEST,
+          messages: [ResponseMessages.Shop.SHOP_NOT_FOUND]
+        };
+
+        return resolve(result);
+      }
+
+      const {availableShipCountry, availableShipAddresses, address, city, district, ward, longitude, latitude} = req.body;
+      // update shop address
+      await this.addressService.updateShopAddress(shop._id, {city, district, ward, address, longitude, latitude});
+      shop = await this.shopService.updateShop(shop, availableShipCountry);
+
+      if (availableShipAddresses.length > 0) {
+        // delete old possibaleDeliveryAddress
+        await this.addressService.deleteOldPossibleDeliveryAddress(shop._id);
+      }
+
+      await Promise.all((availableShipAddresses || []).map(async (addressData: { city: string, district?: number }) => {
+        await this.addressService.createPossibleDeliveryAddress({
+          district: addressData.district,
+          city: addressData.city,
+          shopId: shop._id.toString()
+        });
+      }));
+
+      const result: IRes<IResRegisterShop> = {
+        status: HttpStatus.OK,
+        messages: [ResponseMessages.SUCCESS],
+        data: {
+          shop
+        }
+      };
+
+      return resolve(result);
+    });
+  }
+
+  @httpGet('/detail', TYPES.CheckTokenMiddleware)
+  public getDetailShop(req: Request): Promise<IRes<IResCheckValidSlug>> {
+    return new Promise<IRes<IResCheckValidSlug>>(async (resolve) => {
+      const shop = await this.shopService.findShopOfUser(req.user._id.toString());
+      if (!shop) {
+        return resolve({
+          status: HttpStatus.BAD_REQUEST,
+          messages: [ResponseMessages.Shop.SHOP_NOT_FOUND]
+        });
+      }
+
+      const shopAddress = await this.addressService.getShopAddress(shop._id);
+      const possibleDeliveryAddress = await this.addressService.getShopPossibleDeliveryAddress(shop._id);
+      possibleDeliveryAddress.map(address => {
+        return {
+          district: address.district,
+          city: address.city
+        };
+      });
+      const result = {
+        availableShipCountry: shop.availableShipCountry,
+        availableShipAddresses: possibleDeliveryAddress,
+        address: shopAddress
+      };
+
+      resolve({
+        status: HttpStatus.OK,
+        messages: [ResponseMessages.SUCCESS],
+        data: result
+      });
+    });
+  }
+
 
   @httpGet('/check-shop-slug', TYPES.CheckTokenMiddleware)
   public checkShopSlug(req: Request): Promise<IRes<IResCheckValidSlug>> {
@@ -278,6 +372,23 @@ export class ShopController {
 
         console.log(JSON.stringify(stages));
         const result: any = await OrderItemModel.aggregate(stages);
+
+        const orderItems = await Promise.all(result[0].entries.map(async oi => {
+          if (!oi.orderInfo.buyerInfo || oi.orderInfo.buyerInfo === null) {
+            const buyer = await UserModel.findOne({_id: oi.orderInfo.fromUser});
+            oi.buyerInfo = {
+              name: buyer.name,
+              phone: buyer.phone
+            };
+          } else {
+            oi.buyerInfo = oi.orderInfo.buyerInfo;
+          }
+          delete oi.orderInfo.buyerInfo;
+          oi.receiverInfo = await AddressModel.findOne({_id: oi.orderInfo.address});
+          return oi;
+        }));
+
+
         const response: IRes<any> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
@@ -285,7 +396,7 @@ export class ShopController {
             meta: {
               totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0
             },
-            orderItems: result[0].entries
+            orderItems: orderItems
           }
         };
 
