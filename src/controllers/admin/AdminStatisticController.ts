@@ -27,6 +27,8 @@ interface IResStatisticDashboard {
 
 @controller('/admin/statistic')
 export class AdminStatisticController {
+  listProductFields = ['_id', 'sku', 'status', 'title', 'images', 'originalPrice', 'saleOff', 'slug', 'view', 'sold'];
+
   constructor() {
   }
 
@@ -291,6 +293,73 @@ export class AdminStatisticController {
             discountCost,
             numberOfUser: orderUsers.length,
             numberOfShop: orderShops.length
+          }
+        };
+
+        return resolve(response);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<IResStatisticDashboard> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages
+        };
+        return resolve(result);
+      }
+    });
+  }
+
+  @httpGet('/product', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
+  public getStatisticProduct(req: Request): Promise<IRes<IResStatisticDashboard>> {
+    return new Promise<IRes<IResStatisticDashboard>>(async (resolve) => {
+      try {
+        const {error} = Joi.validate(req.query, CheckDateSchema);
+
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<any> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages
+          };
+
+          return resolve(result);
+        }
+
+        const {startDate, endDate} = req.query;
+
+
+        const objectFilterByDate: any = {};
+        if (startDate) {
+          objectFilterByDate.createdAt = {
+            $gte: new Date(startDate)
+          };
+        }
+
+        if (endDate) {
+          objectFilterByDate.createdAt = objectFilterByDate.createdAt || {};
+          objectFilterByDate.createdAt['$lt'] = new Date(endDate);
+        }
+
+        const topBestSellerProducts = await ProductModel.find({
+          ...objectFilterByDate
+        }, this.listProductFields).sort({sold: -1}).limit(10);
+
+        const topViewProducts = await ProductModel.find({
+          ...objectFilterByDate
+        }, this.listProductFields).sort({view: -1}).limit(10);
+
+
+        const response: IRes<any> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: {
+            topBestSellerProducts,
+            topViewProducts
           }
         };
 
