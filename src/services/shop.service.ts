@@ -62,6 +62,13 @@ export class ShopService {
     return await shop.save();
   }
 
+  async updateShop(shop, availableShipCountry: boolean): Promise<Shop> {
+    if (availableShipCountry) {
+      shop.availableShipCountry = availableShipCountry;
+    }
+    return await shop.save();
+  }
+
   buildStageQueryShopWaiting(queryCondition: IQueryWaitingShop): any[] {
     const stages = [];
 
