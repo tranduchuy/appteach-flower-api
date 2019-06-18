@@ -364,9 +364,10 @@ export class UserController {
           return resolve(result);
         }
 
-        const {email, username, password} = request.body;
+        const {email, password} = request.body;
+        const emailOrPhone = email;
 
-        const user = await this.userService.findByEmailOrUsername(email, username);
+        const user = await this.userService.findByEmailOrPhone(emailOrPhone, emailOrPhone);
 
         if (!user) {
           const result: IRes<{}> = {
@@ -398,23 +399,22 @@ export class UserController {
         }
 
         const userInfoResponse = {
-            _id: user.id,
-            role: user.role,
-            email: user.email,
-            username: user.username,
-            name: user.name,
-            phone: user.phone,
-            address: user.address,
-            type: user.type,
-            status: user.status,
-            avatar: user.avatar,
-            gender: user.gender,
-            city: user.city,
-            district: user.district,
-            ward: user.ward,
-            registerBy: user.registerBy
-          }
-        ;
+          _id: user._id,
+          role: user.role,
+          email: user.email,
+          username: user.username,
+          name: user.name,
+          phone: user.phone,
+          address: user.address,
+          type: user.type,
+          status: user.status,
+          avatar: user.avatar,
+          gender: user.gender,
+          city: user.city,
+          district: user.district,
+          ward: user.ward,
+          registerBy: user.registerBy
+        };
         const token = this.userService.generateToken({email: user.email});
 
         const result: IRes<{}> = {
@@ -907,7 +907,7 @@ export class UserController {
         return resolve(result);
       }
 
-      const user = await this.userService.findByPhone(req.body.phone);
+      const user: any = await this.userService.findByPhone(req.body.phone);
       if (!user || user.status !== Status.PENDING_OR_WAIT_CONFIRM) {
         const result: IRes<IResResendConfirmEmail> = {
           status: HttpStatus.BAD_REQUEST,
@@ -925,7 +925,7 @@ export class UserController {
         });
       }
 
-      const otpCode: any = this.userService.generateOTPCode();
+      const otpCode = this.userService.generateOTPCode();
       user.noSentOTP++;
       user.otpCodeConfirmAccount = otpCode;
       this.smsService.sendSMS([user.phone], `FlowerVietnam: Mã xác thục tài khoản: ${otpCode}`, '');

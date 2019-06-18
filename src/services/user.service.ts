@@ -167,6 +167,14 @@ export class UserService {
     return await this.findByUsername(username);
   };
 
+  findByEmailOrPhone = async (email, phone) => {
+    if (email) {
+      return await this.findByEmail(email);
+    }
+
+    return await this.findByPhone(phone);
+  };
+
   updateGoogleId = async (user, googleId) => {
     user.googleId = googleId;
     return await user.save();
