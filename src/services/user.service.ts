@@ -30,7 +30,7 @@ export interface IQueryUser {
 export class UserService {
   sellerInProductDetailFields = ['_id', 'avatar', 'name', 'address'];
 
-  createUser = async ({email, password, type, name, username, phone, address, city, district, ward, registerBy, gender, role}) => {
+  createUser = async ({email, password, type, name, phone, address, city, district, ward, registerBy, gender, role, otpCode}) => {
     const salt = bcrypt.genSaltSync(UserConstant.saltLength);
     const tokenEmailConfirm = RandomString.generate({
       length: UserConstant.tokenConfirmEmailLength,
@@ -43,7 +43,7 @@ export class UserService {
       passwordSalt: salt,
       type,
       name,
-      username,
+      username: '',
       phone,
       tokenEmailConfirm,
       registerBy,
@@ -53,7 +53,8 @@ export class UserService {
       district: district || null,
       ward: ward || null,
       gender: gender || null,
-      role: role || UserRoles.USER_ROLE_ENDUSER
+      role: role || UserRoles.USER_ROLE_ENDUSER,
+      otpCodeConfirmAccount: otpCode
     });
 
     return await newUser.save();
@@ -221,6 +222,10 @@ export class UserService {
     return await UserModel.findById(id);
   }
 
+  async findByPhone(phone: string): Promise<User> {
+    return await UserModel.findOne({phone});
+  }
+
   isRoleAdmin(role: number): boolean {
     return [
       UserRoles.USER_ROLE_ADMIN,
@@ -294,5 +299,7 @@ export class UserService {
     return stages;
   }
 
-
+  generateOTPCode(): string {
+    return Math.floor(1000 + Math.random() * 9000).toString();
+  }
 }

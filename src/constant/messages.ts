@@ -11,6 +11,9 @@ export namespace ResponseMessages {
       export const USERNAME_DUPLICATED = 'Username đã được đăng kí';
       export const PASSWORD_DONT_MATCH = 'Mật khẩu và mật khẩu xác nhận không giống nhau';
       export const REGISTER_SUCCESS = 'Đăng kí thành công';
+      export const WRONG_OTP = 'Mã xác thực sai';
+      export const EXCEED_MAX_SEND_OTP = 'Đã quá số lần gửi OTP. Tài khoản của bạn đã bị khóa. Vui lòng liên hệ ADMIN';
+      export const RESEND_OTP = 'Hệ thống đã gửi 1 mã OTP đến số điện thoại của bạn';
     }
     export namespace Login {
       export const USER_NOT_FOUND = 'Tài khoản không tồn tại';

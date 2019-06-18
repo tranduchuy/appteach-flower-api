@@ -6,6 +6,7 @@ import TYPES from '../constant/types';
 import { Request, Response } from 'express';
 import { IRes } from '../interfaces/i-res';
 import UserModel, { User } from '../models/user';
+import { SmsService } from '../services/sms.service';
 import { UserService } from '../services/user.service';
 import { General } from '../constant/generals';
 import UserRoles = General.UserRoles;
@@ -28,18 +29,22 @@ import { ImageService } from '../services/image.service';
 import LoginFacebookValidationSchema from '../validation-schemas/user/login-facebook.schema';
 import { FacebookGraphApiService } from '../services/facebook-graph-api.service';
 import ResendConfirmAccountSchema from '../validation-schemas/user/resend-confirm-email.schema';
+import AccountConfirmationOTP from '../validation-schemas/user/account-confirmation-otp.schema';
+import ResendOTPSchema from '../validation-schemas/user/resend-otp.schema';
 import { UserConstant } from '../constant/users';
 import RandomString from 'randomstring';
 
-interface IResResendConfirmEmail { }
+interface IResResendConfirmEmail {
+}
 
 @controller('/user')
 export class UserController {
   constructor(
-      @inject(TYPES.UserService) private userService: UserService,
-      @inject(TYPES.ImageService) private imageService: ImageService,
-      @inject(TYPES.MailerService) private mailerService: MailerService,
-      @inject(TYPES.FacebookGraphApiService) private fcebookGraphApiService: FacebookGraphApiService
+    @inject(TYPES.UserService) private userService: UserService,
+    @inject(TYPES.ImageService) private imageService: ImageService,
+    @inject(TYPES.MailerService) private mailerService: MailerService,
+    @inject(TYPES.FacebookGraphApiService) private facebookGraphApiService: FacebookGraphApiService,
+    @inject(TYPES.SmsService) private smsService: SmsService
   ) {
   }
 
@@ -128,30 +133,22 @@ export class UserController {
           return resolve(result);
         }
 
-        const duplicatedUsernames = await UserModel.find({username: username});
-        if (duplicatedUsernames.length !== 0) {
-          const result: IRes<{}> = {
-            status: HttpStatus.INTERNAL_SERVER_ERROR,
-            messages: [ResponseMessages.User.Register.USERNAME_DUPLICATED],
-            data: {}
-          };
-          return resolve(result);
-        }
+        const otpCode = this.userService.generateOTPCode();
 
         const newUserData = {
           email,
-          username,
           name,
           password,
           type: UserTypes.TYPE_CUSTOMER,
           role: null,
-          phone: phone || null,
+          phone: phone,
           gender,
           city: city || null,
           district: district || null,
           ward: ward || null,
           registerBy: RegisterByTypes.NORMAL,
-          address
+          address,
+          otpCode
         };
 
         const newUser = await this.userService.createUser(newUserData);
@@ -162,7 +159,8 @@ export class UserController {
           await newUser.save();
         } else {
           // Send email
-          this.mailerService.sendConfirmEmail(email, name, newUser.tokenEmailConfirm);
+          // this.mailerService.sendConfirmEmail(email, name, newUser.tokenEmailConfirm);
+          this.smsService.sendSMS([phone], `Mã xác thục tài khoản: ${otpCode}`, '');
         }
 
         const result: IRes<{}> = {
@@ -400,22 +398,22 @@ export class UserController {
         }
 
         const userInfoResponse = {
-              _id: user.id,
-              role: user.role,
-              email: user.email,
-              username: user.username,
-              name: user.name,
-              phone: user.phone,
-              address: user.address,
-              type: user.type,
-              status: user.status,
-              avatar: user.avatar,
-              gender: user.gender,
-              city: user.city,
-              district: user.district,
-              ward: user.ward,
-              registerBy: user.registerBy
-            }
+            _id: user.id,
+            role: user.role,
+            email: user.email,
+            username: user.username,
+            name: user.name,
+            phone: user.phone,
+            address: user.address,
+            type: user.type,
+            status: user.status,
+            avatar: user.avatar,
+            gender: user.gender,
+            city: user.city,
+            district: user.district,
+            ward: user.ward,
+            registerBy: user.registerBy
+          }
         ;
         const token = this.userService.generateToken({email: user.email});
 
@@ -545,7 +543,7 @@ export class UserController {
 
         const {token} = request.body;
 
-        const facebookInfo: any = await this.fcebookGraphApiService.getUserInfoByAccessToken(token);
+        const facebookInfo: any = await this.facebookGraphApiService.getUserInfoByAccessToken(token);
         if (facebookInfo === null) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
@@ -844,9 +842,99 @@ export class UserController {
 
       const result: IRes<IResResendConfirmEmail> = {
         status: HttpStatus.OK,
-        messages: [ResponseMessages.User.RESEND_CONFIRM_EMAIL]
+        messages: [ResponseMessages.User.Confirm.CONFIRM_SUCCESS]
       };
       return resolve(result);
+    });
+  }
+
+  @httpPost('/account-confirmation-by-code')
+  public confirmAccountByOTPCode(req: Request): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async resolve => {
+      const {error} = Joi.validate(req.body, AccountConfirmationOTP);
+      if (error) {
+        const messages = error.details.map(detail => {
+          return detail.message;
+        });
+
+        const result: IRes<IResResendConfirmEmail> = {
+          status: HttpStatus.BAD_REQUEST,
+          messages: messages
+        };
+        return resolve(result);
+      }
+
+      const {otp, phone} = req.body;
+      const user: any = await this.userService.findByPhone(phone);
+
+      if (!user) {
+        return resolve({
+          status: HttpStatus.NOT_FOUND,
+          messages: [ResponseMessages.User.USER_NOT_FOUND]
+        });
+      }
+
+      if (user.otpCodeConfirmAccount !== otp.toString()) {
+        return resolve({
+          status: HttpStatus.NOT_FOUND,
+          messages: [ResponseMessages.User.Register.WRONG_OTP]
+        });
+      }
+
+      user.status = Status.ACTIVE;
+      await user.save();
+
+      return resolve({
+        status: HttpStatus.OK,
+        messages: [ResponseMessages.User.Confirm.CONFIRM_SUCCESS]
+      });
+    });
+  }
+
+  @httpPost('/resend-otp')
+  public resendOTP(req: Request): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async resolve => {
+      const {error} = Joi.validate(req.body, ResendOTPSchema);
+      if (error) {
+        const messages = error.details.map(detail => {
+          return detail.message;
+        });
+
+        const result: IRes<IResResendConfirmEmail> = {
+          status: HttpStatus.BAD_REQUEST,
+          messages: messages
+        };
+        return resolve(result);
+      }
+
+      const user = await this.userService.findByPhone(req.body.phone);
+      if (!user || user.status !== Status.PENDING_OR_WAIT_CONFIRM) {
+        const result: IRes<IResResendConfirmEmail> = {
+          status: HttpStatus.BAD_REQUEST,
+          messages: [ResponseMessages.User.USER_NOT_FOUND]
+        };
+
+        return resolve(result);
+      }
+      user.noSentOTP = user.noSentOTP || 0;
+
+      if (user.noSentOTP >= 3) {
+        return resolve({
+          status: HttpStatus.BAD_REQUEST,
+          messages: [ResponseMessages.User.Register.EXCEED_MAX_SEND_OTP]
+        });
+      }
+
+      const otpCode: any = this.userService.generateOTPCode();
+      user.noSentOTP++;
+      user.otpCodeConfirmAccount = otpCode;
+      this.smsService.sendSMS([user.phone], `FlowerVietnam: Mã xác thục tài khoản: ${otpCode}`, '');
+      await user.save();
+
+      return resolve({
+        status: HttpStatus.OK,
+        messages: [ResponseMessages.User.Register.RESEND_OTP]
+      });
     });
   }
 }

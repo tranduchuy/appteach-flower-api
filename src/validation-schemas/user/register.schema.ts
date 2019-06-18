@@ -16,8 +16,7 @@ const RegisterValidationSchema = Joi.object().keys({
     district: Joi.number(),
     ward: Joi.number(),
     gender: Joi.number().required().valid(genderValues),
-    name: Joi.string().required().min(3),
-    username: Joi.string().required().min(6).regex(/^[a-zA-Z0-9]*$/)
+    name: Joi.string().required().min(3)
   }
 );
 
