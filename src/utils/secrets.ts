@@ -18,6 +18,7 @@ export const MONGODB_URI = prod ? process.env['MONGODB_URI'] : process.env['MONG
 export const GOOGLE_DISTANCE_MATRIX = process.env['GOOGLE_DISTANCE_MATRIX'];
 export const GOOGLE_GEOCODING = process.env['GOOGLE_GEOCODING'];
 export const FRONT_END_DOMAIN = process.env['FRONT_END_DOMAIN'];
+export const SPEED_SMS_TOKEN = process.env['SPEED_SMS_TOKEN'];
 
 export const TWILIO_ACCOUNT_SID = process.env['TWILIO_ACCOUNT_SID'];
 export const TWILIO_AUTH_TOKEN = process.env['TWILIO_AUTH_TOKEN'];

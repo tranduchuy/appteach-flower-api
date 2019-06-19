@@ -12,13 +12,13 @@ export class User extends Typegoose {
   @prop({required: true})
   name: string;
 
-  @prop({unique: true, lowercase: true, trim: true})
+  @prop({lowercase: true, trim: true})
   username: string;
 
   @prop({validate: /\S+@\S+\.\S+/, unique: true, required: true, lowercase: true, trim: true})
   email: string;
 
-  @prop({lowercase: true, trim: true, match: /[0-9]*/, minlength: 10, maxlength: 11})
+  @prop({unique: true, lowercase: true, trim: true, match: /[0-9]*/, minlength: 10, maxlength: 11})
   phone: string;
 
   @prop()
@@ -80,6 +80,12 @@ export class User extends Typegoose {
 
   @prop()
   facebookId?: string;
+
+  @prop()
+  otpCodeConfirmAccount: string;
+
+  @prop({default: 0})
+  noSentOTP: number;
 }
 
 export default new User().getModelForClass(User);

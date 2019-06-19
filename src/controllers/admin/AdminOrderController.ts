@@ -184,7 +184,7 @@ export class AdminOrderController {
           }
 
           this.mailerService.sendPaymentSuccesEmail(email, order.code);
-          this.smsService.sendPaymentSuccesSMS(phone, order.code);
+          this.smsService.sendPaymentSuccessSMS(phone, order.code);
 
           // notify to shop
           await this.notifyService.notifyNewOrderToShops(order._id);
