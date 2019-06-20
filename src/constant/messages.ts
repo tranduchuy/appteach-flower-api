@@ -23,6 +23,8 @@ export namespace ResponseMessages {
       export const PERMISSION_DENIED = 'Không có quyền truy cập';
       export const INVALID_TOKEN = 'accessToken không hợp lệ';
       export const NEW_USER_BY_GOOGLE = 'Tài khoản mới đã được tạo vui lòng xác nhận số điện thoại của bạn';
+
+      export const NEW_USER_BY_FACEBOOK = 'Tài khoản mới đã được tạo vui lòng xác nhận số điện thoại của bạn';
     }
     export namespace Confirm {
       export const INVALID_TOKEN = 'Token không hợp lệ';

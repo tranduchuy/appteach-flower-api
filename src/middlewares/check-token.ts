@@ -43,7 +43,7 @@ export class CheckTokenMiddleware extends BaseMiddleware {
     try {
       const userInfo = jwt.verify(token, General.jwtSecret);
       const user = await UserModel.findOne({
-        email: userInfo.email
+        _id: userInfo._id
       });
 
       if (!user || user.status !== Status.ACTIVE) {
