@@ -416,7 +416,7 @@ export class UserController {
               registerBy: user.registerBy
             }
         ;
-        const token = this.userService.generateToken({email: user.email});
+        const token = this.userService.generateToken({_id: user._id});
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -521,7 +521,7 @@ export class UserController {
           registerBy: user.registerBy,
           googleId: user.googleId
         };
-        const token = this.userService.generateToken({email: user.email});
+        const token = this.userService.generateToken({_id: user._id});
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -620,6 +620,80 @@ export class UserController {
     });
   }
 
+
+  @httpPost('/confirm-phone-facebook-account')
+  public confirmPhoneFacebookAccount(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const {error} = Joi.validate(request.body, ConfirmByPhoneValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const {phone, id} = request.body;
+        let user: any = await this.userService.findByPhone(phone);
+
+
+        if (user) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.Register.PHONE_DUPLICATED],
+            data: {
+              meta: {},
+              entries: []
+            }
+          };
+          resolve(result);
+        }
+        user = await this.userService.findByFacebookId(id);
+        if (!user) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.USER_NOT_FOUND],
+            data: {
+              meta: {},
+              entries: []
+            }
+          };
+          resolve(result);
+        }
+        const otpCode: any = this.userService.generateOTPCode();
+        user.phone = phone;
+        user.otpCodeConfirmAccount = otpCode;
+        this.smsService.sendSMS([user.phone], `FlowerVietnam: Mã xác thục tài khoản: ${otpCode}`, '');
+        await user.save();
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.User.Register.RESEND_OTP],
+          data: {
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors || {}).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages || [e],
+          data: {}
+        };
+        resolve(result);
+      }
+    });
+  }
+
   @httpPost('/login-by-facebook')
   public loginByFacebook(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
@@ -650,23 +724,40 @@ export class UserController {
           return resolve(result);
         }
 
-        const {id, email, name} = facebookInfo;
-        console.log(facebookInfo);
+        const {id, name} = facebookInfo;
 
         let user = await this.userService.findByFacebookId(id);
 
         if (!user) {
-          user = await this.userService.findByEmail(email);
           if (user) {
             user = await this.userService.updateFacebookId(user, id);
           } else {
             const newUser = {
               name,
-              email,
               facebookId: id
             };
             user = await this.userService.createUserByFacebook(newUser);
+
+            const result: IRes<{}> = {
+              status: HttpStatus.CREATED,
+              messages: [ResponseMessages.User.Login.NEW_USER_BY_FACEBOOK],
+              data: {
+                facebookId: id
+              }
+            };
+            resolve(result);
           }
+        }
+
+        if (user.status === Status.PENDING_OR_WAIT_CONFIRM) {
+          const result: IRes<{}> = {
+            status: HttpStatus.CREATED,
+            messages: [ResponseMessages.User.Login.NEW_USER_BY_FACEBOOK],
+            data: {
+              facebookId: id
+            }
+          };
+          resolve(result);
         }
 
         const userInfoResponse = {
@@ -687,7 +778,7 @@ export class UserController {
           registerBy: user.registerBy,
           facebookId: user.facebookId
         };
-        const resToken = this.userService.generateToken({email: user.email});
+        const resToken = this.userService.generateToken({_id: user._id});
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -981,10 +1072,38 @@ export class UserController {
       user.status = Status.ACTIVE;
       await user.save();
 
-      return resolve({
+
+      const userInfoResponse = {
+        _id: user.id,
+        role: user.role,
+        email: user.email,
+        username: user.username,
+        name: user.name,
+        phone: user.phone,
+        address: user.address,
+        type: user.type,
+        status: user.status,
+        avatar: user.avatar,
+        gender: user.gender,
+        city: user.city,
+        district: user.district,
+        ward: user.ward,
+        registerBy: user.registerBy,
+        facebookId: user.facebookId
+      };
+      const resToken = this.userService.generateToken({_id: user._id});
+
+      const result: IRes<{}> = {
         status: HttpStatus.OK,
-        messages: [ResponseMessages.User.Confirm.CONFIRM_SUCCESS]
-      });
+        messages: [ResponseMessages.User.Confirm.CONFIRM_SUCCESS],
+        data: {
+          meta: {
+            token: resToken
+          },
+          entries: [userInfoResponse]
+        }
+      };
+      resolve(result);
     });
   }
 
