@@ -58,6 +58,9 @@ export class Order extends Typegoose {
 
   @prop({default: null})
   buyerInfo: BuyerInfo;
+
+  @prop()
+  contentOrder: string;
 }
 
 export default new Order().getModelForClass(Order);

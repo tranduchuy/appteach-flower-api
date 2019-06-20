@@ -396,8 +396,8 @@ export class OrderController {
 
         // update order items status: new => pending
         await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PROCESSING);
-        const {deliveryTime, note, address, expectedDeliveryTime} = request.body;
-        const newOrder = {deliveryTime, note, address, expectedDeliveryTime};
+        const {deliveryTime, note, address, expectedDeliveryTime, contentOrder} = request.body;
+        const newOrder = {deliveryTime, note, address, expectedDeliveryTime, contentOrder};
         // update delivery info for order.
         order = await this.orderService.updateSubmitOrder(order, newOrder);
         // update shipping and discount
@@ -462,7 +462,7 @@ export class OrderController {
         }
 
         const order: any = new OrderModel();
-        const {receiverInfo, buyerInfo, items, deliveryTime, note, expectedDeliveryTime} = request.body;
+        const {receiverInfo, buyerInfo, items, deliveryTime, note, expectedDeliveryTime, contentOrder} = request.body;
 
         if (!items || items.length === 0) {
           const result = {
@@ -503,6 +503,7 @@ export class OrderController {
         order.note = note || '';
         order.code = await this.orderService.generateOrderCode();
         order.expectedDeliveryTime = expectedDeliveryTime;
+        order.contentOrder = contentOrder || '';
         order.submitAt = new Date();
 
         // save user info

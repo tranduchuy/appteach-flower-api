@@ -24,7 +24,8 @@ const SubmitNoLoginOrderValidationSchema = Joi.object().keys({
   buyerInfo: buyerInfoSchema,
   items: Joi.array().items(orderItemSchema).required(),
   deliveryTime: Joi.date().required(),
-  expectedDeliveryTime: Joi.string()
+  expectedDeliveryTime: Joi.string(),
+  contentOrder: Joi.string().allow('', null)
 });
 
 export default SubmitNoLoginOrderValidationSchema;
