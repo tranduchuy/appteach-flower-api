@@ -110,7 +110,7 @@ export class UserService {
       phone: null,
       tokenEmailConfirm: null,
       registerBy: RegisterByTypes.GOOGLE,
-      status: Status.ACTIVE,
+      status: Status.PENDING_OR_WAIT_CONFIRM,
       address: null,
       city: null,
       district: null,

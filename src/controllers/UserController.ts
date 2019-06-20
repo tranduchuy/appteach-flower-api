@@ -33,6 +33,7 @@ import AccountConfirmationOTP from '../validation-schemas/user/account-confirmat
 import ResendOTPSchema from '../validation-schemas/user/resend-otp.schema';
 import { UserConstant } from '../constant/users';
 import RandomString from 'randomstring';
+import ConfirmByPhoneValidationSchema from '../validation-schemas/user/confirm-by-phone.schema';
 
 interface IResResendConfirmEmail {
 }
@@ -40,11 +41,11 @@ interface IResResendConfirmEmail {
 @controller('/user')
 export class UserController {
   constructor(
-    @inject(TYPES.UserService) private userService: UserService,
-    @inject(TYPES.ImageService) private imageService: ImageService,
-    @inject(TYPES.MailerService) private mailerService: MailerService,
-    @inject(TYPES.FacebookGraphApiService) private facebookGraphApiService: FacebookGraphApiService,
-    @inject(TYPES.SmsService) private smsService: SmsService
+      @inject(TYPES.UserService) private userService: UserService,
+      @inject(TYPES.ImageService) private imageService: ImageService,
+      @inject(TYPES.MailerService) private mailerService: MailerService,
+      @inject(TYPES.FacebookGraphApiService) private facebookGraphApiService: FacebookGraphApiService,
+      @inject(TYPES.SmsService) private smsService: SmsService
   ) {
   }
 
@@ -399,22 +400,23 @@ export class UserController {
         }
 
         const userInfoResponse = {
-          _id: user._id,
-          role: user.role,
-          email: user.email,
-          username: user.username,
-          name: user.name,
-          phone: user.phone,
-          address: user.address,
-          type: user.type,
-          status: user.status,
-          avatar: user.avatar,
-          gender: user.gender,
-          city: user.city,
-          district: user.district,
-          ward: user.ward,
-          registerBy: user.registerBy
-        };
+              _id: user._id,
+              role: user.role,
+              email: user.email,
+              username: user.username,
+              name: user.name,
+              phone: user.phone,
+              address: user.address,
+              type: user.type,
+              status: user.status,
+              avatar: user.avatar,
+              gender: user.gender,
+              city: user.city,
+              district: user.district,
+              ward: user.ward,
+              registerBy: user.registerBy
+            }
+        ;
         const token = this.userService.generateToken({email: user.email});
 
         const result: IRes<{}> = {
@@ -470,13 +472,36 @@ export class UserController {
           if (user) {
             user = await this.userService.updateGoogleId(user, googleId);
           } else {
+
             const newUser = {
               name,
               email,
               googleId
             };
             user = await this.userService.createUserByGoogle(newUser);
+
+            const result: IRes<{}> = {
+              status: HttpStatus.CREATED,
+              messages: [ResponseMessages.User.Login.NEW_USER_BY_GOOGLE],
+              data: {
+                meta: {},
+                entries: []
+              }
+            };
+            resolve(result);
           }
+        }
+
+        if (user.status === Status.PENDING_OR_WAIT_CONFIRM) {
+          const result: IRes<{}> = {
+            status: HttpStatus.CREATED,
+            messages: [ResponseMessages.User.Login.NEW_USER_BY_GOOGLE],
+            data: {
+              meta: {},
+              entries: []
+            }
+          };
+          resolve(result);
         }
 
         const userInfoResponse = {
@@ -518,6 +543,79 @@ export class UserController {
           data: {}
         };
 
+        resolve(result);
+      }
+    });
+  }
+
+  @httpPost('/confirm-phone-google-account')
+  public confirmPhone(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const {error} = Joi.validate(request.body, ConfirmByPhoneValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const {phone, id} = request.body;
+        let user: any = await this.userService.findByPhone(phone);
+
+
+        if (user) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.Register.PHONE_DUPLICATED],
+            data: {
+              meta: {},
+              entries: []
+            }
+          };
+          resolve(result);
+        }
+        user = await this.userService.findByGoogleId(id);
+        if (!user) {
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.USER_NOT_FOUND],
+            data: {
+              meta: {},
+              entries: []
+            }
+          };
+          resolve(result);
+        }
+        const otpCode: any = this.userService.generateOTPCode();
+        user.phone = phone;
+        user.otpCodeConfirmAccount = otpCode;
+        this.smsService.sendSMS([user.phone], `FlowerVietnam: Mã xác thục tài khoản: ${otpCode}`, '');
+        await user.save();
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.User.Register.RESEND_OTP],
+          data: {
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors || {}).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages || [e],
+          data: {}
+        };
         resolve(result);
       }
     });
