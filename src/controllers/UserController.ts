@@ -367,7 +367,6 @@ export class UserController {
 
         const {email, password} = request.body;
         const emailOrPhone = email;
-
         const user = await this.userService.findByEmailOrPhone(emailOrPhone, emailOrPhone);
 
         if (!user) {

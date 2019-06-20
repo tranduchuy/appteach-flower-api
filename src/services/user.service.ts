@@ -168,11 +168,10 @@ export class UserService {
   };
 
   findByEmailOrPhone = async (email, phone) => {
-    if (email) {
-      return await this.findByEmail(email);
-    }
+    const userByEmail = await this.findByEmail(email);
+    const userByPhone = await this.findByPhone(phone);
 
-    return await this.findByPhone(phone);
+    return userByEmail || userByPhone || null;
   };
 
   updateGoogleId = async (user, googleId) => {
@@ -219,12 +218,12 @@ export class UserService {
     user.passwordHash = bcrypt.hashSync(newPassword, user.passwordSalt);
     user.passwordReminderToken = '';
     return await user.save();
-  }
+  };
   findUserByPasswordReminderToken = async (passwordReminderToken) => {
     return await UserModel.findOne({
       passwordReminderToken: passwordReminderToken
     });
-  }
+  };
 
   async findById(id: string): Promise<User> {
     return await UserModel.findById(id);
