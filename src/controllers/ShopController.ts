@@ -383,6 +383,8 @@ export class ShopController {
           } else {
             oi.buyerInfo = oi.orderInfo.buyerInfo;
           }
+
+          oi.submitAt = oi.orderInfo.submitAt;
           delete oi.orderInfo.buyerInfo;
           oi.receiverInfo = await AddressModel.findOne({_id: oi.orderInfo.address});
           return oi;
