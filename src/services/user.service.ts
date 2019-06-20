@@ -125,7 +125,6 @@ export class UserService {
   createUserByFacebook = async ({name, facebookId}) => {
 
     const newUser = new UserModel({
-      email: null,
       passwordHash: null,
       passwordSalt: null,
       type: UserTypes.TYPE_CUSTOMER,
@@ -134,7 +133,7 @@ export class UserService {
       phone: null,
       tokenEmailConfirm: null,
       registerBy: RegisterByTypes.FACEBOOK,
-      status: Status.ACTIVE,
+      status: Status.PENDING_OR_WAIT_CONFIRM,
       address: null,
       city: null,
       district: null,
