@@ -487,7 +487,7 @@ export class UserController {
                 entries: []
               }
             };
-            resolve(result);
+            return resolve(result);
           }
         }
 
@@ -500,7 +500,7 @@ export class UserController {
               entries: []
             }
           };
-          resolve(result);
+          return resolve(result);
         }
 
         const userInfoResponse = {
@@ -534,7 +534,7 @@ export class UserController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -542,7 +542,7 @@ export class UserController {
           data: {}
         };
 
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -578,7 +578,7 @@ export class UserController {
               entries: []
             }
           };
-          resolve(result);
+          return resolve(result);
         }
         user = await this.userService.findByGoogleId(id);
         if (!user) {
@@ -590,7 +590,7 @@ export class UserController {
               entries: []
             }
           };
-          resolve(result);
+          return resolve(result);
         }
         const otpCode: any = this.userService.generateOTPCode();
         user.phone = phone;
@@ -605,7 +605,7 @@ export class UserController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors || {}).map(key => {
           return e.errors[key].message;
@@ -615,7 +615,7 @@ export class UserController {
           messages: messages || [e],
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -652,7 +652,7 @@ export class UserController {
               entries: []
             }
           };
-          resolve(result);
+          return resolve(result);
         }
         user = await this.userService.findByFacebookId(id);
         if (!user) {
@@ -664,7 +664,7 @@ export class UserController {
               entries: []
             }
           };
-          resolve(result);
+          return resolve(result);
         }
         const otpCode: any = this.userService.generateOTPCode();
         user.phone = phone;
@@ -679,7 +679,7 @@ export class UserController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors || {}).map(key => {
           return e.errors[key].message;
@@ -689,7 +689,7 @@ export class UserController {
           messages: messages || [e],
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -745,7 +745,7 @@ export class UserController {
                 facebookId: id
               }
             };
-            resolve(result);
+            return resolve(result);
           }
         }
 
@@ -757,7 +757,7 @@ export class UserController {
               facebookId: id
             }
           };
-          resolve(result);
+          return resolve(result);
         }
 
         const userInfoResponse = {
@@ -791,7 +791,7 @@ export class UserController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors || {}).map(key => {
           return e.errors[key].message;
@@ -801,7 +801,7 @@ export class UserController {
           messages: messages || [e],
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -838,7 +838,7 @@ export class UserController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
 
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
@@ -849,7 +849,7 @@ export class UserController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -905,7 +905,7 @@ export class UserController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -915,7 +915,7 @@ export class UserController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -979,7 +979,7 @@ export class UserController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -989,7 +989,7 @@ export class UserController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -1103,7 +1103,7 @@ export class UserController {
           entries: [userInfoResponse]
         }
       };
-      resolve(result);
+      return resolve(result);
     });
   }
 

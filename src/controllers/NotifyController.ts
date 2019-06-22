@@ -30,7 +30,7 @@ export class NotifyController {
             }
           }
         };
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         console.error(e);
         const result: IRes<{}> = {
@@ -38,7 +38,7 @@ export class NotifyController {
           messages: [JSON.stringify(e)]
         };
 
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -81,7 +81,7 @@ export class NotifyController {
           messages: [JSON.stringify(e)]
         };
 
-        resolve(result);
+        return resolve(result);
       }
     });
   }

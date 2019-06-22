@@ -1,7 +1,7 @@
 export namespace General {
   export const API_COMFIRM_IMAGE = 'http://157.230.248.161:3100/images/confirmation';
-  export const HOME_PRODUCT_LIMIT = 8;
-  export const RELATED_PRODUCT_LIMIT = 8;
+  export const HOME_PRODUCT_LIMIT = 12;
+  export const RELATED_PRODUCT_LIMIT = 12;
   export const ApiTokenName = 'accesstoken';
   export const jwtSecret = 'Hello';
   export const Genders = {

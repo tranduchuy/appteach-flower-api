@@ -199,7 +199,7 @@ export class ShopController {
         address: shopAddress
       };
 
-      resolve({
+      return resolve({
         status: HttpStatus.OK,
         messages: [ResponseMessages.SUCCESS],
         data: result
@@ -402,7 +402,7 @@ export class ShopController {
           }
         };
 
-        resolve(response);
+        return resolve(response);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -412,7 +412,7 @@ export class ShopController {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }

@@ -136,7 +136,7 @@ export class AddressController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -147,7 +147,7 @@ export class AddressController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -282,7 +282,7 @@ export class AddressController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -293,7 +293,7 @@ export class AddressController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -326,7 +326,7 @@ export class AddressController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -337,7 +337,7 @@ export class AddressController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -370,7 +370,7 @@ export class AddressController {
               entries: addresses
             }
           };
-          resolve(result);
+          return resolve(result);
         }
         const result = {
           status: HttpStatus.OK,
@@ -379,7 +379,7 @@ export class AddressController {
             entries: addresses
           }
         };
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -390,7 +390,7 @@ export class AddressController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }

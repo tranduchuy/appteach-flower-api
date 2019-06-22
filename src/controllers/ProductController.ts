@@ -111,7 +111,8 @@ export class ProductController {
             }
           }
         };
-        resolve(result);
+
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -122,7 +123,8 @@ export class ProductController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+
+        return resolve(result);
       }
     });
   }
@@ -142,6 +144,7 @@ export class ProductController {
             messages: messages,
             data: {}
           };
+
           return resolve(result);
         }
         const {productIds} = request.query;
@@ -159,7 +162,8 @@ export class ProductController {
             }
           }
         };
-        resolve(result);
+
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -170,7 +174,8 @@ export class ProductController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+
+        return resolve(result);
       }
     });
   }
@@ -219,7 +224,7 @@ export class ProductController {
           }
         };
 
-        resolve(resultSuccess);
+        return resolve(resultSuccess);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -230,7 +235,7 @@ export class ProductController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -279,7 +284,7 @@ export class ProductController {
           }
         };
 
-        resolve(resultSuccess);
+        return resolve(resultSuccess);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -290,7 +295,7 @@ export class ProductController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -383,7 +388,7 @@ export class ProductController {
         };
 
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -394,7 +399,7 @@ export class ProductController {
           messages: messages,
           data: {}
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -608,7 +613,7 @@ export class ProductController {
           data: {}
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;

@@ -121,7 +121,7 @@ export class SearchController {
         resultSuccess.data.searchQuery = result.searchQuery;
       }
 
-      resolve(resultSuccess);
+      return resolve(resultSuccess);
     });
   }
 
@@ -161,7 +161,7 @@ export class SearchController {
         urlParamInstance = await this.searchService.createUrlParamByQuery(queryObj);
       }
 
-      resolve({
+      return resolve({
         status: HttpStatus.OK,
         messages: ['Success'],
         data: {

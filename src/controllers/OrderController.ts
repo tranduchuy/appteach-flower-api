@@ -106,7 +106,7 @@ export class OrderController {
           data: null
         };
 
-        resolve(result);
+        return resolve(result);
       }
 
       orders.forEach(order => {
@@ -123,7 +123,7 @@ export class OrderController {
         data: orders
       };
 
-      resolve(result);
+      return resolve(result);
     });
   }
 
@@ -141,7 +141,8 @@ export class OrderController {
             messages: [ResponseMessages.Order.ORDER_EMPTY],
             data: null
           };
-          resolve(result);
+
+          return resolve(result);
         }
 
         const orderId = pendingOrder._id;
@@ -155,7 +156,8 @@ export class OrderController {
             messages: [ResponseMessages.Order.ORDER_EMPTY],
             data: null
           };
-          resolve(result);
+
+          return resolve(result);
         }
 
         const result: IRes<any> = {
@@ -163,7 +165,8 @@ export class OrderController {
           messages: [ResponseMessages.SUCCESS],
           data: orderItems
         };
-        resolve(result);
+
+        return resolve(result);
       } catch (error) {
         console.error(error);
 
@@ -172,7 +175,7 @@ export class OrderController {
           messages: error.messages,
           data: null
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -192,7 +195,8 @@ export class OrderController {
             messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
             data: null
           };
-          resolve(result);
+
+          return resolve(result);
         }
 
         const productIds = orderItems.map(($) => $.product);
@@ -215,7 +219,7 @@ export class OrderController {
           messages: [ResponseMessages.SUCCESS],
           data: orderItemsResult
         };
-        resolve(result);
+        return resolve(result);
       } catch (error) {
         console.error(error);
 
@@ -224,7 +228,7 @@ export class OrderController {
           messages: error.messages,
           data: null
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -331,7 +335,8 @@ export class OrderController {
             orderItem
           }
         };
-        resolve(result);
+
+        return resolve(result);
       } catch (error) {
         console.error(error);
 
@@ -340,7 +345,7 @@ export class OrderController {
           messages: error.messages,
           data: null
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -362,6 +367,7 @@ export class OrderController {
             messages: messages,
             data: {}
           };
+
           return resolve(result);
         }
 
@@ -378,7 +384,8 @@ export class OrderController {
             messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
             data: null
           };
-          resolve(result);
+
+          return resolve(result);
         }
 
         const productIds = orderItems.map(($) => $.product);
@@ -418,7 +425,8 @@ export class OrderController {
           messages: [ResponseMessages.SUCCESS],
           data: order
         };
-        resolve(result);
+
+        return resolve(result);
       } catch (error) {
         console.error(error);
         let result: IRes<Order> = null;
@@ -436,7 +444,8 @@ export class OrderController {
             data: null
           };
         }
-        resolve(result);
+
+        return resolve(result);
       }
     });
   }
@@ -458,6 +467,7 @@ export class OrderController {
             messages: messages,
             data: {}
           };
+
           return resolve(result);
         }
 
@@ -470,7 +480,8 @@ export class OrderController {
             messages: [ResponseMessages.Order.ORDER_EMPTY],
             data: null
           };
-          resolve(result);
+
+          return resolve(result);
         }
 
         const productIds = items.map(item => {
@@ -485,6 +496,7 @@ export class OrderController {
             messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
             data: null
           };
+
           return resolve(result);
         }
 
@@ -492,6 +504,7 @@ export class OrderController {
           const product = products.find(product => {
             return item.productId.toString() === product['_id'].toString();
           });
+
           return await this.orderService.addItem(order, product, item.quantity);
         }));
 
@@ -540,7 +553,8 @@ export class OrderController {
           messages: [ResponseMessages.SUCCESS],
           data: order
         };
-        resolve(result);
+
+        return resolve(result);
       } catch (e) {
         console.error(e);
         const messages = Object.keys(e.errors).map(key => {
@@ -570,7 +584,7 @@ export class OrderController {
           messages: [ResponseMessages.SUCCESS],
           data: null
         };
-        resolve(result);
+        return resolve(result);
       } catch (error) {
         console.error(error);
 
@@ -579,7 +593,7 @@ export class OrderController {
           messages: error.messages,
           data: null
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -612,7 +626,7 @@ export class OrderController {
             data: null
           };
           console.info(result);
-          resolve(result);
+          return resolve(result);
         }
 
         if (order.status !== Status.ORDER_PENDING) {
@@ -622,7 +636,7 @@ export class OrderController {
             data: null
           };
           console.info(result);
-          resolve(result);
+          return resolve(result);
         }
 
         // get orderItem by order
@@ -643,7 +657,7 @@ export class OrderController {
           messages: [ResponseMessages.SUCCESS],
           data: orderItems
         };
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
