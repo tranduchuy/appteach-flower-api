@@ -79,7 +79,7 @@ export class OrderService {
     }
   };
 
-  updateSubmitOrder = async (order, {deliveryTime, note, address, expectedDeliveryTime}) => {
+  updateSubmitOrder = async (order, {deliveryTime, note, address, expectedDeliveryTime, contentOrder}) => {
     if (deliveryTime) {
       order.deliveryTime = deliveryTime;
     }
@@ -96,6 +96,7 @@ export class OrderService {
       order.expectedDeliveryTime = expectedDeliveryTime;
     }
 
+    order.contentOrder = contentOrder || '';
     order.code = await this.generateOrderCode();
 
     return await order.save();
