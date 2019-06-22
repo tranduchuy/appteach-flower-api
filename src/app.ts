@@ -41,6 +41,6 @@ server.setConfig((app) => {
 });
 
 const app = server.build();
-app.set('port', process.env.PORT || 2000);
+app.set('port', 2000);
 
 export default app;
