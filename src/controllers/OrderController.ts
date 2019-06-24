@@ -28,6 +28,8 @@ import addOneProductToCart from '../validation-schemas/order/add-one-product-to-
 import addManyProductsToCart from '../validation-schemas/order/add-many-products-to-cart.schema';
 import SubmitNoLoginOrderValidationSchema from '../validation-schemas/order/submit-no-login-order.schema';
 import { OrderWorkerService } from '../services/order-worker.service';
+import GetNoLoginOrderShippingCostValidationSchema
+    from '../validation-schemas/order/get-no-login-order-shipping-cost.schema';
 
 // const console = process['console'];
 
@@ -599,79 +601,182 @@ export class OrderController {
   }
 
   @httpPost(OrderRoute.GetOrderShippingCost, TYPES.CheckTokenMiddleware)
-  public getOrderShippingCost(request: Request, response: Response): Promise<IRes<any>> {
-    return new Promise<IRes<any>>(async (resolve, reject) => {
-      try {
+    public getOrderShippingCost(request: Request, response: Response): Promise<IRes<any>> {
+        return new Promise<IRes<any>>(async (resolve, reject) => {
+            try {
 
-        const {error} = Joi.validate(request.body, GetOrderShippingCostValidationSchema);
-        if (error) {
-          const messages = error.details.map(detail => {
-            return detail.message;
-          });
+                const {error} = Joi.validate(request.body, GetOrderShippingCostValidationSchema);
+                if (error) {
+                    const messages = error.details.map(detail => {
+                        return detail.message;
+                    });
 
-          const result: IRes<any> = {
-            status: HttpStatus.BAD_REQUEST,
-            messages: messages,
-            data: {}
-          };
-          return resolve(result);
-        }
+                    const result: IRes<any> = {
+                        status: HttpStatus.BAD_REQUEST,
+                        messages: messages,
+                        data: {}
+                    };
+                    return resolve(result);
+                }
 
-        const {orderId, addressId} = request.body;
-        const order = await this.orderService.findOrderById(orderId);
-        if (!order) {
-          const result = {
-            status: HttpStatus.NOT_FOUND,
-            messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
-            data: null
-          };
-          console.info(result);
-          return resolve(result);
-        }
+                const {addressId} = request.body;
+                const order = await this.orderService.findPendingOrder(request.user._id);
+                if (!order) {
+                    const result = {
+                        status: HttpStatus.NOT_FOUND,
+                        messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
+                        data: null
+                    };
+                    console.info(result);
+                    return resolve(result);
+                }
 
-        if (order.status !== Status.ORDER_PENDING) {
-          const result = {
-            status: HttpStatus.BAD_REQUEST,
-            messages: [ResponseMessages.Order.WRONG_STATUS],
-            data: null
-          };
-          console.info(result);
-          return resolve(result);
-        }
+                if (order.status !== Status.ORDER_PENDING) {
+                    const result = {
+                        status: HttpStatus.BAD_REQUEST,
+                        messages: [ResponseMessages.Order.WRONG_STATUS],
+                        data: null
+                    };
+                    console.info(result);
+                    return resolve(result);
+                }
 
-        // get orderItem by order
-        let orderItems = await this.orderItemService.findOrderItemByOrderId(orderId);
+                // get orderItem by order
+                let orderItems: any = await this.orderItemService.findOrderItemByOrderId(order._id);
 
-        //  calculate shipping cost for each orderItem
-        orderItems = await Promise.all(orderItems.map(async item => {
-          const shopAddress = await this.addressService.findDeliveryAddressByShopId(item.shop);
-          const shipping = await this.costService.calculateShippingCost(shopAddress._id, addressId);
-          item.shippingCost = shipping.shippingCost;
-          item.shippingDistance = shipping.shippingDistance;
-          return item;
-        }));
+                let totalShippingCost = 0;
 
+                //  calculate shipping cost for each orderItem
+                orderItems = await Promise.all(orderItems.map(async item => {
+                    const shopAddress = await this.addressService.findDeliveryAddressByShopId(item.shop);
+                    const shipping = await this.costService.calculateShippingCost(shopAddress._id, addressId);
+                    item.shippingCost = shipping.shippingCost;
+                    item.shippingDistance = shipping.shippingDistance;
+                    totalShippingCost += item.shippingCost;
+                    return {
+                        _id: item._id,
+                        shippingCost: item.shippingCost,
+                        shippingDistance: item.shippingDistance
+                    };
+                }));
 
-        const result: IRes<any> = {
-          status: HttpStatus.OK,
-          messages: [ResponseMessages.SUCCESS],
-          data: orderItems
-        };
-        return resolve(result);
-      } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
+                const result: IRes<any> = {
+                    status: HttpStatus.OK,
+                    messages: [ResponseMessages.SUCCESS],
+                    data: {
+                        orderItems,
+                        totalShippingCost
+                    }
+                };
+                return resolve(result);
+            } catch (e) {
+                const messages = Object.keys(e.errors).map(key => {
+                    return e.errors[key].message;
+                });
+
+                const result: IRes<{}> = {
+                    status: HttpStatus.INTERNAL_SERVER_ERROR,
+                    messages: messages,
+                    data: {}
+                };
+                return resolve(result);
+            }
         });
+    }
 
-        const result: IRes<{}> = {
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
-        };
-        return resolve(result);
-      }
-    });
-  }
+    @httpPost(OrderRoute.GetNoLoginOrderShippingCost)
+    public getNoLoginOrderShippingCost(request: Request, response: Response): Promise<IRes<any>> {
+        return new Promise<IRes<any>>(async (resolve, reject) => {
+            try {
+
+                const {error} = Joi.validate(request.body, GetNoLoginOrderShippingCostValidationSchema);
+                if (error) {
+                    const messages = error.details.map(detail => {
+                        return detail.message;
+                    });
+
+                    const result: IRes<any> = {
+                        status: HttpStatus.BAD_REQUEST,
+                        messages: messages,
+                        data: {}
+                    };
+                    return resolve(result);
+                }
+
+                const {addressInfo, items} = request.body;
+                if (!items || items.length === 0) {
+                    const result = {
+                        status: HttpStatus.NOT_FOUND,
+                        messages: [ResponseMessages.Order.ORDER_EMPTY],
+                        data: null
+                    };
+
+                    return resolve(result);
+                }
+
+                const productIds = items.map(item => {
+                    return item.productId;
+                });
+
+                const products = await this.productService.findListProductByIds(productIds) as Product[];
+
+                if (productIds.length < products.length) {
+                    const result = {
+                        status: HttpStatus.NOT_FOUND,
+                        messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
+                        data: null
+                    };
+
+                    return resolve(result);
+                }
+
+                let orderItems: any = await Promise.all(items.map(async item => {
+                    const product = products.find(product => {
+                        return item.productId.toString() === product['_id'].toString();
+                    });
+                    item.shop = product.shop;
+                    return item;
+                }));
+
+                let totalShippingCost = 0;
+
+                //  calculate shipping cost for each orderItem
+                orderItems = await Promise.all(orderItems.map(async item => {
+                    const shopAddress = await this.addressService.findDeliveryAddressByShopId(item.shop);
+                    const shipping = await this.costService.calculateNoLoginOrderShippingCost(shopAddress._id, addressInfo);
+                    item.shippingCost = shipping.shippingCost;
+                    item.shippingDistance = shipping.shippingDistance;
+                    totalShippingCost += item.shippingCost;
+                    return {
+                        _id: item._id,
+                        shippingCost: item.shippingCost,
+                        shippingDistance: item.shippingDistance
+                    };
+                }));
+
+                const result: IRes<any> = {
+                    status: HttpStatus.OK,
+                    messages: [ResponseMessages.SUCCESS],
+                    data: {
+                        orderItems,
+                        totalShippingCost
+                    }
+                };
+                return resolve(result);
+            } catch (e) {
+                const messages = Object.keys(e.errors).map(key => {
+                    return e.errors[key].message;
+                });
+
+                const result: IRes<{}> = {
+                    status: HttpStatus.INTERNAL_SERVER_ERROR,
+                    messages: messages,
+                    data: {}
+                };
+                return resolve(result);
+            }
+        });
+    }
 
   @httpGet(OrderRoute.GuestGetOrderDetail)
   public guestCheckOrderDetail(req: Request): Promise<IRes<IResGuestDetailOrder>> {

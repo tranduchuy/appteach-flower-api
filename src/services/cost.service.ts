@@ -9,6 +9,13 @@ import { ShopService } from './shop.service';
 
 @injectable()
 export class CostService {
+  constructor(
+    @inject(TYPES.GoogleDistanceMatrixService) private googleDistanceMatrixService: GoogleDistanceMatrixService,
+    @inject(TYPES.AddressService) private addressService: AddressService,
+    @inject(TYPES.ShopService) private shopService: ShopService
+  ) {
+  }
+
   calculateShippingCost = async (shopAddressId, deliveryAddressId) => {
     const shopAddress = await this.addressService.findAddress(shopAddressId);
     const deliveryAddress = await this.addressService.findAddress(deliveryAddressId);
@@ -18,15 +25,46 @@ export class CostService {
     if (distances.status === 'OK') {
       minDistance = this.getMinDistance(distances);
     }
-
     if (minDistance !== null) {
-      const shippingCost = ((minDistance / 1000 - 5) * costPerKm);
+      let shippingCost = ((minDistance / 1000 - 5) * costPerKm);
+      if (shippingCost < 0) {
+        shippingCost = 0;
+      }
       return {
         shippingDistance: minDistance / 1000,
         shippingCost
       };
     } else {
-      return null;
+      return {
+        shippingDistance: null,
+        shippingCost: 0
+      };
+    }
+  };
+
+  calculateNoLoginOrderShippingCost = async (shopAddressId, addressInfo) => {
+    const shopAddress = await this.addressService.findAddress(shopAddressId);
+    const distances: any = await this.googleDistanceMatrixService.calculateDistance([shopAddress.addressText], [addressInfo.address]);
+    let minDistance = null;
+
+    if (distances.status === 'OK') {
+      minDistance = this.getMinDistance(distances);
+    }
+
+    if (minDistance !== null) {
+      let shippingCost = ((minDistance / 1000 - 5) * costPerKm);
+      if (shippingCost < 0) {
+        shippingCost = 0;
+      }
+      return {
+        shippingDistance: minDistance / 1000,
+        shippingCost
+      };
+    } else {
+      return {
+        shippingDistance: null,
+        shippingCost: 0
+      };
     }
   };
 
@@ -44,11 +82,4 @@ export class CostService {
     const shop = await this.shopService.findShopById(shopId);
     return (price * shop.discountRate) / 100;
   };
-
-  constructor(
-    @inject(TYPES.GoogleDistanceMatrixService) private googleDistanceMatrixService: GoogleDistanceMatrixService,
-    @inject(TYPES.AddressService) private addressService: AddressService,
-    @inject(TYPES.ShopService) private shopService: ShopService
-  ) {
-  }
 }
