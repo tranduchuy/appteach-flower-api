@@ -142,7 +142,7 @@ export class AdminUserController {
               registerBy: user.registerBy
             }
         ;
-        const token = this.userService.generateToken({email: user.email});
+        const token = this.userService.generateToken({_id: user._id});
 
         const result: IRes<any> = {
           status: HttpStatus.OK,
