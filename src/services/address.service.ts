@@ -213,12 +213,12 @@ export class AddressService {
     }
   };
 
-  async createShopAddress(shopId: string, city: string, district: number, ward: number | null, address: string) {
+  async createShopAddress(shopId: string, address: string, longitude: number, latitude: number) {
     const newAddress = new AddressModel({
-      city,
-      district,
-      ward,
       address,
+      addressText: address,
+      longitude,
+      latitude,
       shop: new mongoose.Types.ObjectId(shopId),
       type: AddressTypes.SHOP_ADDRESS
     });

@@ -216,7 +216,7 @@ export class UserController {
         }
         const {
           email, password, confirmedPassword,
-          name, username, phone, address, gender, city, district, ward,
+          name, username, phone, address, gender, longitude, latitude,
           shopName, slug, images, availableShipCountry, availableShipAddresses
         } = request.body;
 
@@ -281,7 +281,7 @@ export class UserController {
 
         const shop: any = await this.shopService.createNewShop(newUser._id.toString(), shopName, slug, images, availableShipCountry);
 
-        await this.addressService.createShopAddress(shop._id.toString(), city, district, ward || null, address);
+        await this.addressService.createShopAddress(shop._id.toString(), address, longitude, latitude);
 
         if (availableShipAddresses.length > 0) {
           // delete old possibaleDeliveryAddress
@@ -311,7 +311,7 @@ export class UserController {
           messages: [ResponseMessages.User.Register.REGISTER_SUCCESS],
           data: {
             meta: {},
-            entries: [{email, name, username, phone, address, gender, city, district, ward}]
+            entries: [{email, name, username, phone, address, gender, longitude, latitude}]
           }
         };
 
