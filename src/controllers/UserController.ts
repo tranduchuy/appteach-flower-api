@@ -34,6 +34,9 @@ import ResendOTPSchema from '../validation-schemas/user/resend-otp.schema';
 import { UserConstant } from '../constant/users';
 import RandomString from 'randomstring';
 import ConfirmByPhoneValidationSchema from '../validation-schemas/user/confirm-by-phone.schema';
+import RegisterShopValidationSchema from '../validation-schemas/user/register-shop.schema';
+import { ShopService } from '../services/shop.service';
+import { AddressService } from '../services/address.service';
 
 interface IResResendConfirmEmail {
 }
@@ -41,11 +44,13 @@ interface IResResendConfirmEmail {
 @controller('/user')
 export class UserController {
   constructor(
+      @inject(TYPES.ShopService) private shopService: ShopService,
       @inject(TYPES.UserService) private userService: UserService,
       @inject(TYPES.ImageService) private imageService: ImageService,
       @inject(TYPES.MailerService) private mailerService: MailerService,
       @inject(TYPES.FacebookGraphApiService) private facebookGraphApiService: FacebookGraphApiService,
-      @inject(TYPES.SmsService) private smsService: SmsService
+      @inject(TYPES.SmsService) private smsService: SmsService,
+      @inject(TYPES.AddressService) private addressService: AddressService
   ) {
   }
 
@@ -153,6 +158,143 @@ export class UserController {
         };
 
         const newUser = await this.userService.createUser(newUserData);
+
+        if (request.user && [UserRoles.USER_ROLE_MASTER, UserRoles.USER_ROLE_ADMIN].some(request.user.role)) {
+          newUser.status = Status.ACTIVE;
+          newUser.tokenEmailConfirm = '';
+          await newUser.save();
+        } else {
+          // Send email
+          // this.mailerService.sendConfirmEmail(email, name, newUser.tokenEmailConfirm);
+          this.smsService.sendSMS([phone], `Mã xác thục tài khoản: ${otpCode}`, '');
+        }
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.User.Register.REGISTER_SUCCESS],
+          data: {
+            meta: {},
+            entries: [{email, name, username, phone, address, gender, city, district, ward}]
+          }
+        };
+
+        resolve(result);
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {
+            meta: {},
+            entries: []
+          }
+        };
+        resolve(result);
+      }
+    });
+  }
+
+
+  @httpPost('/shop')
+  public registerNewShop(request: Request, response: Response): Promise<IRes<{}>> {
+    return new Promise<IRes<{}>>(async (resolve, reject) => {
+      try {
+        const {error} = Joi.validate(request.body, RegisterShopValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<{}> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+        const {
+          email, password, confirmedPassword,
+          name, username, phone, address, gender, city, district, ward,
+          shopName, slug, images, availableShipCountry, availableShipAddresses
+        } = request.body;
+
+        const duplicatedPhones = await UserModel.find({phone: phone});
+        if (duplicatedPhones.length !== 0) {
+          const result: IRes<{}> = {
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            messages: [ResponseMessages.User.Register.PHONE_DUPLICATED],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const duplicateShopSlug: any = await this.shopService.findShopBySlug(slug);
+        if (duplicateShopSlug) {
+          const result: IRes<any> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.Shop.DUPLICATE_SLUG]
+          };
+
+          return resolve(result);
+        }
+
+        if (password !== confirmedPassword) {
+          const result: IRes<{}> = {
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            messages: [ResponseMessages.User.Register.PASSWORD_DONT_MATCH],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const duplicatedUsers = await UserModel.find({email: email});
+        if (duplicatedUsers.length !== 0) {
+          const result: IRes<{}> = {
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            messages: [ResponseMessages.User.Register.EMAIL_DUPLICATED],
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const otpCode = this.userService.generateOTPCode();
+
+        const newUserData = {
+          email,
+          name,
+          password,
+          type: UserTypes.TYPE_CUSTOMER,
+          role: null,
+          phone: phone,
+          gender,
+          city: null,
+          district: null,
+          ward: null,
+          registerBy: RegisterByTypes.NORMAL,
+          address: null,
+          otpCode
+        };
+
+        const newUser = await this.userService.createUser(newUserData);
+
+        const shop: any = await this.shopService.createNewShop(newUser._id.toString(), shopName, slug, images, availableShipCountry);
+
+        await this.addressService.createShopAddress(shop._id.toString(), city, district, ward || null, address);
+
+        if (availableShipAddresses.length > 0) {
+          // delete old possibaleDeliveryAddress
+          await this.addressService.deleteOldPossibleDeliveryAddress(shop._id);
+        }
+
+        await Promise.all((availableShipAddresses || []).map(async (addressData: { city: string, district?: number }) => {
+          await this.addressService.createPossibleDeliveryAddress({
+            district: addressData.district,
+            city: addressData.city,
+            shopId: shop._id.toString()
+          });
+        }));
 
         if (request.user && [UserRoles.USER_ROLE_MASTER, UserRoles.USER_ROLE_ADMIN].some(request.user.role)) {
           newUser.status = Status.ACTIVE;

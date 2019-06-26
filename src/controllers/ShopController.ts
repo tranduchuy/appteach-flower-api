@@ -208,7 +208,7 @@ export class ShopController {
   }
 
 
-  @httpGet('/check-shop-slug', TYPES.CheckTokenMiddleware)
+  @httpGet('/check-shop-slug')
   public checkShopSlug(req: Request): Promise<IRes<IResCheckValidSlug>> {
     return new Promise<IRes<IResCheckValidSlug>>(async (resolve) => {
       const {error} = Joi.validate(req.query, checkShopSlugSchema);
