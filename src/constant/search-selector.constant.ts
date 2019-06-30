@@ -44,6 +44,7 @@ export namespace SearchSelector {
   ];
 
   export const Florets = [
+    {text: 'Nhiều loại', value: 13},
     {text: 'Hoa hồng', value: 1},
     {text: 'Hoa ly', value: 2},
     {text: 'Hoa lan, địa lan', value: 3},
@@ -59,6 +60,7 @@ export namespace SearchSelector {
   ];
 
   export const Colors = [
+    {text: 'Nhiều màu', value: 8},
     {text: 'Màu đỏ', value: 1},
     {text: 'Màu vàng', value: 2},
     {text: 'Màu trắng', value: 3},
