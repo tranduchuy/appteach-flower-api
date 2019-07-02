@@ -20,6 +20,17 @@ interface IResNews {
   news: New[];
 }
 
+interface NewItem {
+  _id: string;
+  title: string;
+  content: string;
+  cate?: number;
+  image?: string;
+  createdAt: Date;
+  description: string;
+  url: string;
+}
+
 
 @controller('/new')
 export class NewController {
@@ -27,8 +38,8 @@ export class NewController {
   }
 
   @httpGet('/highlight')
-  public highlight(request: Request): Promise<IRes<any>> {
-    return new Promise<IRes<any>>(async (resolve) => {
+  public highlight(request: Request): Promise<IRes<NewItem[]>> {
+    return new Promise<IRes<NewItem[]>>(async (resolve) => {
       try {
         const newsList = await NewModel.find({status: Status.ACTIVE}).sort({createdAt: -1}).limit(6);
         const results = newsList.map(news => {
@@ -45,7 +56,7 @@ export class NewController {
           return result;
         });
 
-        const result: IRes<any> = {
+        const result: IRes<NewItem[]> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: results
@@ -53,7 +64,7 @@ export class NewController {
         return resolve(result);
       } catch (e) {
         console.error(e);
-        const result: IRes<{}> = {
+        const result: IRes<NewItem[]> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: [JSON.stringify(e)]
         };
@@ -64,20 +75,19 @@ export class NewController {
   }
 
   @httpGet('/lastest')
-  public lastest(request: Request): Promise<IRes<any>> {
-    return new Promise<IRes<any>>(async (resolve) => {
+  public lastest(request: Request): Promise<IRes<NewItem[]>> {
+    return new Promise<IRes<NewItem[]>>(async (resolve) => {
       try {
         const newsList = await NewModel.find({status: Status.ACTIVE}).sort({date: -1}).limit(10);
         const results = await Promise.all(newsList.map(async news => {
           const result = {
-
-            id: news._id,
+            _id: news._id,
             status: news.status,
             title: news.title,
             content: news.content,
             cate: news.type,
             image: news.image,
-            date: news.createdAt,
+            createdAt: news.createdAt,
             description: news.description,
             url: news.url
           };
@@ -86,7 +96,7 @@ export class NewController {
 
         }));
 
-        const result: IRes<any> = {
+        const result: IRes<NewItem[]> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: results
@@ -94,7 +104,7 @@ export class NewController {
         return resolve(result);
       } catch (e) {
         console.error(e);
-        const result: IRes<{}> = {
+        const result: IRes<NewItem[]> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: [JSON.stringify(e)]
         };
@@ -151,7 +161,7 @@ export class NewController {
           }
         };
 
-        resolve(response);
+        return resolve(response);
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
@@ -161,19 +171,19 @@ export class NewController {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
 
   @httpGet('/:url')
-  public detailNew(req: Request): Promise<IRes<any>> {
-    return new Promise<IRes<any>>(async (resolve) => {
+  public detailNew(req: Request): Promise<IRes<NewItem>> {
+    return new Promise<IRes<NewItem>>(async (resolve) => {
       try {
         const url = req.params.url;
 
         if (!url || url.length === 0) {
-          const result: IRes<any> = {
+          const result: IRes<NewItem> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.INVALID_URL]
           };
@@ -182,7 +192,7 @@ export class NewController {
 
         const news = await NewModel.findOne({url: url});
         if (!news) {
-          const result: IRes<any> = {
+          const result: IRes<NewItem> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.New.NOT_FOUND]
           };
@@ -190,6 +200,7 @@ export class NewController {
         }
 
         const data = {
+          _id: news._id,
           title: news.title,
           content: news.content,
           image: news.image,
@@ -207,7 +218,7 @@ export class NewController {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
-        const result: IRes<any> = {
+        const result: IRes<NewItem> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages
         };
