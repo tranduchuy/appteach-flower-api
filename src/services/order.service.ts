@@ -32,6 +32,13 @@ export class OrderService {
   productInfoFields = ['id', 'status', 'title', 'images', 'originalPrice', 'shop', 'saleOff', 'slug'];
   shopInfoFields = ['id', 'name', 'slug'];
 
+  constructor(@inject(TYPES.CostService) private costService: CostService,
+              @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+              @inject(TYPES.ProductService) private productService: ProductService,
+              @inject(TYPES.AddressService) private addressService: AddressService) {
+
+  }
+
   createOrder = async (user: User): Promise<Order> => {
     const newOrder = new OrderModel({fromUser: user});
     return await newOrder.save();
@@ -102,12 +109,10 @@ export class OrderService {
     return await order.save();
   };
 
-
   findPendingOrder = async (userId: string): Promise<Order> => OrderModel.findOne({
     fromUser: userId,
     status: Status.ORDER_PENDING
   });
-
 
   findItemInOrder = async (orderId: string): Promise<Array<any>> => {
     try {
@@ -132,7 +137,6 @@ export class OrderService {
     product: product
   });
 
-
   addItem = async (order: Order, product: Product, quantity: number): Promise<OrderItem> => {
     const newOrderItem = new OrderItemModel({
       order,
@@ -143,7 +147,6 @@ export class OrderService {
 
     return newOrderItem.save();
   };
-
 
   updateQuantityItem = async (orderItem, quantity) => {
     try {
@@ -181,9 +184,11 @@ export class OrderService {
   };
 
   deleteItem = async (id: string) => await OrderItemModel.findByIdAndRemove(id);
+
   findOrderById = async (orderId: string) => {
     return await OrderModel.findById(orderId);
   };
+
   checkAndUpdateSuccessStatus = async (orderId: string) => {
     const orderItems = await OrderItemModel.find({order: orderId});
     const finishedItems = orderItems.filter(item => {
@@ -196,7 +201,12 @@ export class OrderService {
       return null;
     }
   };
-  updateCost = async (orderId: string, addressId) => {
+
+  updateCost = async (orderId: string, addressId): Promise<number> => {
+    const totalShippingCost = {
+      total: 0,
+      shopIds: []
+    };
     // get orderItem by order
     const orderItems = await this.orderItemService.findOrderItemByOrderId(orderId);
 
@@ -206,13 +216,18 @@ export class OrderService {
       const shopAddress = await this.addressService.findDeliveryAddressByShopId(item.shop);
       const shipping = await this.costService.calculateShippingCost(shopAddress._id, addressId);
       const discount = await this.costService.calculateDiscount(item.shop, item.price);
+      if (totalShippingCost.shopIds.indexOf(item.shop.toString()) === -1) {
+        totalShippingCost.total += shipping.shippingCost;
+        totalShippingCost.shopIds.push(item.shop.toString());
+      }
+      console.log(totalShippingCost);
       item.shippingCost = shipping.shippingCost;
       item.shippingDistance = shipping.shippingDistance;
       item.discount = discount;
       return await item.save();
     }));
+    return totalShippingCost.total;
   };
-
 
   calculateTotal = async (orderId) => {
     const items = await OrderItemModel.find({order: orderId});
@@ -222,6 +237,7 @@ export class OrderService {
     });
     return total;
   };
+
   updateStatus = async (id: string, status: number): Promise<Order> => {
     const order = await OrderModel.findOne({_id: id});
     order.status = status;
@@ -240,6 +256,7 @@ export class OrderService {
     }
     return await order.save();
   };
+
   addManyProductsToCart = async (order: Order, items: IInputOrderItem[]): Promise<IResAddManyProducts[]> => {
     const results: IResAddManyProducts[] = [];
     if (items.length === 0) {
@@ -255,6 +272,7 @@ export class OrderService {
 
     return Promise.resolve(results);
   };
+
   generateOrderCode = async () => {
     // TODO: generate order code
     const date = new Date();
@@ -302,13 +320,6 @@ export class OrderService {
 
     return (yymmdd + splitChar + countString).toString();
   };
-
-  constructor(@inject(TYPES.CostService) private costService: CostService,
-              @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-              @inject(TYPES.ProductService) private productService: ProductService,
-              @inject(TYPES.AddressService) private addressService: AddressService) {
-
-  }
 
   buildStageGetListOrderAdmin(queryCondition: IQueryOrderAdmin): any[] {
     const stages = [];

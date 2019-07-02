@@ -410,8 +410,9 @@ export class OrderController {
         // update delivery info for order.
         order = await this.orderService.updateSubmitOrder(order, newOrder);
         // update shipping and discount
-        await this.orderService.updateCost(order._id, address);
+        const totalShippingCost = await this.orderService.updateCost(order._id, address);
         // calculate total
+        order.totalShippingCost = totalShippingCost;
         order.total = await this.orderService.calculateTotal(order._id);
 
         // set submit time
@@ -539,8 +540,9 @@ export class OrderController {
         // update order items status: new => pending
         await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PROCESSING);
         // update shipping and discount
-        await this.orderService.updateCost(order._id, address);
+        const totalShippingCost = await this.orderService.updateCost(order._id, address);
         // calculate total
+        order.totalShippingCost = totalShippingCost;
         order.total = await this.orderService.calculateTotal(order._id);
         await order.save();
 
