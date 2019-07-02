@@ -34,8 +34,8 @@ export class AdminNewController {
   }
 
   @httpPut('/:id', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
-  public updateNew(req: Request): Promise<IRes<any>> {
-    return new Promise<IRes<any>>(async (resolve) => {
+  public updateNew(req: Request): Promise<IRes<New>> {
+    return new Promise<IRes<New>>(async (resolve) => {
       try {
         const {error} = Joi.validate(req.body, AdminUpdateNew);
         if (error) {
@@ -43,7 +43,7 @@ export class AdminNewController {
             return detail.message;
           });
 
-          const result: IRes<any> = {
+          const result: IRes<New> = {
             status: HttpStatus.BAD_REQUEST,
             messages: messages
           };
@@ -54,7 +54,7 @@ export class AdminNewController {
         const id = req.params.id;
 
         if (!id || id.length === 0) {
-          const result: IRes<any> = {
+          const result: IRes<New> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.INVALID_ID]
           };
@@ -63,7 +63,7 @@ export class AdminNewController {
 
         let news = await NewModel.findOne({_id: id});
         if (!news) {
-          const result: IRes<any> = {
+          const result: IRes<New> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.New.NOT_FOUND]
           };
@@ -116,10 +116,9 @@ export class AdminNewController {
           };
 
           if (await NewModel.count(queryCountDuplicate) > 0) {
-            const result: IRes<any> = {
+            const result: IRes<New> = {
               status: HttpStatus.BAD_REQUEST,
-              messages: [ResponseMessages.New.EXISTED_SLUG],
-              data: {}
+              messages: [ResponseMessages.New.EXISTED_SLUG]
             };
             return resolve(result);
           }
@@ -132,15 +131,13 @@ export class AdminNewController {
         return resolve({
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
-          data: {
-            new: news
-          }
+          data: news
         });
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
-        const result: IRes<any> = {
+        const result: IRes<New> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages
         };
@@ -151,13 +148,13 @@ export class AdminNewController {
 
 
   @httpGet('/:id', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
-  public detailNew(req: Request): Promise<IRes<any>> {
-    return new Promise<IRes<any>>(async (resolve) => {
+  public detailNew(req: Request): Promise<IRes<New>> {
+    return new Promise<IRes<New>>(async (resolve) => {
       try {
         const id = req.params.id;
 
         if (!id || id.length === 0) {
-          const result: IRes<any> = {
+          const result: IRes<New> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.INVALID_ID]
           };
@@ -166,7 +163,7 @@ export class AdminNewController {
 
         const news = await NewModel.findOne({_id: id});
         if (!news) {
-          const result: IRes<any> = {
+          const result: IRes<New> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.New.NOT_FOUND]
           };
@@ -182,7 +179,7 @@ export class AdminNewController {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
-        const result: IRes<any> = {
+        const result: IRes<New> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages
         };
@@ -192,8 +189,8 @@ export class AdminNewController {
   }
 
   @httpPost('/', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
-  public add(req: Request): Promise<IRes<any>> {
-    return new Promise<IRes<any>>(async (resolve) => {
+  public add(req: Request): Promise<IRes<New>> {
+    return new Promise<IRes<New>>(async (resolve) => {
       try {
         const {error} = Joi.validate(req.body, AdminAddNew);
         if (error) {
@@ -201,7 +198,7 @@ export class AdminNewController {
             return detail.message;
           });
 
-          const result: IRes<any> = {
+          const result: IRes<New> = {
             status: HttpCodes.ERROR,
             messages: messages
           };
@@ -220,10 +217,9 @@ export class AdminNewController {
         if (createdByType === General.NewCreatedBy.CRAWL) {
           const duplicateTitle = await NewModel.findOne({title: req.body.title});
           if (duplicateTitle) {
-            const result: IRes<any> = {
+            const result: IRes<New> = {
               status: HttpCodes.ERROR,
-              messages: ['Crawling duplicate title'],
-              data: {}
+              messages: ['Crawling duplicate title']
             };
             return resolve(result);
           }
@@ -263,15 +259,13 @@ export class AdminNewController {
         return resolve({
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
-          data: {
-            new: news
-          }
+          data: news
         });
       } catch (e) {
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
-        const result: IRes<any> = {
+        const result: IRes<New> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: messages
         };
