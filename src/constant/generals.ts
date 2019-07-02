@@ -38,6 +38,15 @@ export namespace General {
     OUT_OF_STOCK: 60
   };
 
+  export const NewCreatedBy = {
+    HAND: 1,
+    CRAWL: 2
+  };
+
+
+  export const PAGE_SIZE = 20;
+
+
   export const costPerKm = 8000; // 8k/km
 
   export const checkSaleOffIntervalTime = 5; // 5 minutes

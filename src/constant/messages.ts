@@ -40,6 +40,11 @@ export namespace ResponseMessages {
     }
   }
 
+  export namespace New {
+    export const NOT_FOUND = 'Không tìm thấy tin này';
+    export const EXISTED_SLUG = 'Slug đã tồn tại';
+  }
+
   export namespace Product {
     export const PRODUCT_NOT_FOUND = 'Không tìm thấy sản phẩm';
     export const NOT_VALID_PRICE = 'Giá khuyến mãi phải nhỏ hơn giá bình thường';

@@ -41,6 +41,9 @@ import { ProductWorkerService } from '../services/product-worker.service';
 import { GoogleGeocodingService } from '../services/google-geocoding.service';
 import { OrderWorkerService } from '../services/order-worker.service';
 import { SmsService } from '../services/sms.service';
+import { NewController } from '../controllers/NewsController';
+import { AdminNewController } from '../controllers/admin/AdminNewController';
+import { NewService } from '../services/new.service';
 
 const container = new Container();
 
@@ -55,12 +58,14 @@ container.bind<ShopController>(TYPES.ShopController).to(ShopController);
 container.bind<OrderItemController>(TYPES.OrderItemController).to(OrderItemController);
 container.bind<ShopStatisticController>(TYPES.ShopStatisticController).to(ShopStatisticController);
 container.bind<NotifyController>(TYPES.NotifyController).to(NotifyController);
+container.bind<NewController>(TYPES.NewController).to(NewController);
 // Bind Admin Controller
 container.bind<AdminUserController>(TYPES.Admin.UserController).to(AdminUserController);
 container.bind<AdminProductController>(TYPES.Admin.ProductController).to(AdminProductController);
 container.bind<AdminShopController>(TYPES.Admin.ShopController).to(AdminShopController);
 container.bind<AdminStatisticController>(TYPES.Admin.StatisticController).to(AdminStatisticController);
 container.bind<AdminOrderController>(TYPES.Admin.OrderController).to(AdminOrderController);
+container.bind<AdminNewController>(TYPES.Admin.NewController).to(AdminNewController);
 // Bind Service
 container.bind<UserService>(TYPES.UserService).to(UserService);
 container.bind<ProductService>(TYPES.ProductService).to(ProductService);
@@ -79,6 +84,7 @@ container.bind<ProductWorkerService>(TYPES.ProductWorkerService).to(ProductWorke
 container.bind<OrderWorkerService>(TYPES.OrderWorkerService).to(OrderWorkerService);
 container.bind<GoogleGeocodingService>(TYPES.GoogleGeocodingService).to(GoogleGeocodingService);
 container.bind<SmsService>(TYPES.SmsService).to(SmsService);
+container.bind<NewService>(TYPES.NewService).to(NewService);
 
 
 // Bind model

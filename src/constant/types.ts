@@ -11,6 +11,7 @@ const TYPES = {
   AddressController: Symbol.for('AddressController'),
   ShopStatisticController: Symbol.for('ShopStatisticController'),
   NotifyController: Symbol.for('NotifyController'),
+  NewController: Symbol.for('NewController'),
 
 
   MailerService: Symbol.for('MailerService'),
@@ -31,6 +32,7 @@ const TYPES = {
   ProductWorkerService: Symbol.for('ProductWorkerService'),
   OrderWorkerService: Symbol.for('OrderWorkerService'),
   SmsService: Symbol.for('SmsService'),
+  NewService: Symbol.for('NewService'),
 
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),
@@ -43,6 +45,7 @@ const TYPES = {
     ProductController: Symbol.for('AdminProductController'),
     ShopController: Symbol.for('AdminShopController'),
     StatisticController: Symbol.for('AdminStatisticController'),
+    NewController: Symbol.for('AdminNewController'),
     OrderController: Symbol.for('OrderController')
   }
 };
