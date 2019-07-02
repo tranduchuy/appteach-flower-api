@@ -30,16 +30,15 @@ export class NewController {
   public highlight(request: Request): Promise<IRes<any>> {
     return new Promise<IRes<any>>(async (resolve) => {
       try {
-        const newsList = await NewModel.find({status: Status.ACTIVE}).sort({date: -1}).limit(6);
-        const results = newsList.map(async news => {
+        const newsList = await NewModel.find({status: Status.ACTIVE}).sort({createdAt: -1}).limit(6);
+        const results = newsList.map(news => {
           const result = {
             _id: news._id,
-            status: news.status,
             title: news.title,
             content: news.content,
             cate: news.type,
             image: news.image,
-            date: news.createdAt,
+            createdAt: news.createdAt,
             description: news.description,
             url: news.url
           };
@@ -163,6 +162,56 @@ export class NewController {
           messages: messages
         };
         resolve(result);
+      }
+    });
+  }
+
+  @httpGet('/:url')
+  public detailNew(req: Request): Promise<IRes<any>> {
+    return new Promise<IRes<any>>(async (resolve) => {
+      try {
+        const url = req.params.url;
+
+        if (!url || url.length === 0) {
+          const result: IRes<any> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.INVALID_URL]
+          };
+          return resolve(result);
+        }
+
+        const news = await NewModel.findOne({url: url});
+        if (!news) {
+          const result: IRes<any> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.New.NOT_FOUND]
+          };
+          return resolve(result);
+        }
+
+        const data = {
+          title: news.title,
+          content: news.content,
+          image: news.image,
+          url: news.url,
+          description: news.description,
+          createdAt: news.createdAt
+        };
+
+        return resolve({
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: data
+        });
+      } catch (e) {
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+        const result: IRes<any> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages
+        };
+        return resolve(result);
       }
     });
   }

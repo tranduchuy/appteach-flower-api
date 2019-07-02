@@ -1,6 +1,7 @@
 export namespace ResponseMessages {
   export const SUCCESS = 'Thành công';
   export const INVALID_ID = 'ID không hợp lệ';
+  export const INVALID_URL = 'URL không hợp lệ';
   export namespace User {
     export const USER_NOT_FOUND = 'Tài khoản không tồn tại';
     export const RESEND_CONFIRM_EMAIL = 'Hệ thống đã gửi lại email xác nhận tài khoản. Vui lòng kiểm tra email';
