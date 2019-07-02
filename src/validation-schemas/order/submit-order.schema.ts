@@ -4,7 +4,7 @@ const SubmitOrderValidationSchema = Joi.object().keys({
     address: Joi.string().required(),
     deliveryTime: Joi.date().required(),
     expectedDeliveryTime: Joi.string(),
-    note: Joi.string(),
+    note: Joi.string().allow('', null),
     contentOrder: Joi.string().allow('', null)
   }
 );

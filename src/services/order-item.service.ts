@@ -35,7 +35,8 @@ export class OrderItemService {
   };
 
   findOrderItemByOrderId = async (orderId: string) => {
-    return await OrderItemModel.find({order: orderId});
+    return await OrderItemModel.find({order: orderId})
+      .populate('product');
   };
 
   findPendingOrderItems = async (orderId: string): Promise<Array<any>> => {

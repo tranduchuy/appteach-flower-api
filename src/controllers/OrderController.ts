@@ -28,6 +28,8 @@ import addOneProductToCart from '../validation-schemas/order/add-one-product-to-
 import addManyProductsToCart from '../validation-schemas/order/add-many-products-to-cart.schema';
 import SubmitNoLoginOrderValidationSchema from '../validation-schemas/order/submit-no-login-order.schema';
 import { OrderWorkerService } from '../services/order-worker.service';
+import GetNoLoginOrderShippingCostValidationSchema
+  from '../validation-schemas/order/get-no-login-order-shipping-cost.schema';
 
 // const console = process['console'];
 
@@ -617,8 +619,8 @@ export class OrderController {
           return resolve(result);
         }
 
-        const {orderId, addressId} = request.body;
-        const order = await this.orderService.findOrderById(orderId);
+        const {addressId} = request.body;
+        const order = await this.orderService.findPendingOrder(request.user._id);
         if (!order) {
           const result = {
             status: HttpStatus.NOT_FOUND,
@@ -640,26 +642,114 @@ export class OrderController {
         }
 
         // get orderItem by order
-        let orderItems = await this.orderItemService.findOrderItemByOrderId(orderId);
+        const orderItems: any = await this.orderItemService.findOrderItemByOrderId(order._id);
+        let shopIds = orderItems.map(item => item.product.shop.toString());
+        shopIds = _.uniq(shopIds);
+        let totalShippingCost = 0;
 
         //  calculate shipping cost for each orderItem
-        orderItems = await Promise.all(orderItems.map(async item => {
-          const shopAddress = await this.addressService.findDeliveryAddressByShopId(item.shop);
-          const shipping = await this.costService.calculateShippingCost(shopAddress._id, addressId);
-          item.shippingCost = shipping.shippingCost;
-          item.shippingDistance = shipping.shippingDistance;
-          return item;
-        }));
+        await Promise.all(shopIds.map(async shopId => {
+          const shopAddress = await this.addressService.findDeliveryAddressByShopId(shopId);
+          if (shopAddress) {
+            const shipping = await this.costService.calculateShippingCost(shopAddress._id, addressId);
 
+            totalShippingCost += shipping.shippingCost;
+          }
+        }));
 
         const result: IRes<any> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
-          data: orderItems
+          data: {
+            totalShippingCost
+          }
+        };
+
+        return resolve(result);
+      } catch (e) {
+        console.error(e);
+        const messages = Object.keys(e.errors || {}).map(key => {
+          return e.errors[key].message;
+        });
+
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: messages,
+          data: {}
+        };
+        return resolve(result);
+      }
+    });
+  }
+
+  @httpPost(OrderRoute.GetNoLoginOrderShippingCost)
+  public getNoLoginOrderShippingCost(request: Request, response: Response): Promise<IRes<any>> {
+    return new Promise<IRes<any>>(async (resolve, reject) => {
+      try {
+
+        const {error} = Joi.validate(request.body, GetNoLoginOrderShippingCostValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<any> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages,
+            data: {}
+          };
+          return resolve(result);
+        }
+
+        const {addressInfo, items} = request.body;
+        if (!items || items.length === 0) {
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Order.ORDER_EMPTY],
+            data: null
+          };
+
+          return resolve(result);
+        }
+
+        const productIds = items.map(item => {
+          return item.productId;
+        });
+
+        const products = await this.productService.findListProductByIds(productIds) as Product[];
+        const shopIds = products.map(p => p.shop.toString());
+
+        if (productIds.length > products.length) {
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
+            data: null
+          };
+
+          return resolve(result);
+        }
+
+        let totalShippingCost = 0;
+
+        //  calculate shipping cost for each orderItem
+        await Promise.all(shopIds.map(async (shopId: string) => {
+          const shopAddress = await this.addressService.findDeliveryAddressByShopId(shopId);
+          if (shopAddress) {
+            const shipping = await this.costService.calculateNoLoginOrderShippingCost(shopAddress._id, addressInfo);
+            totalShippingCost += shipping.shippingCost;
+          }
+        }));
+
+        const result: IRes<any> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: {
+            totalShippingCost
+          }
         };
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
+        const messages = Object.keys(e.errors || {}).map(key => {
           return e.errors[key].message;
         });
 

@@ -5,6 +5,7 @@ export enum OrderRoute {
     GetOrderItem = '/:orderId/item',
     GetPendingOrder = '/pending',
     GetOrderShippingCost = '/shipping-cost',
+    GetNoLoginOrderShippingCost = '/no-login-shipping-cost',
     GuestGetOrderDetail = '/guest-detail/:code',
 
     // UPDATE

@@ -504,7 +504,6 @@ export class ProductService {
     if (condition.sortBy) {
       const sortStage = {
         $sort: {
-          'updatedAt': -1
         }
       };
       sortStage.$sort[condition.sortBy] = condition.sortDirection === 'DESC' ? -1 : 1;
@@ -528,7 +527,6 @@ export class ProductService {
         ]
       }
     });
-
 
     return await ProductModel.aggregate(stages);
   }
