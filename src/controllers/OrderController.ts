@@ -717,7 +717,8 @@ export class OrderController {
         });
 
         const products = await this.productService.findListProductByIds(productIds) as Product[];
-        const shopIds = products.map(p => p.shop.toString());
+        let shopIds = products.map(p => p.shop.toString());
+        shopIds = _.uniq(shopIds);
 
         if (productIds.length > products.length) {
           const result = {
