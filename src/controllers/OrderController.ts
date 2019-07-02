@@ -717,8 +717,9 @@ export class OrderController {
         });
 
         const products = await this.productService.findListProductByIds(productIds) as Product[];
+        const shopIds = products.map(p => p.shop.toString());
 
-        if (productIds.length < products.length) {
+        if (productIds.length > products.length) {
           const result = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
@@ -728,41 +729,27 @@ export class OrderController {
           return resolve(result);
         }
 
-        let orderItems: any = await Promise.all(items.map(async item => {
-          const product = products.find(product => {
-            return item.productId.toString() === product['_id'].toString();
-          });
-          item.shop = product.shop;
-          return item;
-        }));
-
         let totalShippingCost = 0;
 
         //  calculate shipping cost for each orderItem
-        orderItems = await Promise.all(orderItems.map(async item => {
-          const shopAddress = await this.addressService.findDeliveryAddressByShopId(item.shop);
-          const shipping = await this.costService.calculateNoLoginOrderShippingCost(shopAddress._id, addressInfo);
-          item.shippingCost = shipping.shippingCost;
-          item.shippingDistance = shipping.shippingDistance;
-          totalShippingCost += item.shippingCost;
-          return {
-            _id: item._id,
-            shippingCost: item.shippingCost,
-            shippingDistance: item.shippingDistance
-          };
+        await Promise.all(shopIds.map(async (shopId: string) => {
+          const shopAddress = await this.addressService.findDeliveryAddressByShopId(shopId);
+          if (shopAddress) {
+            const shipping = await this.costService.calculateNoLoginOrderShippingCost(shopAddress._id, addressInfo);
+            totalShippingCost += shipping.shippingCost;
+          }
         }));
 
         const result: IRes<any> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: {
-            orderItems,
             totalShippingCost
           }
         };
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
+        const messages = Object.keys(e.errors || {}).map(key => {
           return e.errors[key].message;
         });
 
