@@ -44,13 +44,13 @@ interface IResResendConfirmEmail {
 @controller('/user')
 export class UserController {
   constructor(
-      @inject(TYPES.ShopService) private shopService: ShopService,
-      @inject(TYPES.UserService) private userService: UserService,
-      @inject(TYPES.ImageService) private imageService: ImageService,
-      @inject(TYPES.MailerService) private mailerService: MailerService,
-      @inject(TYPES.FacebookGraphApiService) private facebookGraphApiService: FacebookGraphApiService,
-      @inject(TYPES.SmsService) private smsService: SmsService,
-      @inject(TYPES.AddressService) private addressService: AddressService
+    @inject(TYPES.ShopService) private shopService: ShopService,
+    @inject(TYPES.UserService) private userService: UserService,
+    @inject(TYPES.ImageService) private imageService: ImageService,
+    @inject(TYPES.MailerService) private mailerService: MailerService,
+    @inject(TYPES.FacebookGraphApiService) private facebookGraphApiService: FacebookGraphApiService,
+    @inject(TYPES.SmsService) private smsService: SmsService,
+    @inject(TYPES.AddressService) private addressService: AddressService
   ) {
   }
 
@@ -296,15 +296,9 @@ export class UserController {
           });
         }));
 
-        if (request.user && [UserRoles.USER_ROLE_MASTER, UserRoles.USER_ROLE_ADMIN].some(request.user.role)) {
-          newUser.status = Status.ACTIVE;
-          newUser.tokenEmailConfirm = '';
-          await newUser.save();
-        } else {
-          // Send email
-          // this.mailerService.sendConfirmEmail(email, name, newUser.tokenEmailConfirm);
-          this.smsService.sendSMS([phone], `Mã xác thục tài khoản: ${otpCode}`, '');
-        }
+        // Send email
+        // this.mailerService.sendConfirmEmail(email, name, newUser.tokenEmailConfirm);
+        this.smsService.sendSMS([phone], `Mã xác thục tài khoản: ${otpCode}`, '');
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -541,22 +535,22 @@ export class UserController {
         }
 
         const userInfoResponse = {
-              _id: user._id,
-              role: user.role,
-              email: user.email,
-              username: user.username,
-              name: user.name,
-              phone: user.phone,
-              address: user.address,
-              type: user.type,
-              status: user.status,
-              avatar: user.avatar,
-              gender: user.gender,
-              city: user.city,
-              district: user.district,
-              ward: user.ward,
-              registerBy: user.registerBy
-            }
+            _id: user._id,
+            role: user.role,
+            email: user.email,
+            username: user.username,
+            name: user.name,
+            phone: user.phone,
+            address: user.address,
+            type: user.type,
+            status: user.status,
+            avatar: user.avatar,
+            gender: user.gender,
+            city: user.city,
+            district: user.district,
+            ward: user.ward,
+            registerBy: user.registerBy
+          }
         ;
         const token = this.userService.generateToken({_id: user._id});
 
@@ -743,8 +737,7 @@ export class UserController {
         const result: IRes<{}> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.User.Register.RESEND_OTP],
-          data: {
-          }
+          data: {}
         };
 
         return resolve(result);
@@ -817,8 +810,7 @@ export class UserController {
         const result: IRes<{}> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.User.Register.RESEND_OTP],
-          data: {
-          }
+          data: {}
         };
 
         return resolve(result);
