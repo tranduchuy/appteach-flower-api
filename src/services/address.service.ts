@@ -175,6 +175,7 @@ export class AddressService {
       console.log(e);
     }
   };
+
   findAddressById = async (addressId, userId) => {
     try {
       return await AddressModel.findOne({
@@ -185,16 +186,14 @@ export class AddressService {
       console.log(e);
     }
   };
-  findDeliveryAddressByShopId = async (shopId) => {
-    try {
-      return await AddressModel.findOne({
-        shop: shopId
-      });
-    } catch (e) {
-      console.log(e);
-    }
 
+  findDeliveryAddressByShopId = async (shopId) => {
+    return await AddressModel.findOne({
+      shop: new mongoose.Types.ObjectId(shopId),
+      type: General.AddressTypes.SHOP_ADDRESS
+    });
   };
+
   findAddress = async (addressId): Promise<Address | null> => {
     try {
       return await AddressModel.findOne({
@@ -205,6 +204,7 @@ export class AddressService {
       return null;
     }
   };
+
   deleteAddress = async (id) => {
     try {
       return await AddressModel.findByIdAndRemove(id);

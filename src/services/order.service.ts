@@ -201,6 +201,7 @@ export class OrderService {
     const orderItems = await this.orderItemService.findOrderItemByOrderId(orderId);
 
     //  calculate shipping cost for each orderItem
+    // TODO: re-calculate shipping cost. same shop only calculate one time
     await Promise.all(orderItems.map(async item => {
       const shopAddress = await this.addressService.findDeliveryAddressByShopId(item.shop);
       const shipping = await this.costService.calculateShippingCost(shopAddress._id, addressId);
