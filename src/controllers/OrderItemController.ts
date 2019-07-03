@@ -20,9 +20,9 @@ import { NotifyService } from '../services/notify.service';
 @controller(OrderItemRoute.Name)
 export class OrderItemController {
   constructor(
-      @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-      @inject(TYPES.ShopService) private shopService: ShopService,
-      @inject(TYPES.NotifyService) private notifyService: NotifyService
+    @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+    @inject(TYPES.ShopService) private shopService: ShopService,
+    @inject(TYPES.NotifyService) private notifyService: NotifyService
   ) {
   }
 
@@ -115,18 +115,10 @@ export class OrderItemController {
           return resolve(result);
         }
 
-        const id = request.params.id;
+        const {status, orderItemIds} = request.body;
 
-        if (!ObjectID.isValid(id)) {
-          const result = {
-            status: HttpStatus.BAD_REQUEST,
-            messages: [ResponseMessages.INVALID_ID]
-          };
-          return resolve(result);
-        }
-
-        const orderItem = await this.orderItemService.findOrderItemById(id);
-        if (!orderItem) {
+        const shop: any = await this.shopService.findShopOfUser(request.user._id);
+        if (!shop) {
           const result = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.OrderItem.ORDER_ITEM_NOT_FOUND]
@@ -134,8 +126,6 @@ export class OrderItemController {
 
           return resolve(result);
         }
-
-        const shop: any = await this.shopService.findShopOfUser(request.user._id);
 
         if (!shop) {
           const result = {
@@ -146,46 +136,42 @@ export class OrderItemController {
           return resolve(result);
         }
 
-        if (shop._id.toString() !== orderItem.shop.toString()) {
-          const result = {
-            status: HttpStatus.NOT_FOUND,
-            messages: [ResponseMessages.OrderItem.ORDER_ITEM_NOT_FOUND],
-          };
-          return resolve(result);
-        }
+        await Promise.all((orderItemIds || []).map(async orderItemId => {
+          const orderItem = await this.orderItemService.findOrderItemById(orderItemId);
 
-        const {status} = request.body;
+          if (shop._id.toString() !== orderItem.shop.toString()) {
+            throw new Error(ResponseMessages.OrderItem.ORDER_ITEM_NOT_FOUND);
+          }
 
-        if (orderItem.status === Status.ORDER_ITEM_NEW) {
-          const result = {
-            status: HttpStatus.BAD_REQUEST,
-            messages: [ResponseMessages.OrderItem.WRONG_STATUS_FLOW]
-          };
-          return resolve(result);
-        }
-        if (status <= orderItem.status) {
-          const result = {
-            status: HttpStatus.BAD_REQUEST,
-            messages: [ResponseMessages.OrderItem.WRONG_STATUS_FLOW]
-          };
-          return resolve(result);
-        }
+          if (orderItem.status === Status.ORDER_ITEM_NEW) {
+            throw new Error(ResponseMessages.OrderItem.WRONG_STATUS_FLOW);
+          }
 
+          if (status <= orderItem.status) {
+            throw new Error(ResponseMessages.OrderItem.WRONG_STATUS_FLOW);
+          }
 
-        await this.orderItemService.updateStatus(orderItem._id, status);
+          await this.orderItemService.updateStatus(orderItem._id, status);
+          await this.notifyService.notifyUpdateOrderItemStatusToUser(orderItem._id);
+        }));
+
         const result: IRes<Order> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: null
         };
 
-        await this.notifyService.notifyUpdateOrderItemStatusToUser(orderItem._id);
-
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e.message);
+        let messages = [];
+        if (e.errors) {
+          messages = Object.keys(e.errors).map(key => {
+            return e.errors[key].message;
+          });
+        } else {
+          messages = [e];
+        }
 
         const result: IRes<Order> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
