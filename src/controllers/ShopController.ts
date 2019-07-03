@@ -81,7 +81,7 @@ export class ShopController {
         return resolve(result);
       }
 
-      const {name, slug, images, availableShipCountry, availableShipAddresses, city, district, ward, address} = req.body;
+      const {name, slug, images, availableShipCountry, availableShipAddresses, longitude, latitude, address} = req.body;
       const duplicateShopSlug: any = await this.shopService.findShopBySlug(slug);
       if (duplicateShopSlug) {
         const result: IRes<IResRegisterShop> = {
@@ -95,7 +95,7 @@ export class ShopController {
       const shop: any = await this.shopService.createNewShop(req.user._id.toString(), name, slug, images, availableShipCountry);
 
       // create shop address
-      await this.addressService.createShopAddress(shop._id.toString(), city, district, ward || null, address);
+      await this.addressService.createShopAddress(shop._id.toString(), address, longitude, latitude);
 
       await Promise.all((availableShipAddresses || []).map(async (addressData: { city: string, district?: number }) => {
         await this.addressService.createPossibleDeliveryAddress({
@@ -208,7 +208,7 @@ export class ShopController {
   }
 
 
-  @httpGet('/check-shop-slug', TYPES.CheckTokenMiddleware)
+  @httpGet('/check-shop-slug')
   public checkShopSlug(req: Request): Promise<IRes<IResCheckValidSlug>> {
     return new Promise<IRes<IResCheckValidSlug>>(async (resolve) => {
       const {error} = Joi.validate(req.query, checkShopSlugSchema);

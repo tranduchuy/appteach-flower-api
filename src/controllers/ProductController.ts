@@ -386,10 +386,9 @@ export class ProductController {
             entries: [newProduct]
           }
         };
-
-
         return resolve(result);
       } catch (e) {
+        console.log(e);
         const messages = Object.keys(e.errors).map(key => {
           return e.errors[key].message;
         });
