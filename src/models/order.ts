@@ -54,6 +54,9 @@ export class Order extends Typegoose {
   total: number;
 
   @prop()
+  totalShippingCost: number;
+
+  @prop()
   code: string;
 
   @prop({default: null})
