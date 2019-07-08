@@ -147,9 +147,6 @@ export class OrderItemService {
       '$group': {
         _id: '$order._id',
         count: {$sum: 1},
-        total: {
-          $sum: '$total'
-        },
         order: {$push: '$order'},
         orderItems: {
           $push: {
@@ -184,6 +181,8 @@ export class OrderItemService {
           'order.paidAt': 1,
           'order.code': 1,
           'order.status': 1,
+          'order.totalShippingCost': 1,
+          'order.total': 1,
           'order.deliveryTime': 1,
           'order.buyerInfo': 1,
           'order.submitAt': 1,
@@ -191,9 +190,25 @@ export class OrderItemService {
           'user.phone': 1,
           'user.name': 1,
           'address': 1,
-          'total': 1
+          'totalCost': {'$add': ['$order.totalShippingCost', '$order.total']}
         }
-      },
+      }
+    ]);
+
+    if (queryCondition.sb) {
+      stages.push({
+        $sort: {
+          [queryCondition.sb]: queryCondition.sd === 'ASC' ? 1 : -1
+        }
+      });
+    } else {
+      stages.push({
+        $sort: {
+          'order.submitAt': -1
+        }
+      });
+    }
+    stages.push(
       {
         $facet: {
           entries: [
@@ -204,22 +219,7 @@ export class OrderItemService {
             {$group: {_id: null, totalItems: {$sum: 1}}},
           ],
         }
-      }
-    ]);
-
-    // if (queryCondition.sb) {
-    //   stages.push({
-    //     $sort: {
-    //       [queryCondition.sb]: queryCondition.sd === 'ASC' ? 1 : -1
-    //     }
-    //   });
-    // } else {
-    //   stages.push({
-    //     $sort: {
-    //       createdAt: -1
-    //     }
-    //   });
-    // }
+      });
 
     return stages;
   }

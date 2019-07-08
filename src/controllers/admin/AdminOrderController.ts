@@ -53,14 +53,14 @@ export class AdminOrderController {
           return resolve(result);
         }
 
-        const {code, limit, page, status, sb, sd} = req.query;
+        const {code, limit, page, status, sortBy, sortDirection} = req.query;
         const queryCondition = {
           code: code ? code : null,
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
           status: status ? parseInt(status) : null,
-          sb: sb,
-          sd: sd,
+          sb: sortBy,
+          sd: sortDirection,
         };
         const stages: any[] = this.orderItemService.buildStageGetListOrderItemAdmin(queryCondition);
 
