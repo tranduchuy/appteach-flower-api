@@ -19,12 +19,6 @@ import { Status } from '../../constant/status';
 import { SmsService } from '../../services/sms.service';
 import { MailerService } from '../../services/mailer.service';
 
-interface IResProducts {
-  meta: {
-    totalItems: number
-  };
-  orders: Order[];
-}
 
 @controller('/admin/order')
 export class AdminOrderController {
@@ -108,18 +102,18 @@ export class AdminOrderController {
           }
         };
 
-        resolve(response);
+        return resolve(response);
       } catch (e) {
         console.error(e);
-        const messages = Object.keys(e.errors || {}).map(key => {
-          return e.errors[key].message;
-        });
-
-        const result: IRes<IResProducts> = {
+        const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)],
+          data: {
+            meta: {},
+            entries: []
+          }
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -192,13 +186,14 @@ export class AdminOrderController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
-        const result: IRes<Order> = {
+        console.error(e);
+        const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)],
+          data: {
+            meta: {},
+            entries: []
+          }
         };
         return resolve(result);
       }
