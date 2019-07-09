@@ -88,7 +88,7 @@ export class ProductController {
           messages: [ResponseMessages.SUCCESS],
           data: product
         };
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         console.error(e);
         const result: IRes<{}> = {
