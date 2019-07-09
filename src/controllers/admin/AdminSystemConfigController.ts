@@ -75,12 +75,10 @@ export class AdminSystemConfigController {
       }
 
       catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-        const result = {
+        console.error(e);
+        const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -127,12 +125,10 @@ export class AdminSystemConfigController {
       }
 
       catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-        const result = {
+        console.error(e);
+        const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -179,12 +175,10 @@ export class AdminSystemConfigController {
       }
 
       catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-        const result = {
+        console.error(e);
+        const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -229,12 +223,10 @@ export class AdminSystemConfigController {
       }
 
       catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-        const result = {
+        console.error(e);
+        const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
