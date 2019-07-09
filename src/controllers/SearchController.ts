@@ -44,130 +44,148 @@ export class SearchController {
   @httpGet('/')
   public search(req: Request): Promise<IRes<ISearchResponse>> {
     return new Promise<IRes<ISearchResponse>>(async (resolve) => {
-      const {error} = Joi.validate(req.query, searchSchema);
-      if (error) {
-        const messages = error.details.map(detail => {
-          return detail.message;
-        });
+      try {
+        const {error} = Joi.validate(req.query, searchSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
 
-        const result: IRes<ISearchResponse> = {
-          status: HttpStatus.BAD_REQUEST,
-          messages: messages
+          const result: IRes<ISearchResponse> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages
+          };
+
+          return resolve(result);
+        }
+
+        const url = req.query.url || '';
+        if (!url) {
+          const result: IRes<ISearchResponse> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: ['Url is required']
+          };
+
+          return resolve(result);
+        }
+
+        const eles = Url.parse(req.query.url).pathname.split('/');
+        if (eles.length < 2) {
+          const result: IRes<ISearchResponse> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: ['Url is wrong']
+          };
+
+          return resolve(result);
+        }
+
+        const resultSuccess: IRes<ISearchResponse> = {
+          status: HttpStatus.OK,
+          messages: ['Success'],
+          data: {}
         };
 
-        return resolve(result);
-      }
+        if (SLUG_CAT === eles[0]) {
+          // case search list
+          const result = await this.searchService.searchListByUrlParam({
+            url: eles[1],
+            limit: parseInt((req.query.limit || 10).toString()),
+            page: parseInt((req.query.page || 1).toString()),
+            sortBy: req.query.sb || '',
+            sortDirection: req.query.sd || ''
+          });
+          resultSuccess.data.isList = true;
+          resultSuccess.data.products = result.products;
+          resultSuccess.data.totalItems = result.total;
+          resultSuccess.data.searchQuery = await this.searchService.getSearchQueryFromUrlParam(eles[1]);
+        } else if (SLUG_DETAIL === eles[0]) {
+          // case detail product
+          resultSuccess.data.isDetail = true;
+          resultSuccess.data.product = await this.productService.getProductDetail(eles[1]);
+          resultSuccess.data.searchQuery = this.productService.getSearchQueryFromProduct(resultSuccess.data.product);
+          resultSuccess.data.relatedProducts = await this.productService.getRelatedProducts(resultSuccess.data.product);
+          resultSuccess.data.shopInfo = await this.shopService.findShopById(resultSuccess.data.product.shop.toString());
+          delete resultSuccess.data.product.shop;
+          // update product view
+          await this.productService.updateViews(eles[1]);
+        } else if (SLUG_TAG === eles[0]) {
+          const result = await this.searchService.searchListByTag({
+            tagSlug: eles[1],
+            limit: parseInt((req.query.limit || 10).toString()),
+            page: parseInt((req.query.page || 1).toString()),
+            sortBy: req.query.sb || '',
+            sortDirection: req.query.sd || ''
+          });
+          resultSuccess.data.isList = true;
+          resultSuccess.data.products = result.products;
+          resultSuccess.data.totalItems = result.total;
+          resultSuccess.data.searchQuery = result.searchQuery;
+        }
 
-      const url = req.query.url || '';
-      if (!url) {
-        const result: IRes<ISearchResponse> = {
-          status: HttpStatus.BAD_REQUEST,
-          messages: ['Url is required']
+        return resolve(resultSuccess);
+      } catch (e) {
+        console.error(e);
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: [JSON.stringify(e)],
         };
-
         return resolve(result);
       }
-
-      const eles = Url.parse(req.query.url).pathname.split('/');
-      if (eles.length < 2) {
-        const result: IRes<ISearchResponse> = {
-          status: HttpStatus.BAD_REQUEST,
-          messages: ['Url is wrong']
-        };
-
-        return resolve(result);
-      }
-
-      const resultSuccess: IRes<ISearchResponse> = {
-        status: HttpStatus.OK,
-        messages: ['Success'],
-        data: {}
-      };
-
-      if (SLUG_CAT === eles[0]) {
-        // case search list
-        const result = await this.searchService.searchListByUrlParam({
-          url: eles[1],
-          limit: parseInt((req.query.limit || 10).toString()),
-          page: parseInt((req.query.page || 1).toString()),
-          sortBy: req.query.sb || '',
-          sortDirection: req.query.sd || ''
-        });
-        resultSuccess.data.isList = true;
-        resultSuccess.data.products = result.products;
-        resultSuccess.data.totalItems = result.total;
-        resultSuccess.data.searchQuery = await this.searchService.getSearchQueryFromUrlParam(eles[1]);
-      } else if (SLUG_DETAIL === eles[0]) {
-        // case detail product
-        resultSuccess.data.isDetail = true;
-        resultSuccess.data.product = await this.productService.getProductDetail(eles[1]);
-        resultSuccess.data.searchQuery = this.productService.getSearchQueryFromProduct(resultSuccess.data.product);
-        resultSuccess.data.relatedProducts = await this.productService.getRelatedProducts(resultSuccess.data.product);
-        resultSuccess.data.shopInfo = await this.shopService.findShopById(resultSuccess.data.product.shop.toString());
-        delete resultSuccess.data.product.shop;
-        // update product view
-        await this.productService.updateViews(eles[1]);
-      } else if (SLUG_TAG === eles[0]) {
-        const result = await this.searchService.searchListByTag({
-          tagSlug: eles[1],
-          limit: parseInt((req.query.limit || 10).toString()),
-          page: parseInt((req.query.page || 1).toString()),
-          sortBy: req.query.sb || '',
-          sortDirection: req.query.sd || ''
-        });
-        resultSuccess.data.isList = true;
-        resultSuccess.data.products = result.products;
-        resultSuccess.data.totalItems = result.total;
-        resultSuccess.data.searchQuery = result.searchQuery;
-      }
-
-      return resolve(resultSuccess);
     });
   }
 
   @httpPost('/box')
   public box(req: Request): Promise<IRes<ISearchBoxResponse>> {
     return new Promise<IRes<ISearchBoxResponse>>(async (resolve) => {
-      const {error} = Joi.validate(req.body, boxSchema);
-      if (error) {
-        const messages = error.details.map(detail => {
-          return detail.message;
+      try {
+        const {error} = Joi.validate(req.body, boxSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<ISearchBoxResponse> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages
+          };
+
+          return resolve(result);
+        }
+
+        const queryFields = [
+          'topic', 'specialOccasion', 'floret', 'design', 'color', 'priceRange', 'city', 'district'
+        ];
+
+        const queryObj: any = {};
+
+        queryFields.forEach((field: string) => {
+          if (req.body[field] !== null && req.body[field] !== undefined) {
+            queryObj[field] = req.body[field];
+          } else {
+            queryObj[field] = null;
+          }
         });
 
-        const result: IRes<ISearchBoxResponse> = {
-          status: HttpStatus.BAD_REQUEST,
-          messages: messages
-        };
+        let urlParamInstance: UrlParam = await this.searchService.searchUrlParamByQuery(queryObj);
+        if (!urlParamInstance) {
+          urlParamInstance = await this.searchService.createUrlParamByQuery(queryObj);
+        }
 
+        return resolve({
+          status: HttpStatus.OK,
+          messages: ['Success'],
+          data: {
+            url: urlParamInstance.customUrl || urlParamInstance.url
+          }
+        });
+      } catch (e) {
+        console.error(e);
+        const result: IRes<ISearchBoxResponse> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: [JSON.stringify(e)],
+        };
         return resolve(result);
       }
-
-      const queryFields = [
-        'topic', 'specialOccasion', 'floret', 'design', 'color', 'priceRange', 'city', 'district'
-      ];
-
-      const queryObj: any = {};
-
-      queryFields.forEach((field: string) => {
-        if (req.body[field] !== null && req.body[field] !== undefined) {
-          queryObj[field] = req.body[field];
-        } else {
-          queryObj[field] = null;
-        }
-      });
-
-      let urlParamInstance: UrlParam = await this.searchService.searchUrlParamByQuery(queryObj);
-      if (!urlParamInstance) {
-        urlParamInstance = await this.searchService.createUrlParamByQuery(queryObj);
-      }
-
-      return resolve({
-        status: HttpStatus.OK,
-        messages: ['Success'],
-        data: {
-          url: urlParamInstance.customUrl || urlParamInstance.url
-        }
-      });
     });
   }
 }
