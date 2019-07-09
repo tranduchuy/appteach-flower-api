@@ -53,15 +53,18 @@ export class AdminStatisticController {
           }
         };
 
-        return resolve(response);
+        resolve(response);
       }
       catch (e) {
-        console.error(e);
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
         const result: IRes<IResStatisticDashboard> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)]
+          messages: messages
         };
-        return resolve(result);
+        resolve(result);
       }
     });
   }
@@ -188,10 +191,13 @@ export class AdminStatisticController {
 
         return resolve(response);
       } catch (e) {
-        console.error(e);
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
         const result: IRes<IResStatisticDashboard> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)]
+          messages: messages
         };
         return resolve(result);
       }
@@ -290,10 +296,13 @@ export class AdminStatisticController {
 
         return resolve(response);
       } catch (e) {
-        console.error(e);
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
         const result: IRes<IResStatisticDashboard> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)]
+          messages: messages
         };
         return resolve(result);
       }
@@ -354,10 +363,13 @@ export class AdminStatisticController {
 
         return resolve(response);
       } catch (e) {
-        console.error(e);
+        const messages = Object.keys(e.errors).map(key => {
+          return e.errors[key].message;
+        });
+
         const result: IRes<IResStatisticDashboard> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)]
+          messages: messages
         };
         return resolve(result);
       }
