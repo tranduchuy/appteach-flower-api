@@ -94,38 +94,47 @@ export class OrderController {
   @httpGet(OrderRoute.GetOrder, TYPES.CheckTokenMiddleware)
   public getOrder(request: Request, response: Response): Promise<IRes<Order>> {
     return new Promise<IRes<Order>>(async (resolve, reject) => {
-      const user = request.user;
-      const status = request.query.status;
+      try {
+        const user = request.user;
+        const status = request.query.status;
 
-      let orders = null;
-      if (status) orders = await this.orderService.findOrders(user.id, status);
-      else orders = await this.orderService.findOrders(user.id, null);
+        let orders = null;
+        if (status) orders = await this.orderService.findOrders(user.id, status);
+        else orders = await this.orderService.findOrders(user.id, null);
 
-      if (!orders) {
-        const result = {
-          status: HttpStatus.NOT_FOUND,
-          messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
-          data: null
+        if (!orders) {
+          const result = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Order.ORDER_NOT_FOUND],
+            data: null
+          };
+
+          return resolve(result);
+        }
+
+        orders.forEach(order => {
+          order.productNames = order.orderItems.map(oi => {
+            return oi.product.title;
+          });
+
+          delete order.orderItems;
+        });
+
+        const result: IRes<Order> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: orders
         };
 
         return resolve(result);
+      } catch (e) {
+        console.error(e);
+        const result: IRes<Order> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: [JSON.stringify(e)]
+        };
+        return resolve(result);
       }
-
-      orders.forEach(order => {
-        order.productNames = order.orderItems.map(oi => {
-          return oi.product.title;
-        });
-
-        delete order.orderItems;
-      });
-
-      const result: IRes<Order> = {
-        status: HttpStatus.OK,
-        messages: [ResponseMessages.SUCCESS],
-        data: orders
-      };
-
-      return resolve(result);
     });
   }
 
@@ -561,14 +570,9 @@ export class OrderController {
         return resolve(result);
       } catch (e) {
         console.error(e);
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -670,14 +674,9 @@ export class OrderController {
         return resolve(result);
       } catch (e) {
         console.error(e);
-        const messages = Object.keys(e.errors || {}).map(key => {
-          return e.errors[key].message;
-        });
-
-        const result: IRes<{}> = {
+        const result: IRes<Order> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -752,14 +751,10 @@ export class OrderController {
         };
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors || {}).map(key => {
-          return e.errors[key].message;
-        });
-
-        const result: IRes<{}> = {
+        console.error(e);
+        const result: IRes<Order> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -769,61 +764,70 @@ export class OrderController {
   @httpGet(OrderRoute.GuestGetOrderDetail)
   public guestCheckOrderDetail(req: Request): Promise<IRes<IResGuestDetailOrder>> {
     return new Promise<IRes<IResGuestDetailOrder>>(async resolve => {
-      const orderCode = req.params.code;
-      const order = await this.orderService.findOrderByCode(orderCode);
+      try {
+        const orderCode = req.params.code;
+        const order = await this.orderService.findOrderByCode(orderCode);
 
-      // not found order
-      if (!order) {
+        // not found order
+        if (!order) {
+          return resolve({
+            messages: [
+              ResponseMessages.Order.ORDER_NOT_FOUND
+            ],
+            status: HttpStatus.NOT_FOUND
+          });
+        }
+
+        const orderItems: any[] = await this.orderService.findItemInOrder(order._id.toString());
+        const address: Address | null = await this.addressService.findAddress(order.address);
+
+        const result: IResGuestDetailOrder = {
+          addressInfo: {
+            address: address.addressText,
+            name: address.name,
+            phone: address.phone
+          },
+          order: {
+            code: order.code,
+            createdAt: order.createdAt,
+            deliveryTime: order.deliveryTime,
+            expectedDeliveryTime: order.expectedDeliveryTime,
+            note: order.note,
+            paidAt: order.paidAt,
+            status: order.status,
+            total: order.total
+          },
+          orderItems: orderItems.map(o => {
+            return {
+              product: {
+                images: o.product.images,
+                title: o.product.title,
+                slug: o.product.slug
+              },
+              quantity: o.quantity,
+              status: o.status,
+              deliveryAt: o.deliveryAt,
+              price: o.price,
+              shop: {
+                name: o.shop.name
+              }
+            };
+          })
+        };
+
         return resolve({
-          messages: [
-            ResponseMessages.Order.ORDER_NOT_FOUND
-          ],
-          status: HttpStatus.NOT_FOUND
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: result
         });
+      } catch (e) {
+        console.error(e);
+        const result: IRes<IResGuestDetailOrder> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: [JSON.stringify(e)]
+        };
+        return resolve(result);
       }
-
-      const orderItems: any[] = await this.orderService.findItemInOrder(order._id.toString());
-      const address: Address | null = await this.addressService.findAddress(order.address);
-
-      const result: IResGuestDetailOrder = {
-        addressInfo: {
-          address: address.addressText,
-          name: address.name,
-          phone: address.phone
-        },
-        order: {
-          code: order.code,
-          createdAt: order.createdAt,
-          deliveryTime: order.deliveryTime,
-          expectedDeliveryTime: order.expectedDeliveryTime,
-          note: order.note,
-          paidAt: order.paidAt,
-          status: order.status,
-          total: order.total
-        },
-        orderItems: orderItems.map(o => {
-          return {
-            product: {
-              images: o.product.images,
-              title: o.product.title,
-              slug: o.product.slug
-            },
-            quantity: o.quantity,
-            status: o.status,
-            deliveryAt: o.deliveryAt,
-            price: o.price,
-            shop: {
-              name: o.shop.name
-            }
-          };
-        })
-      };
-
-      return resolve({
-        status: HttpStatus.OK,
-        messages: [ResponseMessages.SUCCESS],
-        data: result
-      });
     });
   }
 }
