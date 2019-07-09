@@ -5,11 +5,10 @@ import { controller, httpGet, httpPut } from 'inversify-express-utils';
 import { ResponseMessages } from '../../constant/messages';
 import TYPES from '../../constant/types';
 import { IRes } from '../../interfaces/i-res';
-import OrderModel, { Order } from '../../models/order';
+import { Order } from '../../models/order';
 import UserModel from '../../models/user';
 import OrderItemModel from '../../models/order-item';
 import Joi from '@hapi/joi';
-import { UserService } from '../../services/user.service';
 import ListOrderSchema from '../../validation-schemas/order/admin-list-order.schema';
 import { OrderService } from '../../services/order.service';
 import { ObjectID } from 'bson';
@@ -18,6 +17,7 @@ import { NotifyService } from '../../services/notify.service';
 import { Status } from '../../constant/status';
 import { SmsService } from '../../services/sms.service';
 import { MailerService } from '../../services/mailer.service';
+import { OrderItemService } from '../../services/order-item.service';
 
 interface IResProducts {
   meta: {
@@ -29,8 +29,8 @@ interface IResProducts {
 @controller('/admin/order')
 export class AdminOrderController {
   constructor(@inject(TYPES.OrderService) private orderService: OrderService,
+              @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
               @inject(TYPES.SmsService) private smsService: SmsService,
-              @inject(TYPES.UserService) private userService: UserService,
               @inject(TYPES.MailerService) private mailerService: MailerService,
               @inject(TYPES.NotifyService) private notifyService: NotifyService) {
 
@@ -53,46 +53,18 @@ export class AdminOrderController {
           return resolve(result);
         }
 
-        const {code, limit, page, status, sb, sd} = req.query;
+        const {code, limit, page, status, sortBy, sortDirection} = req.query;
         const queryCondition = {
           code: code ? code : null,
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
           status: status ? parseInt(status) : null,
-          sb: sb,
-          sd: sd,
+          sb: sortBy,
+          sd: sortDirection,
         };
-        const stages: any[] = this.orderService.buildStageGetListOrderAdmin(queryCondition);
+        const stages: any[] = this.orderItemService.buildStageGetListOrderItemAdmin(queryCondition);
 
-
-        const result: any = await OrderModel.aggregate(stages);
-
-        const orders = await Promise.all(result[0].entries.map(async order => {
-          const orderItems = await OrderItemModel.find({
-            order: order._id
-          });
-
-          const numberOfProducts = orderItems.reduce((accumulator, item) => {
-            return accumulator + item.quantity;
-          }, 0);
-
-          order.numberOfProducts = numberOfProducts;
-          order.address = order.addressInfo;
-
-          if (order.fromUser) {
-            const user = await this.userService.findById(order.fromUser);
-            order.buyerInfo = {
-              email: user.email,
-              name: user.name,
-              username: user.username,
-              phone: user.phone
-            };
-          }
-
-          delete order.userInfo;
-          delete order.addressInfo;
-          return order;
-        }));
+        const result: any = await OrderItemModel.aggregate(stages);
 
         const response: IRes<any> = {
           status: HttpStatus.OK,
@@ -104,7 +76,7 @@ export class AdminOrderController {
               limit: queryCondition.limit,
               page: queryCondition.page,
             },
-            orders: orders
+            orders: result[0].entries
           }
         };
 

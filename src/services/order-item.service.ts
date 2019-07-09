@@ -57,6 +57,173 @@ export class OrderItemService {
     }
   };
 
+  buildStageGetListOrderItemAdmin(queryCondition): any[] {
+    let stages = [];
+    const matchStage: any = {};
+
+    stages.push({
+      $lookup: {
+        from: 'orders',
+        localField: 'order',
+        foreignField: '_id',
+        as: 'order'
+      }
+    });
+
+    stages.push({$unwind: {path: '$order'}});
+
+    if (queryCondition.code) {
+      matchStage['order.code'] = queryCondition.code;
+    }
+
+    if (queryCondition.status) {
+      matchStage['order.status'] = queryCondition.status;
+    } else {
+      matchStage['order.status'] = {
+        $ne: Status.ORDER_PENDING
+      };
+    }
+
+
+    if (queryCondition.startDate) {
+      matchStage.createdAt = {
+        $gte: new Date(queryCondition.startDate)
+      };
+    }
+
+    if (queryCondition.endDate) {
+      matchStage.createdAt = matchStage.createdAt || {};
+      matchStage.createdAt['$lt'] = new Date(queryCondition.endDate);
+    }
+
+    if (Object.keys(matchStage).length > 0) {
+      stages.push({$match: matchStage});
+    }
+
+    stages.push({
+      $lookup: {
+        from: 'products',
+        localField: 'product',
+        foreignField: '_id',
+        as: 'product'
+      }
+    });
+
+    stages.push({$unwind: {path: '$product'}});
+
+    stages.push({
+      '$project': {
+        '_id': 1,
+        'order': 1,
+        'product._id': 1,
+        'product.slug': 1,
+        'product.images': 1,
+        'product.saleOff': 1,
+        'product.originalPrice': 1,
+        'product.title': 1,
+        'product.shop': 1,
+        'total': 1,
+        'status': 1,
+        'shippingCost': 1,
+        'shippingDistance': 1,
+        'quantity': 1,
+        'price': 1,
+        'createdAt': 1
+      }
+    });
+
+    stages.push({
+      $lookup: {
+        from: 'shops',
+        localField: 'product.shop',
+        foreignField: '_id',
+        as: 'product.shop'
+      }
+    });
+
+    stages.push({$unwind: {path: '$product.shop'}});
+
+    stages.push({
+      '$group': {
+        _id: '$order._id',
+        count: {$sum: 1},
+        order: {$push: '$order'},
+        orderItems: {
+          $push: {
+            quantity: '$quantity',
+            price: '$price',
+            _id: '$_id',
+            product: '$product',
+            shippingCost: '$shippingCost',
+            status: '$status',
+            createdAt: '$createdAt'
+          }
+        }
+      }
+    });
+
+    stages = stages.concat([
+      {'$unwind': {'path': '$order'}},
+      {'$lookup': {'from': 'users', 'localField': 'order.fromUser', 'foreignField': '_id', 'as': 'user'}},
+      {
+        '$unwind': {
+          'path': '$user',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {'$lookup': {'from': 'addresses', 'localField': 'order.address', 'foreignField': '_id', 'as': 'address'}},
+      {'$unwind': {'path': '$address'}},
+      {
+        '$project': {
+          '_id': 1,
+          'count': 1,
+          'orderItems': 1,
+          'order.paidAt': 1,
+          'order.code': 1,
+          'order.status': 1,
+          'order.totalShippingCost': 1,
+          'order.total': 1,
+          'order.deliveryTime': 1,
+          'order.buyerInfo': 1,
+          'order.submitAt': 1,
+          'user.email': 1,
+          'user.phone': 1,
+          'user.name': 1,
+          'address': 1,
+          'totalCost': {'$add': ['$order.totalShippingCost', '$order.total']}
+        }
+      }
+    ]);
+
+    if (queryCondition.sb) {
+      stages.push({
+        $sort: {
+          [queryCondition.sb]: queryCondition.sd === 'ASC' ? 1 : -1
+        }
+      });
+    } else {
+      stages.push({
+        $sort: {
+          'order.submitAt': -1
+        }
+      });
+    }
+    stages.push(
+      {
+        $facet: {
+          entries: [
+            {$skip: (queryCondition.page - 1) * queryCondition.limit},
+            {$limit: queryCondition.limit}
+          ],
+          meta: [
+            {$group: {_id: null, totalItems: {$sum: 1}}},
+          ],
+        }
+      });
+
+    return stages;
+  }
+
   buildStageGetListOrderItem(queryCondition): any[] {
     let stages = [];
     const matchStage: any = {};
@@ -194,4 +361,5 @@ export class OrderItemService {
 
     return stages;
   }
+
 }
