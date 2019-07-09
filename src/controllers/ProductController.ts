@@ -41,17 +41,26 @@ export class ProductController {
   @httpGet('/', TYPES.CheckTokenMiddleware)
   public getProducts(request: Request, response: Response): Promise<IRes<Product[]>> {
     return new Promise<IRes<Product[]>>(async (resolve, reject) => {
-      const user = request.user;
-      const shop: any = await this.shopService.findShopOfUser(user._id.toString());
-      const result: IRes<Product[]> = {
-        status: 1,
-        messages: [ResponseMessages.SUCCESS],
-        data: await ProductModel.find({
-          shop: shop._id
-        }).limit(20)
-      };
+      try {
+        const user = request.user;
+        const shop: any = await this.shopService.findShopOfUser(user._id.toString());
+        const result: IRes<Product[]> = {
+          status: 1,
+          messages: [ResponseMessages.SUCCESS],
+          data: await ProductModel.find({
+            shop: shop._id
+          }).limit(20)
+        };
 
-      resolve(result);
+        return resolve(result);
+      } catch (e) {
+        console.error(e);
+        const result: IRes<Product[]> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: [JSON.stringify(e)],
+        };
+        return resolve(result);
+      }
     });
   }
 
@@ -79,15 +88,14 @@ export class ProductController {
           messages: [ResponseMessages.SUCCESS],
           data: product
         };
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)]
+          messages: [JSON.stringify(e)],
         };
-
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -114,16 +122,11 @@ export class ProductController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)],
         };
-
         return resolve(result);
       }
     });
@@ -165,16 +168,11 @@ export class ProductController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)],
         };
-
         return resolve(result);
       }
     });
@@ -226,14 +224,10 @@ export class ProductController {
 
         return resolve(resultSuccess);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)],
         };
         return resolve(result);
       }
@@ -286,14 +280,10 @@ export class ProductController {
 
         return resolve(resultSuccess);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)],
         };
         return resolve(result);
       }
@@ -388,15 +378,10 @@ export class ProductController {
         };
         return resolve(result);
       } catch (e) {
-        console.log(e);
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)],
         };
         return resolve(result);
       }
@@ -539,14 +524,10 @@ export class ProductController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)],
         };
         return resolve(result);
       }
@@ -614,16 +595,11 @@ export class ProductController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)],
         };
-
         return resolve(result);
       }
     });
