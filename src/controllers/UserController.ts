@@ -57,35 +57,30 @@ export class UserController {
   @httpGet('/info', TYPES.CheckTokenMiddleware)
   public getLoggedInInfo(request: Request): Promise<IRes<User>> {
     return new Promise<IRes<User>>((resolve => {
+      try {
+        const user: User = JSON.parse(JSON.stringify(<User>request.user));
+        delete user.passwordHash;
+        delete user.passwordSalt;
+        delete user.passwordReminderExpire;
+        delete user.passwordReminderToken;
 
-      const user: User = JSON.parse(JSON.stringify(<User>request.user));
-      delete user.passwordHash;
-      delete user.passwordSalt;
-      delete user.passwordReminderExpire;
-      delete user.passwordReminderToken;
+        const result: IRes<User> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.SUCCESS],
+          data: user
+        };
 
-      const result: IRes<User> = {
-        status: HttpStatus.OK,
-        messages: [ResponseMessages.SUCCESS],
-        data: user
-      };
+        return resolve(result);
 
-      resolve(result);
+      } catch (e) {
+        console.error(e);
+        const result: IRes<User> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: [JSON.stringify(e)]
+        };
+        return resolve(result);
+      }
     }));
-  }
-
-  @httpGet('/')
-  public getUsers(request: Request, response: Response): Promise<IRes<User[]>> {
-    return new Promise<IRes<User[]>>(async (resolve, reject) => {
-
-      const result: IRes<User[]> = {
-        status: HttpStatus.OK,
-        messages: [ResponseMessages.SUCCESS],
-        data: await UserModel.find()
-      };
-
-      resolve(result);
-    });
   }
 
   @httpPost('/register')
@@ -178,20 +173,14 @@ export class UserController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -309,20 +298,14 @@ export class UserController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -466,20 +449,14 @@ export class UserController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -565,17 +542,14 @@ export class UserController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -672,12 +646,11 @@ export class UserController {
 
         return resolve(result);
       } catch (e) {
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [e.errmsg],
-          data: {}
+          messages: [JSON.stringify(e)]
         };
-
         return resolve(result);
       }
     });
@@ -695,8 +668,7 @@ export class UserController {
 
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
-            messages: messages,
-            data: {}
+            messages: messages
           };
           return resolve(result);
         }
@@ -742,13 +714,10 @@ export class UserController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors || {}).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages || [e],
-          data: {}
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -815,13 +784,10 @@ export class UserController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors || {}).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages || [e],
-          data: {}
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -927,13 +893,10 @@ export class UserController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors || {}).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages || [e],
-          data: {}
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -975,13 +938,10 @@ export class UserController {
         return resolve(result);
 
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -1041,13 +1001,10 @@ export class UserController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -1115,13 +1072,10 @@ export class UserController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -1173,118 +1127,137 @@ export class UserController {
   @httpPost('/account-confirmation-by-code')
   public confirmAccountByOTPCode(req: Request): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async resolve => {
-      const {error} = Joi.validate(req.body, AccountConfirmationOTP);
-      if (error) {
-        const messages = error.details.map(detail => {
-          return detail.message;
-        });
+      try {
+        const {error} = Joi.validate(req.body, AccountConfirmationOTP);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
 
-        const result: IRes<IResResendConfirmEmail> = {
-          status: HttpStatus.BAD_REQUEST,
-          messages: messages
+          const result: IRes<IResResendConfirmEmail> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages
+          };
+          return resolve(result);
+        }
+
+        const {otp, phone} = req.body;
+        const user: any = await this.userService.findByPhone(phone);
+
+        if (!user) {
+          return resolve({
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.User.USER_NOT_FOUND]
+          });
+        }
+
+        if (user.otpCodeConfirmAccount !== otp.toString()) {
+          return resolve({
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.User.Register.WRONG_OTP]
+          });
+        }
+
+        user.status = Status.ACTIVE;
+        await user.save();
+
+
+        const userInfoResponse = {
+          _id: user.id,
+          role: user.role,
+          email: user.email,
+          username: user.username,
+          name: user.name,
+          phone: user.phone,
+          address: user.address,
+          type: user.type,
+          status: user.status,
+          avatar: user.avatar,
+          gender: user.gender,
+          city: user.city,
+          district: user.district,
+          ward: user.ward,
+          registerBy: user.registerBy,
+          facebookId: user.facebookId
+        };
+        const resToken = this.userService.generateToken({_id: user._id});
+
+        const result: IRes<{}> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.User.Confirm.CONFIRM_SUCCESS],
+          data: {
+            meta: {
+              token: resToken
+            },
+            entries: [userInfoResponse]
+          }
+        };
+        return resolve(result);
+      } catch (e) {
+        console.error(e);
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
-
-      const {otp, phone} = req.body;
-      const user: any = await this.userService.findByPhone(phone);
-
-      if (!user) {
-        return resolve({
-          status: HttpStatus.NOT_FOUND,
-          messages: [ResponseMessages.User.USER_NOT_FOUND]
-        });
-      }
-
-      if (user.otpCodeConfirmAccount !== otp.toString()) {
-        return resolve({
-          status: HttpStatus.NOT_FOUND,
-          messages: [ResponseMessages.User.Register.WRONG_OTP]
-        });
-      }
-
-      user.status = Status.ACTIVE;
-      await user.save();
-
-
-      const userInfoResponse = {
-        _id: user.id,
-        role: user.role,
-        email: user.email,
-        username: user.username,
-        name: user.name,
-        phone: user.phone,
-        address: user.address,
-        type: user.type,
-        status: user.status,
-        avatar: user.avatar,
-        gender: user.gender,
-        city: user.city,
-        district: user.district,
-        ward: user.ward,
-        registerBy: user.registerBy,
-        facebookId: user.facebookId
-      };
-      const resToken = this.userService.generateToken({_id: user._id});
-
-      const result: IRes<{}> = {
-        status: HttpStatus.OK,
-        messages: [ResponseMessages.User.Confirm.CONFIRM_SUCCESS],
-        data: {
-          meta: {
-            token: resToken
-          },
-          entries: [userInfoResponse]
-        }
-      };
-      return resolve(result);
     });
   }
 
   @httpPost('/resend-otp')
   public resendOTP(req: Request): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async resolve => {
-      const {error} = Joi.validate(req.body, ResendOTPSchema);
-      if (error) {
-        const messages = error.details.map(detail => {
-          return detail.message;
-        });
+      try {
+        const {error} = Joi.validate(req.body, ResendOTPSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
 
-        const result: IRes<IResResendConfirmEmail> = {
-          status: HttpStatus.BAD_REQUEST,
-          messages: messages
-        };
-        return resolve(result);
-      }
+          const result: IRes<IResResendConfirmEmail> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages
+          };
+          return resolve(result);
+        }
 
-      const user: any = await this.userService.findByPhone(req.body.phone);
-      if (!user || user.status !== Status.PENDING_OR_WAIT_CONFIRM) {
-        const result: IRes<IResResendConfirmEmail> = {
-          status: HttpStatus.BAD_REQUEST,
-          messages: [ResponseMessages.User.USER_NOT_FOUND]
-        };
+        const user: any = await this.userService.findByPhone(req.body.phone);
+        if (!user || user.status !== Status.PENDING_OR_WAIT_CONFIRM) {
+          const result: IRes<IResResendConfirmEmail> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.USER_NOT_FOUND]
+          };
 
-        return resolve(result);
-      }
-      user.noSentOTP = user.noSentOTP || 0;
+          return resolve(result);
+        }
+        user.noSentOTP = user.noSentOTP || 0;
 
-      if (user.noSentOTP >= 3) {
+        if (user.noSentOTP >= 3) {
+          return resolve({
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.Register.EXCEED_MAX_SEND_OTP]
+          });
+        }
+
+        const otpCode = this.userService.generateOTPCode();
+        user.noSentOTP++;
+        user.otpCodeConfirmAccount = otpCode;
+        this.smsService.sendSMS([user.phone], `FlowerVietnam: Mã xác thục tài khoản: ${otpCode}`, '');
+        await user.save();
+
         return resolve({
-          status: HttpStatus.BAD_REQUEST,
-          messages: [ResponseMessages.User.Register.EXCEED_MAX_SEND_OTP]
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.User.Register.RESEND_OTP]
         });
+
+      } catch (e) {
+        console.error(e);
+        const result: IRes<{}> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: [JSON.stringify(e)]
+        };
+        return resolve(result);
       }
-
-      const otpCode = this.userService.generateOTPCode();
-      user.noSentOTP++;
-      user.otpCodeConfirmAccount = otpCode;
-      this.smsService.sendSMS([user.phone], `FlowerVietnam: Mã xác thục tài khoản: ${otpCode}`, '');
-      await user.save();
-
-      return resolve({
-        status: HttpStatus.OK,
-        messages: [ResponseMessages.User.Register.RESEND_OTP]
-      });
     });
   }
 }
