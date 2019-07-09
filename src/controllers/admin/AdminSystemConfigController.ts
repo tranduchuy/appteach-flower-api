@@ -24,14 +24,23 @@ export class AdminSystemConfigController {
   @httpGet('/', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
   public getProducts(request: Request, response: Response): Promise<IRes<SystemConfig>> {
     return new Promise<IRes<SystemConfig>>(async (resolve, reject) => {
-      const config = await this.systemConfigService.getConfig();
-      const result: IRes<SystemConfig> = {
-        status: 1,
-        messages: [ResponseMessages.SUCCESS],
-        data: config
-      };
+      try {
+        const config = await this.systemConfigService.getConfig();
+        const result: IRes<SystemConfig> = {
+          status: 1,
+          messages: [ResponseMessages.SUCCESS],
+          data: config
+        };
 
-      resolve(result);
+        return resolve(result);
+      } catch (e) {
+        console.error(e);
+        const result: IRes<SystemConfig> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: [JSON.stringify(e)]
+        };
+        return resolve(result);
+      }
     });
   }
 
@@ -72,15 +81,11 @@ export class AdminSystemConfigController {
           messages: [ResponseMessages.SUCCESS],
           data: {}
         });
-      }
-
-      catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-        const result = {
+      } catch (e) {
+        console.error(e);
+        const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -124,15 +129,11 @@ export class AdminSystemConfigController {
           messages: [ResponseMessages.SUCCESS],
           data: {}
         });
-      }
-
-      catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-        const result = {
+      } catch (e) {
+        console.error(e);
+        const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -176,15 +177,11 @@ export class AdminSystemConfigController {
           messages: [ResponseMessages.SUCCESS],
           data: {}
         });
-      }
-
-      catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-        const result = {
+      } catch (e) {
+        console.error(e);
+        const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -226,15 +223,11 @@ export class AdminSystemConfigController {
           messages: [ResponseMessages.SUCCESS],
           data: {}
         });
-      }
-
-      catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-        const result = {
+      } catch (e) {
+        console.error(e);
+        const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
