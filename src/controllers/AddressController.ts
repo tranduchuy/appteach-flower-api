@@ -42,18 +42,15 @@ export class AddressController {
             entries: addresses
           }
         };
-        resolve(result);
+        return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
-        resolve(result);
+
+        return resolve(result);
       }
     });
   }
@@ -80,18 +77,15 @@ export class AddressController {
             entries: addresses
           }
         };
-        resolve(result);
+        return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
-        resolve(result);
+
+        return resolve(result);
       }
     });
   }
@@ -138,15 +132,12 @@ export class AddressController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
+
         return resolve(result);
       }
     });
@@ -218,18 +209,15 @@ export class AddressController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
-        resolve(result);
+
+        return resolve(result);
       }
     });
   }
@@ -284,15 +272,12 @@ export class AddressController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
+
         return resolve(result);
       }
     });
@@ -328,15 +313,12 @@ export class AddressController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
+
         return resolve(result);
       }
     });
@@ -381,15 +363,12 @@ export class AddressController {
         };
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
+
         return resolve(result);
       }
     });
