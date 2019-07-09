@@ -80,18 +80,14 @@ export class AdminOrderController {
           }
         };
 
-        resolve(response);
+        return resolve(response);
       } catch (e) {
         console.error(e);
-        const messages = Object.keys(e.errors || {}).map(key => {
-          return e.errors[key].message;
-        });
-
         const result: IRes<IResProducts> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -164,13 +160,10 @@ export class AdminOrderController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
-        const result: IRes<Order> = {
+        console.error(e);
+        const result: IRes<IResProducts> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
