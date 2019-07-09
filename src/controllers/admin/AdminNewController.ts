@@ -134,12 +134,10 @@ export class AdminNewController {
           data: news
         });
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<New> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -176,12 +174,10 @@ export class AdminNewController {
           data: news
         });
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<New> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -262,12 +258,10 @@ export class AdminNewController {
           data: news
         });
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<New> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -317,18 +311,15 @@ export class AdminNewController {
           }
         };
 
-        resolve(response);
+        return resolve(response);
       }
       catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<IResNews> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
