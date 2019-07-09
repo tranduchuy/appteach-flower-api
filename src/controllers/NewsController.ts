@@ -163,14 +163,12 @@ export class NewController {
 
         return resolve(response);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<IResNews> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
+
         return resolve(result);
       }
     });
@@ -215,13 +213,12 @@ export class NewController {
           data: data
         });
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<NewItem> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
+
         return resolve(result);
       }
     });
