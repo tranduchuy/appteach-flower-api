@@ -111,13 +111,10 @@ export class ShopStatisticController {
 
         return resolve(response);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<IResStatisticDashboard> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -194,13 +191,10 @@ export class ShopStatisticController {
 
         return resolve(response);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<IResStatisticDashboard> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)],
         };
         return resolve(result);
       }
