@@ -75,17 +75,14 @@ export class AdminShopController {
           }
         };
 
-        resolve(response);
+        return resolve(response);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<IResShops> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -136,12 +133,10 @@ export class AdminShopController {
           }
         });
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<IResShopUpdateStatus> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
