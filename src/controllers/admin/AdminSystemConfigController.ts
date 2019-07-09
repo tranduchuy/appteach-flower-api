@@ -32,7 +32,7 @@ export class AdminSystemConfigController {
           data: config
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
         console.error(e);
         const result: IRes<SystemConfig> = {
