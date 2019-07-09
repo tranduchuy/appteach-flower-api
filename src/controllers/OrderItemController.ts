@@ -84,13 +84,10 @@ export class OrderItemController {
 
         return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
-        const result: IRes<Order> = {
+        console.error(e);
+        const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)],
         };
         return resolve(result);
       }
@@ -163,19 +160,10 @@ export class OrderItemController {
 
         return resolve(result);
       } catch (e) {
-        console.error(e.message);
-        let messages = [];
-        if (e.errors) {
-          messages = Object.keys(e.errors).map(key => {
-            return e.errors[key].message;
-          });
-        } else {
-          messages = [e];
-        }
-
-        const result: IRes<Order> = {
+        console.error(e);
+        const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)],
         };
         return resolve(result);
       }
