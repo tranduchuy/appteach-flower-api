@@ -155,18 +155,15 @@ export class AdminUserController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
-
+        console.error(e);
         const result: IRes<IResUserLogin> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
 
-        resolve(result);
+        return resolve(result);
       }
     });
   }
@@ -261,7 +258,7 @@ export class AdminUserController {
         }
       };
 
-      resolve(response);
+      return resolve(response);
     });
   }
 
@@ -309,7 +306,7 @@ export class AdminUserController {
         }
       };
 
-      resolve(response);
+      return resolve(response);
     });
   }
 
@@ -365,12 +362,10 @@ export class AdminUserController {
       }
 
       catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<IResUserUpdateStatus> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -428,17 +423,14 @@ export class AdminUserController {
           }
         };
 
-        resolve(result);
+        return resolve(result);
       } catch (e) {
-        const messages = Object.keys(e.errors).map(key => {
-          return e.errors[key].message;
-        });
+        console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: messages,
-          data: {}
+          messages: [JSON.stringify(e)]
         };
-        resolve(result);
+        return resolve(result);
       }
     });
   }
