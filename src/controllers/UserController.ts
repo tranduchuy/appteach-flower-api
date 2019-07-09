@@ -178,11 +178,7 @@ export class UserController {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -307,11 +303,7 @@ export class UserController {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -462,11 +454,7 @@ export class UserController {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -559,11 +547,7 @@ export class UserController {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -665,11 +649,7 @@ export class UserController {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -688,8 +668,7 @@ export class UserController {
 
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
-            messages: messages,
-            data: {}
+            messages: messages
           };
           return resolve(result);
         }
@@ -738,11 +717,7 @@ export class UserController {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -812,11 +787,7 @@ export class UserController {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -925,11 +896,7 @@ export class UserController {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -974,11 +941,7 @@ export class UserController {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -1041,11 +1004,7 @@ export class UserController {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -1116,11 +1075,7 @@ export class UserController {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -1242,11 +1197,7 @@ export class UserController {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
@@ -1303,11 +1254,7 @@ export class UserController {
         console.error(e);
         const result: IRes<{}> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-          data: {
-            meta: {},
-            entries: []
-          }
+          messages: [JSON.stringify(e)]
         };
         return resolve(result);
       }
