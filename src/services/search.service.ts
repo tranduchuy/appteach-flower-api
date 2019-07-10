@@ -165,7 +165,7 @@ export class SearchService {
     const result = (await ProductModel.aggregate(stages))[0];
     let searchQuery = {};
     if (result.entries.length > 0) {
-      searchQuery = this.getSearchQueryFromProduct(result.entries[1]);
+      searchQuery = this.getSearchQueryFromProduct(result.entries[0]);
     }
 
     return {
@@ -178,14 +178,14 @@ export class SearchService {
   getSearchQueryFromProduct(product: Product): Object {
 
     return {
-      topic: product.topic,
-      specialOccasion: product.specialOccasion,
-      design: product.design,
-      floret: product.floret,
-      city: product.city,
-      district: product.district,
-      color: product.color,
-      priceRange: product.priceRange
+      topic: product.topic || null,
+      specialOccasion: product.specialOccasion || null,
+      design: product.design || null,
+      floret: product.floret || null,
+      city: product.city || null,
+      district: product.district || null,
+      color: product.color || null,
+      priceRange: product.priceRange || null
     };
   }
 
