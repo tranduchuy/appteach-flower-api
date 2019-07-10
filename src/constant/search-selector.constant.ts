@@ -71,6 +71,8 @@ export namespace SearchSelector {
   ];
 
   export const PriceRanges = [
+    {text: '< 50.000', value: 6, max: 50000},
+    {text: '50.000 - 100.000', value: 7, min: 50000, max: 100000},
     {text: '100.000 - 300.000', value: 1, min: 100000, max: 300000},
     {text: '300.000 - 500.000', value: 2, min: 300000, max: 500000},
     {text: '500.000 - 1.000.000', value: 3, min: 500000, max: 1000000},
