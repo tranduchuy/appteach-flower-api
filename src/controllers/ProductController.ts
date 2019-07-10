@@ -476,7 +476,7 @@ export class ProductController {
         const salePriceCheck = salePrice || product.saleOff.price;
         const price = originalPrice || product.originalPrice;
         // check sale price vs original price.
-        if (salePriceCheck > price) {
+        if (Number(salePriceCheck) > Number(price)) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.Product.NOT_VALID_PRICE],
