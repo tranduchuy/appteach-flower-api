@@ -186,6 +186,7 @@ export class OrderItemService {
           'order.deliveryTime': 1,
           'order.buyerInfo': 1,
           'order.submitAt': 1,
+          'order.note': 1,
           'user.email': 1,
           'user.phone': 1,
           'user.name': 1,
