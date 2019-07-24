@@ -301,13 +301,14 @@ export class ShopController {
           });
         }
 
-        const {limit, page, title, status, sb, sd} = req.query;
+        const {limit, page, title, status, approvedStatus, sb, sd} = req.query;
         const queryCondition: IQueryProductsOfShop = {
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
           shopId: shop._id.toString(),
           title: title || null,
           status: status ? parseInt(status.toString()) : null,
+          approvedStatus: approvedStatus ? parseInt(approvedStatus) : null,
           sortBy: sb || null,
           sortDirection: sd || null
         };

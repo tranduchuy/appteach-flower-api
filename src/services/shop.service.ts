@@ -17,6 +17,7 @@ export interface IQueryProductsOfShop {
   sortBy?: string;
   sortDirection?: string;
   status?: number;
+  approvedStatus?: number;
   title?: string;
   shopId: string;
 }
@@ -109,6 +110,13 @@ export class ShopService {
     const matchStage = {
       shop: new mongoose.Types.ObjectId(queryCondition.shopId)
     };
+    if (queryCondition.approvedStatus) {
+      matchStage['approvedStatus'] = queryCondition.approvedStatus;
+    } else {
+      matchStage['approvedStatus'] = {
+        $ne: Status.PRODUCT_NOT_APPROVED
+      };
+    }
 
     if (queryCondition.status) {
       matchStage['status'] = queryCondition.status;
