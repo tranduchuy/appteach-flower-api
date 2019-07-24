@@ -30,6 +30,11 @@ export const Status = {
   ORDER_ITEM_FINISHED: 2003,
   ORDER_ITEM_CANCEL: 2004,
 
+
+  PRODUCT_PENDING_APPROVE: 3000,
+  PRODUCT_APPROVED: 3001,
+  PRODUCT_NOT_APPROVED: 3002,
+
 };
 
 export const StatusNm = {

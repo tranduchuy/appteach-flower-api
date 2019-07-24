@@ -41,7 +41,7 @@ export class AdminProductController {
           return resolve(result);
         }
 
-        const { shop_id, title, saleOff, minPrice, sku, maxPrice, limit, page, status, sb, sd } = req.query;
+        const { shop_id, title, saleOff, minPrice, sku, maxPrice, limit, approvedStatus, page, status, sb, sd } = req.query;
         const stages: any[] = this.productService.buildStageGetListProduct({
           shop_id: shop_id ? shop_id : null,
           title: title ? title : null,
@@ -51,6 +51,7 @@ export class AdminProductController {
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
           status: status ? parseInt(status) : null,
+          approvedStatus: approvedStatus ? parseInt(approvedStatus) : null,
           saleOff: saleOff,
           sb: sb,
           sd: sd,
@@ -80,4 +81,6 @@ export class AdminProductController {
       }
     });
   }
+
+
 }

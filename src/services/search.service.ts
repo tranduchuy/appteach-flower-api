@@ -5,6 +5,7 @@ import TagModel from '../models/tag';
 import { SelectorService } from './selector.service';
 import { SearchSelector } from '../constant/search-selector.constant';
 import urlSlug from 'url-slug';
+import { Status } from '../constant/status';
 
 @injectable()
 export class SearchService {
@@ -83,6 +84,9 @@ export class SearchService {
     ];
 
     const queryObj = {};
+
+    queryObj['status'] = Status.ACTIVE;
+    queryObj['approvedStatus'] = Status.PRODUCT_APPROVED;
     queryFields.forEach(f => {
       if (urlParam[f] !== null) {
         queryObj[f] = urlParam[f];
@@ -135,6 +139,9 @@ export class SearchService {
 
     const queryObj = {};
     queryObj['tags'] = tag._id;
+
+    queryObj['status'] = Status.ACTIVE;
+    queryObj['approvedStatus'] = Status.PRODUCT_APPROVED;
 
     const stages: any[] = [
       {
