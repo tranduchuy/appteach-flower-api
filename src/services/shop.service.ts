@@ -112,12 +112,7 @@ export class ShopService {
     };
     if (queryCondition.approvedStatus) {
       matchStage['approvedStatus'] = queryCondition.approvedStatus;
-    } else {
-      matchStage['approvedStatus'] = {
-        $ne: Status.PRODUCT_NOT_APPROVED
-      };
     }
-
     if (queryCondition.status) {
       matchStage['status'] = queryCondition.status;
     } else {

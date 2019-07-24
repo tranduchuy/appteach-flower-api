@@ -4,6 +4,7 @@ import NotifyModel from '../models/notify';
 import ShopModel from '../models/shop';
 import OrderItemModel from '../models/order-item';
 import OrderModel from '../models/order';
+import ProductModel from '../models/product';
 import { NotifyConstant, TypeCd2Content } from '../constant/notify-type';
 
 import * as Socket from '../utils/socket';
@@ -83,6 +84,33 @@ export class NotifyService {
       title: notifyContent.title,
       content: notifyContent.content,
       params: {orderItemId: orderItemId}
+    });
+  };
+
+  notifyUpdateProductApprovedStatusToShop = async (productId, fromUser) => {
+    const product: any = await ProductModel.findOne({_id: productId})
+      .populate({model: ShopModel, path: 'shop'});
+
+    let notifyContent;
+    let type;
+    if (product.approvedStatus === Status.PRODUCT_NOT_APPROVED) {
+      notifyContent = TypeCd2Content(NotifyConstant.UPDATE_PRODUCT_STATUS_NOT_APPROVED);
+      type = NotifyConstant.UPDATE_PRODUCT_STATUS_NOT_APPROVED;
+    } else if (product.approvedStatus === Status.PRODUCT_APPROVED) {
+      notifyContent = TypeCd2Content(NotifyConstant.UPDATE_PRODUCT_STATUS_APPROVED);
+      type = NotifyConstant.UPDATE_PRODUCT_STATUS_APPROVED;
+    }
+
+
+    Socket.pushToUser(product['shop'].user, notifyContent.title);
+
+    return await this.createNotify({
+      toUser: product['shop'].user,
+      fromUser: fromUser,
+      type: type,
+      title: notifyContent.title,
+      content: notifyContent.content,
+      params: {productId: productId}
     });
   };
 
