@@ -199,6 +199,12 @@ export class ProductService {
       updatedAt: new Date()
     });
   };
+  updateProductApprovedStatus = async (product, status) => {
+    return await ProductModel.findOneAndUpdate({_id: product._id}, {
+      approvedStatus: status || product.approvedStatus,
+      updatedAt: new Date()
+    });
+  };
   updateViews = async (slug) => {
     try {
       const product = await ProductModel.findOne({slug: slug});
