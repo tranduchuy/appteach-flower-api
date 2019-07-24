@@ -312,7 +312,12 @@ export class OrderItemService {
       {'$lookup': {'from': 'orders', 'localField': '_id', 'foreignField': '_id', 'as': 'order'}},
       {'$unwind': {'path': '$order'}},
       {'$lookup': {'from': 'users', 'localField': 'order.fromUser', 'foreignField': '_id', 'as': 'user'}},
-      {'$unwind': {'path': '$user'}},
+      {
+        '$unwind': {
+          'path': '$user',
+          preserveNullAndEmptyArrays: true
+        }
+      },
       {'$lookup': {'from': 'addresses', 'localField': 'order.address', 'foreignField': '_id', 'as': 'address'}},
       {'$unwind': {'path': '$address'}},
       {
