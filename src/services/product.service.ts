@@ -73,7 +73,7 @@ export class ProductService {
       slug,
       code,
       originalPrice,
-      status: Status.PENDING_OR_WAIT_CONFIRM,
+      status: status || Status.ACTIVE,
       approvedStatus: Status.PRODUCT_PENDING_APPROVE,
       shop: new mongoose.Types.ObjectId(shopId),
       images: images || [],
