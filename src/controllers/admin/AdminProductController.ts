@@ -11,6 +11,10 @@ import Joi from '@hapi/joi';
 // schemas
 import ListProductSchema from '../../validation-schemas/user/admin-list-product.schema';
 import UpdateApprovedStatusValidationSchema from '../../validation-schemas/product/update-approved-status.schema';
+import { NotifyService } from '../../services/notify.service';
+import { MailerService } from '../../services/mailer.service';
+import { UserService } from '../../services/user.service';
+import { Status } from '../../constant/status';
 
 interface IResProducts {
   meta: {
@@ -28,7 +32,10 @@ interface IResUpdateApprovedStatus {
 
 @controller('/admin/product')
 export class AdminProductController {
-  constructor(@inject(TYPES.ProductService) private productService: ProductService) {
+  constructor(@inject(TYPES.ProductService) private productService: ProductService,
+              @inject(TYPES.UserService) private userService: UserService,
+              @inject(TYPES.MailerService) private mailerService: MailerService,
+              @inject(TYPES.NotifyService) private notifyService: NotifyService) {
 
   }
 
@@ -91,7 +98,7 @@ export class AdminProductController {
   }
 
   @httpPut('/approved-status', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
-  public updateStatusUser(req: Request): Promise<IRes<IResUpdateApprovedStatus>> {
+  public updateProductApprovedStatus(req: Request): Promise<IRes<IResUpdateApprovedStatus>> {
     return new Promise<IRes<IResUpdateApprovedStatus>>(async (resolve) => {
       try {
         const {error} = Joi.validate(req.body, UpdateApprovedStatusValidationSchema);
@@ -118,7 +125,13 @@ export class AdminProductController {
           return resolve(result);
         }
         await this.productService.updateProductApprovedStatus(product, status);
-
+        if ( status !== Status.PRODUCT_PENDING_APPROVE) {
+          const notify = await this.notifyService.notifyUpdateProductApprovedStatusToShop(productId, req.user._id);
+          const user = await this.userService.findById(notify.toUser.toString());
+          if (user.email) {
+            await this.mailerService.sendNotifyMessage(user.email, notify.title, notify.content);
+          }
+        }
         const result: IRes<IResUpdateApprovedStatus> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.Product.Update.UPDATE_PRODUCT_SUCCESS],
