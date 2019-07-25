@@ -13,7 +13,7 @@ export class Product extends Typegoose {
   @prop({required: true})
   images: string[];
 
-  @prop({required: true})
+  @prop({})
   sku: string;
 
   @prop({required: true})
