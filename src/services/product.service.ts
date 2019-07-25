@@ -17,6 +17,7 @@ export interface IQueryProduct {
   limit: number;
   page: number;
   sku: string;
+  approvedStatus: number;
   maxPrice: number;
   minPrice: number;
   saleOff: boolean;
@@ -73,6 +74,7 @@ export class ProductService {
       code,
       originalPrice,
       status: status || Status.ACTIVE,
+      approvedStatus: Status.PRODUCT_PENDING_APPROVE,
       shop: new mongoose.Types.ObjectId(shopId),
       images: images || [],
       design: design || null,
@@ -197,6 +199,12 @@ export class ProductService {
       updatedAt: new Date()
     });
   };
+  updateProductApprovedStatus = async (product, status) => {
+    return await ProductModel.findOneAndUpdate({_id: product._id}, {
+      approvedStatus: status || product.approvedStatus,
+      updatedAt: new Date()
+    });
+  };
   updateViews = async (slug) => {
     try {
       const product = await ProductModel.findOne({slug: slug});
@@ -211,7 +219,8 @@ export class ProductService {
   getFeaturedProducts = async () => {
     try {
       return await ProductModel.find({
-        status: Status.ACTIVE
+        status: Status.ACTIVE,
+        approvedStatus: Status.PRODUCT_APPROVED
       }, this.listProductFields)
           .sort({
             view: -1
@@ -228,7 +237,8 @@ export class ProductService {
           .find(
               {
                 'saleOff.active': true,
-                status: Status.ACTIVE
+                status: Status.ACTIVE,
+                approvedStatus: Status.PRODUCT_APPROVED
               },
               this.listProductFields
           )
@@ -268,6 +278,8 @@ export class ProductService {
       const queryArr = [];
       const query = {
         _id: {$ne: product._id},
+        status: Status.ACTIVE,
+        approvedStatus: Status.PRODUCT_APPROVED,
         topic: product.topic || null,
         specialOccasion: product.specialOccasion || null,
         floret: product.floret || null,
@@ -311,7 +323,7 @@ export class ProductService {
       console.log(e);
       return [];
     }
-  }
+  };
   mappingListProducts = (products) => {
     return products.map(product => {
       return {
@@ -354,6 +366,10 @@ export class ProductService {
       matchStage['status'] = queryCondition.status;
     }
 
+    if (queryCondition.approvedStatus) {
+      matchStage['approvedStatus'] = queryCondition.approvedStatus;
+    }
+
     if (queryCondition.sku) {
       matchStage['sku'] = queryCondition.sku;
     }
@@ -393,6 +409,12 @@ export class ProductService {
       stages.push({
         $sort: {
           [queryCondition.sb]: queryCondition.sd === 'ASC' ? 1 : -1
+        }
+      });
+    } else {
+      stages.push({
+        $sort: {
+          createdAt: -1
         }
       });
     }
@@ -448,6 +470,7 @@ export class ProductService {
 
     const queryObj = {};
     queryObj['status'] = Status.ACTIVE;
+    queryObj['approvedStatus'] = Status.PRODUCT_APPROVED;
 
     const stages: any[] = [
       {

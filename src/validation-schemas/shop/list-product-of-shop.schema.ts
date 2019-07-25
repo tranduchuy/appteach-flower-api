@@ -7,6 +7,7 @@ const ListProductOfShopSchema = Joi.object().keys(
     page: Joi.number().min(1),
     title: Joi.string(),
     status: Joi.number().valid([Status.ACTIVE, Status.BLOCKED]),
+    approvedStatus: Joi.number().valid([Status.PRODUCT_PENDING_APPROVE, Status.PRODUCT_APPROVED]),
     sb: Joi.string(),
     sd: Joi.string().valid(['ASC', 'DESC'])
   }

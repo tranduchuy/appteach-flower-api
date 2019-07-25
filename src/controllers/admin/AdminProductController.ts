@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import * as HttpStatus from 'http-status-codes';
 import { inject } from 'inversify';
-import { controller, httpGet } from 'inversify-express-utils';
+import { controller, httpGet, httpPut } from 'inversify-express-utils';
 import { ResponseMessages } from '../../constant/messages';
 import TYPES from '../../constant/types';
 import { IRes } from '../../interfaces/i-res';
@@ -10,6 +10,11 @@ import { ProductService } from '../../services/product.service';
 import Joi from '@hapi/joi';
 // schemas
 import ListProductSchema from '../../validation-schemas/user/admin-list-product.schema';
+import UpdateApprovedStatusValidationSchema from '../../validation-schemas/product/update-approved-status.schema';
+import { NotifyService } from '../../services/notify.service';
+import { MailerService } from '../../services/mailer.service';
+import { UserService } from '../../services/user.service';
+import { Status } from '../../constant/status';
 
 interface IResProducts {
   meta: {
@@ -18,9 +23,19 @@ interface IResProducts {
   products: Product[];
 }
 
+interface IResUpdateApprovedStatus {
+  meta?: {
+    totalItems: number
+  };
+  product?: Product;
+}
+
 @controller('/admin/product')
 export class AdminProductController {
-  constructor(@inject(TYPES.ProductService) private productService: ProductService) {
+  constructor(@inject(TYPES.ProductService) private productService: ProductService,
+              @inject(TYPES.UserService) private userService: UserService,
+              @inject(TYPES.MailerService) private mailerService: MailerService,
+              @inject(TYPES.NotifyService) private notifyService: NotifyService) {
 
   }
 
@@ -41,7 +56,7 @@ export class AdminProductController {
           return resolve(result);
         }
 
-        const { shop_id, title, saleOff, minPrice, sku, maxPrice, limit, page, status, sb, sd } = req.query;
+        const { shop_id, title, saleOff, minPrice, sku, maxPrice, limit, approvedStatus, page, status, sb, sd } = req.query;
         const stages: any[] = this.productService.buildStageGetListProduct({
           shop_id: shop_id ? shop_id : null,
           title: title ? title : null,
@@ -51,6 +66,7 @@ export class AdminProductController {
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
           status: status ? parseInt(status) : null,
+          approvedStatus: approvedStatus ? parseInt(approvedStatus) : null,
           saleOff: saleOff,
           sb: sb,
           sd: sd,
@@ -80,4 +96,61 @@ export class AdminProductController {
       }
     });
   }
+
+  @httpPut('/approved-status', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
+  public updateProductApprovedStatus(req: Request): Promise<IRes<IResUpdateApprovedStatus>> {
+    return new Promise<IRes<IResUpdateApprovedStatus>>(async (resolve) => {
+      try {
+        const {error} = Joi.validate(req.body, UpdateApprovedStatusValidationSchema);
+        if (error) {
+          const messages = error.details.map(detail => {
+            return detail.message;
+          });
+
+          const result: IRes<IResUpdateApprovedStatus> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: messages
+          };
+          return resolve(result);
+        }
+
+        const {productId, status} = req.body;
+        const product = await this.productService.findProductById(productId);
+        if (!product) {
+          const result: IRes<{}> = {
+            status: HttpStatus.NOT_FOUND,
+            messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
+          };
+
+          return resolve(result);
+        }
+        await this.productService.updateProductApprovedStatus(product, status);
+        if ( status !== Status.PRODUCT_PENDING_APPROVE) {
+          const notify = await this.notifyService.notifyUpdateProductApprovedStatusToShop(productId, req.user._id);
+          const user = await this.userService.findById(notify.toUser.toString());
+          if (user.email) {
+            await this.mailerService.sendNotifyMessage(user.email, notify.title, notify.content);
+          }
+        }
+        const result: IRes<IResUpdateApprovedStatus> = {
+          status: HttpStatus.OK,
+          messages: [ResponseMessages.Product.Update.UPDATE_PRODUCT_SUCCESS],
+          data: {}
+        };
+
+        return resolve(result);
+      }
+
+      catch (e) {
+        console.error(e);
+        const result: IRes<IResUpdateApprovedStatus> = {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          messages: [JSON.stringify(e)]
+        };
+        return resolve(result);
+      }
+    });
+  }
+
+
 }

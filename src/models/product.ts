@@ -78,7 +78,7 @@ export class Product extends Typegoose {
   @prop({required: true})
   shop: Ref<Shop>;
 
-  @prop({default: Status.ACTIVE})
+  @prop({default: Status.PENDING_OR_WAIT_CONFIRM})
   status: number;
 
   @prop({default: 0})
@@ -89,6 +89,9 @@ export class Product extends Typegoose {
 
   @prop({default: 0})
   sold: number;
+
+  @prop({default: Status.PRODUCT_PENDING_APPROVE})
+  approvedStatus: number;
 }
 
 export default new Product().getModelForClass(Product);
