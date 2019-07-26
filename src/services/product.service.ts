@@ -3,10 +3,10 @@ import ProductModel, { Product } from '../models/product';
 import TagModel from '../models/tag';
 import ShopModel from '../models/shop';
 import urlSlug from 'url-slug';
+import shortid from 'shortid';
 import { SearchSelector } from '../constant/search-selector.constant';
 import PriceRanges = SearchSelector.PriceRanges;
 import mongoose from 'mongoose';
-import RandomString from 'randomstring';
 import { General } from '../constant/generals';
 import { Status } from '../constant/status';
 import * as _ from 'lodash';
@@ -63,7 +63,7 @@ export class ProductService {
         active: true
       };
     }
-    const code = RandomString.generate() + Date.now();
+    const code = this.generateProductCode();
     const newProduct = new ProductModel({
       title,
       sku,
@@ -553,4 +553,8 @@ export class ProductService {
 
     return await ProductModel.aggregate(stages);
   }
+
+  generateProductCode =  () => {
+    return shortid.generate().toUpperCase();
+  };
 }
