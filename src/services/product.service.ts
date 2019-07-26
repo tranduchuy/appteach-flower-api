@@ -3,7 +3,7 @@ import ProductModel, { Product } from '../models/product';
 import TagModel from '../models/tag';
 import ShopModel from '../models/shop';
 import urlSlug from 'url-slug';
-import shortid from 'shortid';
+import generate from 'nanoid/generate';
 import { SearchSelector } from '../constant/search-selector.constant';
 import PriceRanges = SearchSelector.PriceRanges;
 import mongoose from 'mongoose';
@@ -555,6 +555,8 @@ export class ProductService {
   }
 
   generateProductCode =  () => {
-    return shortid.generate().toUpperCase();
+    const characters = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const codeLength = 10;
+    return generate(characters, codeLength);
   };
 }
