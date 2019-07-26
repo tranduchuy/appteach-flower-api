@@ -19,7 +19,17 @@ export class CostService {
   calculateShippingCost = async (shopAddressId, deliveryAddressId) => {
     const shopAddress = await this.addressService.findAddress(shopAddressId);
     const deliveryAddress = await this.addressService.findAddress(deliveryAddressId);
-    const distances: any = await this.googleDistanceMatrixService.calculateDistance([shopAddress.addressText], [deliveryAddress.addressText]);
+    const originsAddress = [shopAddress.addressText];
+    const destinationsAddress = [deliveryAddress.address];
+    const shopGeoText = this.getGeoText(shopAddress.longitude, shopAddress.latitude);
+    if (shopGeoText !== null) {
+      originsAddress.push(shopGeoText);
+    }
+    const deliveryGeoText = this.getGeoText(deliveryAddress.longitude, deliveryAddress.latitude);
+    if (deliveryGeoText !== null) {
+      destinationsAddress.push(deliveryGeoText);
+    }
+    const distances: any = await this.googleDistanceMatrixService.calculateDistance(originsAddress, destinationsAddress);
     let minDistance = null;
 
     if (distances.status === 'OK') {
@@ -44,7 +54,17 @@ export class CostService {
 
   calculateNoLoginOrderShippingCost = async (shopAddressId, addressInfo) => {
     const shopAddress = await this.addressService.findAddress(shopAddressId);
-    const distances: any = await this.googleDistanceMatrixService.calculateDistance([shopAddress.addressText], [addressInfo.address]);
+    const originsAddress = [shopAddress.addressText];
+    const destinationsAddress = [addressInfo.address];
+    const shopGeoText = this.getGeoText(shopAddress.longitude, shopAddress.latitude);
+    if (shopGeoText !== null) {
+      originsAddress.push(shopGeoText);
+    }
+    const deliveryGeoText = this.getGeoText(addressInfo.longitude, addressInfo.latitude);
+    if (deliveryGeoText !== null) {
+      destinationsAddress.push(deliveryGeoText);
+    }
+    const distances: any = await this.googleDistanceMatrixService.calculateDistance(originsAddress, destinationsAddress);
     let minDistance = null;
 
     if (distances.status === 'OK') {
@@ -82,4 +102,12 @@ export class CostService {
     const shop = await this.shopService.findShopById(shopId);
     return (price * shop.discountRate) / 100;
   };
+
+  getGeoText = (long: number, lat: number) => {
+    if (long && lat) {
+      const geoArr = [lat, long];
+      return geoArr.join(',');
+    }
+    return null;
+  }
 }
