@@ -107,6 +107,7 @@ export class ProductController {
       try {
         const featuredProducts = await this.productService.getFeaturedProducts();
         const saleProducts = await this.productService.getSaleProducts();
+        const newProducts = await this.productService.getNewProducts();
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -115,7 +116,8 @@ export class ProductController {
             meta: {},
             entries: {
               featuredProducts: featuredProducts,
-              saleProducts: saleProducts
+              saleProducts: saleProducts,
+              newProducts
             }
           }
         };
