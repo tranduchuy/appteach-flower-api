@@ -32,6 +32,38 @@ async function createComboUrlParams() {
   }
 }
 
+// Create combo category: url: '/danh-muc/combo'
+async function createCakeUrlParams() {
+  let cakeUrlParam = await UrlParamsModel.findOne({
+    topic: 14,
+    specialOccasion: null,
+    design: null,
+    floret: null,
+    city: null,
+    district: null,
+    color: null,
+    priceRange: null,
+    customUrl: '',
+    url: 'combo',
+  });
+  if (!cakeUrlParam) {
+    cakeUrlParam = new UrlParamsModel({
+      topic: 14,
+      specialOccasion: null,
+      design: null,
+      floret: null,
+      city: null,
+      district: null,
+      color: null,
+      priceRange: null,
+      customUrl: '',
+      url: 'banh-kem',
+    });
+
+    await cakeUrlParam.save();
+  }
+}
+
 // Create gift category: url: '/danh-muc/qua-tang'
 async function createGiftUrlParams() {
   let giftUrlParam = await UrlParamsModel.findOne({
@@ -67,4 +99,5 @@ async function createGiftUrlParams() {
 export const run = async () => {
   await createComboUrlParams();
   await createGiftUrlParams();
+  await createCakeUrlParams();
 };
