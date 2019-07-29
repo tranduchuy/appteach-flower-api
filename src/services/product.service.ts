@@ -225,7 +225,7 @@ export class ProductService {
           .sort({
             view: -1
           })
-          .limit(General.HOME_PRODUCT_LIMIT);
+          .limit(15);
     } catch (e) {
       console.error(e);
       return [];
@@ -246,6 +246,25 @@ export class ProductService {
             updatedAt: -1
           })
           .limit(General.HOME_PRODUCT_LIMIT);
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  };
+  getNewProducts = async () => {
+    try {
+      return await ProductModel
+        .find(
+          {
+            status: Status.ACTIVE,
+            approvedStatus: Status.PRODUCT_APPROVED
+          },
+          this.listProductFields
+        )
+        .sort({
+          updatedAt: -1
+        })
+        .limit(General.HOME_PRODUCT_LIMIT);
     } catch (e) {
       console.error(e);
       return [];
