@@ -44,7 +44,7 @@ async function createCakeUrlParams() {
     color: null,
     priceRange: null,
     customUrl: '',
-    url: 'combo',
+    url: 'banh-kem',
   });
   if (!cakeUrlParam) {
     cakeUrlParam = new UrlParamsModel({
@@ -61,6 +61,38 @@ async function createCakeUrlParams() {
     });
 
     await cakeUrlParam.save();
+  }
+}
+
+// Create bonsai category: url: '/danh-muc/cay-canh'
+async function createBonsaiUrlParams() {
+  let bonsaiUrlParam = await UrlParamsModel.findOne({
+    topic: 15,
+    specialOccasion: null,
+    design: null,
+    floret: null,
+    city: null,
+    district: null,
+    color: null,
+    priceRange: null,
+    customUrl: '',
+    url: 'cay-canh',
+  });
+  if (!bonsaiUrlParam) {
+    bonsaiUrlParam = new UrlParamsModel({
+      topic: 15,
+      specialOccasion: null,
+      design: null,
+      floret: null,
+      city: null,
+      district: null,
+      color: null,
+      priceRange: null,
+      customUrl: '',
+      url: 'cay-canh',
+    });
+
+    await bonsaiUrlParam.save();
   }
 }
 
@@ -100,4 +132,5 @@ export const run = async () => {
   await createComboUrlParams();
   await createGiftUrlParams();
   await createCakeUrlParams();
+  await createBonsaiUrlParams();
 };

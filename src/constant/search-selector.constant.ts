@@ -73,7 +73,8 @@ export namespace SearchSelector {
     {text: 'Hoa tươi', value: 11},
     {text: 'Quà tặng', value: 12},
     {text: 'Combo', value: 13},
-    {text: 'Bánh kem', value: 14}
+    {text: 'Bánh kem', value: 14},
+    {text: 'Cây cảnh', value: 15}
   ];
 
   export const Colors = [

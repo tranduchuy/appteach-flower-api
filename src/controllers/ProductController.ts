@@ -109,6 +109,8 @@ export class ProductController {
         const saleProducts = await this.productService.getSaleProducts();
         const newProducts = await this.productService.getNewProducts();
 
+        const bonsaiProducts = await this.productService.getBonsaiProducts();
+
         const result: IRes<{}> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.Product.Add.ADD_PRODUCT_SUCCESS],
@@ -117,6 +119,7 @@ export class ProductController {
             entries: {
               featuredProducts: featuredProducts,
               saleProducts: saleProducts,
+              bonsaiProducts,
               newProducts
             }
           }

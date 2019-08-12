@@ -231,6 +231,23 @@ export class ProductService {
       return [];
     }
   };
+
+  getBonsaiProducts = async () => {
+    try {
+      return await ProductModel.find({
+        status: Status.ACTIVE,
+        approvedStatus: Status.PRODUCT_APPROVED,
+        topic: SearchSelector.TopicsForShop[14].value
+      }, this.listProductFields)
+        .sort({
+          view: -1
+        })
+        .limit(15);
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  };
   getSaleProducts = async () => {
     try {
       return await ProductModel
