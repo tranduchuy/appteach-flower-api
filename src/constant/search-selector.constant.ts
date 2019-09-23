@@ -59,6 +59,23 @@ export namespace SearchSelector {
     {text: 'Hoa sen', value: 12}
   ];
 
+  export const TopicsForShop = [
+    {text: 'Hoa khai trương', value: 1},
+    {text: 'Hoa Sinh nhật', value: 2},
+    {text: 'Hoa tình yêu', value: 3},
+    {text: 'Hoa tặng mẹ', value: 4},
+    {text: 'Hoa tình bạn', value: 5},
+    {text: 'Hoa chúc mừng', value: 6},
+    {text: 'Hoa cảm ơn', value: 7},
+    {text: 'Hoa tang lễ', value: 8},
+    {text: 'Hoa tặng dịp đặc biệt', value: 9},
+    {text: 'Hoa cưới', value: 10},
+    {text: 'Hoa tươi', value: 11},
+    {text: 'Quà tặng', value: 12},
+    {text: 'Combo', value: 13},
+    {text: 'Bánh kem', value: 14}
+  ];
+
   export const Colors = [
     {text: 'Nhiều màu', value: 8},
     {text: 'Màu đỏ', value: 1},

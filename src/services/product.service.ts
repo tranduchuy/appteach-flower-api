@@ -3,10 +3,10 @@ import ProductModel, { Product } from '../models/product';
 import TagModel from '../models/tag';
 import ShopModel from '../models/shop';
 import urlSlug from 'url-slug';
+import generate from 'nanoid/generate';
 import { SearchSelector } from '../constant/search-selector.constant';
 import PriceRanges = SearchSelector.PriceRanges;
 import mongoose from 'mongoose';
-import RandomString from 'randomstring';
 import { General } from '../constant/generals';
 import { Status } from '../constant/status';
 import * as _ from 'lodash';
@@ -17,6 +17,7 @@ export interface IQueryProduct {
   limit: number;
   page: number;
   sku: string;
+  approvedStatus: number;
   maxPrice: number;
   minPrice: number;
   saleOff: boolean;
@@ -62,7 +63,7 @@ export class ProductService {
         active: true
       };
     }
-    const code = RandomString.generate() + Date.now();
+    const code = this.generateProductCode();
     const newProduct = new ProductModel({
       title,
       sku,
@@ -73,6 +74,7 @@ export class ProductService {
       code,
       originalPrice,
       status: status || Status.ACTIVE,
+      approvedStatus: Status.PRODUCT_PENDING_APPROVE,
       shop: new mongoose.Types.ObjectId(shopId),
       images: images || [],
       design: design || null,
@@ -197,6 +199,12 @@ export class ProductService {
       updatedAt: new Date()
     });
   };
+  updateProductApprovedStatus = async (product, status) => {
+    return await ProductModel.findOneAndUpdate({_id: product._id}, {
+      approvedStatus: status || product.approvedStatus,
+      updatedAt: new Date()
+    });
+  };
   updateViews = async (slug) => {
     try {
       const product = await ProductModel.findOne({slug: slug});
@@ -211,12 +219,13 @@ export class ProductService {
   getFeaturedProducts = async () => {
     try {
       return await ProductModel.find({
-        status: Status.ACTIVE
+        status: Status.ACTIVE,
+        approvedStatus: Status.PRODUCT_APPROVED
       }, this.listProductFields)
           .sort({
             view: -1
           })
-          .limit(General.HOME_PRODUCT_LIMIT);
+          .limit(15);
     } catch (e) {
       console.error(e);
       return [];
@@ -228,7 +237,8 @@ export class ProductService {
           .find(
               {
                 'saleOff.active': true,
-                status: Status.ACTIVE
+                status: Status.ACTIVE,
+                approvedStatus: Status.PRODUCT_APPROVED
               },
               this.listProductFields
           )
@@ -236,6 +246,25 @@ export class ProductService {
             updatedAt: -1
           })
           .limit(General.HOME_PRODUCT_LIMIT);
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  };
+  getNewProducts = async () => {
+    try {
+      return await ProductModel
+        .find(
+          {
+            status: Status.ACTIVE,
+            approvedStatus: Status.PRODUCT_APPROVED
+          },
+          this.listProductFields
+        )
+        .sort({
+          updatedAt: -1
+        })
+        .limit(General.HOME_PRODUCT_LIMIT);
     } catch (e) {
       console.error(e);
       return [];
@@ -268,6 +297,8 @@ export class ProductService {
       const queryArr = [];
       const query = {
         _id: {$ne: product._id},
+        status: Status.ACTIVE,
+        approvedStatus: Status.PRODUCT_APPROVED,
         topic: product.topic || null,
         specialOccasion: product.specialOccasion || null,
         floret: product.floret || null,
@@ -311,7 +342,7 @@ export class ProductService {
       console.log(e);
       return [];
     }
-  }
+  };
   mappingListProducts = (products) => {
     return products.map(product => {
       return {
@@ -354,6 +385,10 @@ export class ProductService {
       matchStage['status'] = queryCondition.status;
     }
 
+    if (queryCondition.approvedStatus) {
+      matchStage['approvedStatus'] = queryCondition.approvedStatus;
+    }
+
     if (queryCondition.sku) {
       matchStage['sku'] = queryCondition.sku;
     }
@@ -393,6 +428,12 @@ export class ProductService {
       stages.push({
         $sort: {
           [queryCondition.sb]: queryCondition.sd === 'ASC' ? 1 : -1
+        }
+      });
+    } else {
+      stages.push({
+        $sort: {
+          createdAt: -1
         }
       });
     }
@@ -448,6 +489,7 @@ export class ProductService {
 
     const queryObj = {};
     queryObj['status'] = Status.ACTIVE;
+    queryObj['approvedStatus'] = Status.PRODUCT_APPROVED;
 
     const stages: any[] = [
       {
@@ -530,4 +572,10 @@ export class ProductService {
 
     return await ProductModel.aggregate(stages);
   }
+
+  generateProductCode =  () => {
+    const characters = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const codeLength = 10;
+    return generate(characters, codeLength);
+  };
 }

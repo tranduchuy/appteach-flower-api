@@ -41,7 +41,7 @@ export class NewController {
   public highlight(request: Request): Promise<IRes<NewItem[]>> {
     return new Promise<IRes<NewItem[]>>(async (resolve) => {
       try {
-        const newsList = await NewModel.find({status: Status.ACTIVE}).sort({createdAt: -1}).limit(8);
+        const newsList = await NewModel.find({status: Status.ACTIVE}).sort({createdAt: -1}).limit(5);
         const results = newsList.map(news => {
           const result = {
             _id: news._id,

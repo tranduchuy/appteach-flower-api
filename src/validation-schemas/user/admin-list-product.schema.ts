@@ -11,7 +11,8 @@ const ListProductSchema = Joi.object().keys(
     maxPrice: Joi.number().min(0),
     minPrice: Joi.number().min(0),
     saleOff: Joi.boolean(),
-    status: Joi.number().valid([Status.ACTIVE, Status.DELETE , Status.PRODUCT_HIDDEN]),
+    status: Joi.number().valid([Status.ACTIVE, Status.DELETE, Status.PRODUCT_HIDDEN]),
+    approvedStatus: Joi.number().valid([Status.PRODUCT_APPROVED, Status.PRODUCT_NOT_APPROVED, Status.PRODUCT_PENDING_APPROVE]),
     sb: Joi.string().max(50),
     sd: Joi.string().valid('asc', 'desc')
   }

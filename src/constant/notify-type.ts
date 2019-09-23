@@ -5,6 +5,8 @@ export namespace NotifyConstant {
   export const UPDATE_ORDER_ITEM_STATUS = 4;
   export const UPDATE_ORDER_ITEM_ON_DELIVERY = 5;
   export const UPDATE_ORDER_ITEM_FINISHED = 6;
+  export const UPDATE_PRODUCT_STATUS_APPROVED = 7;
+  export const UPDATE_PRODUCT_STATUS_NOT_APPROVED = 8;
 }
 
 export const NotifyContent = {
@@ -19,6 +21,14 @@ export const NotifyContent = {
   6: {
     title: 'Hoàn tất đơn hàng',
     content: 'Sản phẩm của bạn đã hoàn tất'
+  },
+  7: {
+    title: 'Xét duyệt sản phẩm',
+    content: 'Sản phẩm của bạn đã được phê duyệt'
+  },
+  8: {
+    title: 'Xét duyệt sản phẩm',
+    content: 'Sản phẩm của bạn đã không được phê duyệt'
   }
 
 };
