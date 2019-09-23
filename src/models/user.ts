@@ -2,8 +2,6 @@ import { prop, Typegoose } from 'typegoose';
 import { General } from '../constant/generals';
 import { Status } from '../constant/status';
 import UserRoles = General.UserRoles;
-import Genders = General.Genders;
-import UserTypes = General.UserTypes;
 import RegisterByTypes = General.RegisterByTypes;
 
 export class User extends Typegoose {
@@ -27,7 +25,7 @@ export class User extends Typegoose {
   @prop()
   passwordSalt?: string;
 
-  @prop({enum: Genders})
+  @prop()
   gender: number;
 
   @prop()
@@ -42,13 +40,13 @@ export class User extends Typegoose {
   @prop()
   address: string;
 
-  @prop({enum: UserTypes})
+  @prop()
   type: number;
 
-  @prop({required: true, enum: Status, default: Status.PENDING_OR_WAIT_CONFIRM})
+  @prop({required: true, default: Status.PENDING_OR_WAIT_CONFIRM})
   status: number;
 
-  @prop({required: true, enum: UserRoles, default: UserRoles.USER_ROLE_ENDUSER})
+  @prop({required: true, default: UserRoles.USER_ROLE_ENDUSER})
   role: number;
 
   @prop({default: new Date()})
@@ -72,7 +70,7 @@ export class User extends Typegoose {
   @prop()
   passwordReminderExpire?: Date;
 
-  @prop({enum: RegisterByTypes, default: RegisterByTypes.NORMAL})
+  @prop({default: RegisterByTypes.NORMAL})
   registerBy?: number;
 
   @prop()
