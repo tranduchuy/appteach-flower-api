@@ -313,7 +313,7 @@ export class ProductController {
         const user = request.user;
         const {
           title, sku, description, images, topic, salePrice, originalPrice,
-          keywordList, startDate, endDate, saleActive,
+          keywordList, startDate, endDate, saleActive, freeShip,
           design, specialOccasion, floret, status, city, district, color, seoUrl, seoDescription, seoImage
         } = request.body;
 
@@ -344,6 +344,7 @@ export class ProductController {
           description,
           topic,
           saleActive,
+          freeShip,
           startDate: startDate || null,
           endDate: endDate || null,
           originalPrice,
@@ -431,7 +432,7 @@ export class ProductController {
 
         const {
           title, sku, description, images, topic, salePrice, originalPrice,
-          keywordList, startDate, endDate, saleActive,
+          keywordList, startDate, endDate, saleActive, freeShip,
           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
         } = request.body;
 
@@ -507,7 +508,8 @@ export class ProductController {
           color,
           seoUrl,
           seoDescription,
-          seoImage
+          seoImage,
+          freeShip
         });
 
         // update images on static server
