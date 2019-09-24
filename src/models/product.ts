@@ -93,7 +93,7 @@ export class Product extends Typegoose {
   @prop({default: Status.PRODUCT_PENDING_APPROVE})
   approvedStatus: number;
 
-  @prop({})
+  @prop({default: false})
   freeShip: boolean;
 }
 
