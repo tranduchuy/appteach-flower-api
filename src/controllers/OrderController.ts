@@ -648,10 +648,26 @@ export class OrderController {
         }
 
         // get orderItem by order
-        const orderItems: any = await this.orderItemService.findOrderItemByOrderId(order._id);
+        let orderItems: any = await this.orderItemService.findOrderItemByOrderId(order._id);
+
+        let totalShippingCost = 0;
+
+        orderItems = orderItems.filter(item => item.freeShip === false);
+
+        if (orderItems.length === 0) {
+          const result: IRes<any> = {
+            status: HttpStatus.OK,
+            messages: [ResponseMessages.SUCCESS],
+            data: {
+              totalShippingCost
+            }
+          };
+
+          return resolve(result);
+        }
+
         let shopIds = orderItems.map(item => item.product.shop.toString());
         shopIds = _.uniq(shopIds);
-        let totalShippingCost = 0;
 
         //  calculate shipping cost for each orderItem
         await Promise.all(shopIds.map(async shopId => {
