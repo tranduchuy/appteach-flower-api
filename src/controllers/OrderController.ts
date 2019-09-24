@@ -652,7 +652,7 @@ export class OrderController {
 
         let totalShippingCost = 0;
 
-        orderItems = orderItems.filter(item => item.freeShip === false);
+        orderItems = orderItems.filter(item => item.product.freeShip === false);
 
         if (orderItems.length === 0) {
           const result: IRes<any> = {
