@@ -41,7 +41,7 @@ export class NewController {
   public highlight(request: Request): Promise<IRes<NewItem[]>> {
     return new Promise<IRes<NewItem[]>>(async (resolve) => {
       try {
-        const newsList = await NewModel.find({status: Status.ACTIVE}).sort({createdAt: -1}).limit(5);
+        const newsList = await NewModel.find({ status: Status.ACTIVE }).sort({ createdAt: -1 }).limit(5);
         const results = newsList.map(news => {
           const result = {
             _id: news._id,
@@ -78,8 +78,9 @@ export class NewController {
   public lastest(request: Request): Promise<IRes<NewItem[]>> {
     return new Promise<IRes<NewItem[]>>(async (resolve) => {
       try {
-        const newsList = await NewModel.find({status: Status.ACTIVE}).sort({date: -1}).limit(10);
-        const results = await Promise.all(newsList.map(async news => {
+        const newsList = await NewModel.find({ status: Status.ACTIVE }).sort({ date: -1 }).limit(10);
+        const results = [];
+        await Promise.all(newsList.forEach(async (news, index) => {
           const result = {
             _id: news._id,
             status: news.status,
@@ -92,7 +93,7 @@ export class NewController {
             url: news.url
           };
 
-          return result;
+          results.push(result);
 
         }));
 
@@ -118,7 +119,7 @@ export class NewController {
   public getNewsList(req: Request): Promise<IRes<IResNews>> {
     return new Promise<IRes<IResNews>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(req.query, ListNewSchema);
+        const { error } = Joi.validate(req.query, ListNewSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -130,7 +131,7 @@ export class NewController {
           return resolve(result);
         }
 
-        const {cate, sb, sd, limit, page} = req.query;
+        const { cate, sb, sd, limit, page } = req.query;
         const stages: any[] = this.newService.buildStageGetListNews({
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
@@ -188,7 +189,7 @@ export class NewController {
           return resolve(result);
         }
 
-        const news = await NewModel.findOne({url: url});
+        const news = await NewModel.findOne({ url: url });
         if (!news) {
           const result: IRes<NewItem> = {
             status: HttpStatus.BAD_REQUEST,

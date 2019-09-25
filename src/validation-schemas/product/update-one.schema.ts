@@ -21,7 +21,8 @@ const UpdateOneValidationSchema = Joi.object().keys({
       seoUrl: Joi.string(),
       seoDescription: Joi.string(),
       seoImage: Joi.string(),
-      status: Joi.number()
+      status: Joi.number(),
+      freeShip: Joi.boolean(),
     }
 );
 

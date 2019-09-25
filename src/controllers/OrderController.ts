@@ -214,7 +214,7 @@ export class OrderController {
         const products = await this.productService.findListProductByIds(productIds) as Product[];
 
         const orderItemsResult = orderItems.map((orderItem) => {
-          const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+          const product = _.find(products, { id: _.get(orderItem.product, '_id').toString() }) as Product;
           if (!product) return orderItem;
 
           orderItem.title = product.title;
@@ -247,7 +247,7 @@ export class OrderController {
   @httpPost(OrderRoute.AddMany, TYPES.CheckTokenMiddleware)
   public addMany(req: Request): Promise<IRes<IResAddManyProducts[]>> {
     return new Promise<IRes<IResAddManyProducts[]>>(async resolve => {
-      const {error} = Joi.validate(req.body, addManyProductsToCart);
+      const { error } = Joi.validate(req.body, addManyProductsToCart);
       if (error) {
         const messages = error.details.map(detail => {
           return detail.message;
@@ -285,7 +285,7 @@ export class OrderController {
   public addOne(request: Request, response: Response): Promise<IRes<IResAddOrderItem>> {
     return new Promise<IRes<IResAddOrderItem>>(async (resolve, reject) => {
       try {
-        const {error} = Joi.validate(request.body, addOneProductToCart);
+        const { error } = Joi.validate(request.body, addOneProductToCart);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -299,7 +299,7 @@ export class OrderController {
           return resolve(result);
         }
 
-        const {productId, quantity} = request.body;
+        const { productId, quantity } = request.body;
         const user = request.user;
 
         const product = await this.productService.findProductById(productId);
@@ -312,7 +312,7 @@ export class OrderController {
           return resolve(result);
         }
 
-        const shop = await ShopModel.findOne({user: user._id});
+        const shop = await ShopModel.findOne({ user: user._id });
         if (shop) {
           if (shop._id.toString() === product.shop['_id'].toString()) {
             const result = {
@@ -367,7 +367,7 @@ export class OrderController {
       try {
         const user = request.user;
 
-        const {error} = Joi.validate(request.body, SubmitOrderValidationSchema);
+        const { error } = Joi.validate(request.body, SubmitOrderValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -404,7 +404,7 @@ export class OrderController {
 
         await Promise.all(
           orderItems.map(async (orderItem) => {
-            const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+            const product = _.find(products, { id: _.get(orderItem.product, '_id').toString() }) as Product;
             if (!product) return orderItem;
             const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
             orderItem = await this.orderService.updateItem(orderItem, orderItem.quantity, finalPrice);
@@ -414,8 +414,8 @@ export class OrderController {
 
         // update order items status: new => pending
         await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PROCESSING);
-        const {deliveryTime, note, address, expectedDeliveryTime, contentOrder} = request.body;
-        const newOrder = {deliveryTime, note, address, expectedDeliveryTime, contentOrder};
+        const { deliveryTime, note, address, expectedDeliveryTime, contentOrder } = request.body;
+        const newOrder = { deliveryTime, note, address, expectedDeliveryTime, contentOrder };
         // update delivery info for order.
         order = await this.orderService.updateSubmitOrder(order, newOrder);
         // update shipping and discount
@@ -468,7 +468,7 @@ export class OrderController {
     return new Promise<IRes<any>>(async (resolve, reject) => {
       try {
 
-        const {error} = Joi.validate(request.body, SubmitNoLoginOrderValidationSchema);
+        const { error } = Joi.validate(request.body, SubmitNoLoginOrderValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -484,7 +484,7 @@ export class OrderController {
         }
 
         const order: any = new OrderModel();
-        const {receiverInfo, buyerInfo, items, deliveryTime, note, expectedDeliveryTime, contentOrder} = request.body;
+        const { receiverInfo, buyerInfo, items, deliveryTime, note, expectedDeliveryTime, contentOrder } = request.body;
 
         if (!items || items.length === 0) {
           const result = {
@@ -537,7 +537,7 @@ export class OrderController {
 
         await Promise.all(
           orderItems.map(async (orderItem) => {
-            const product = _.find(products, {id: _.get(orderItem.product, '_id').toString()}) as Product;
+            const product = _.find(products, { id: _.get(orderItem.product, '_id').toString() }) as Product;
             if (!product) return orderItem;
             orderItem.product = product;
             const finalPrice = product.saleOff.active ? product.saleOff.price : product.originalPrice;
@@ -611,7 +611,7 @@ export class OrderController {
     return new Promise<IRes<any>>(async (resolve, reject) => {
       try {
 
-        const {error} = Joi.validate(request.body, GetOrderShippingCostValidationSchema);
+        const { error } = Joi.validate(request.body, GetOrderShippingCostValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -625,7 +625,7 @@ export class OrderController {
           return resolve(result);
         }
 
-        const {addressId} = request.body;
+        const { addressId } = request.body;
         const order = await this.orderService.findPendingOrder(request.user._id);
         if (!order) {
           const result = {
@@ -648,10 +648,26 @@ export class OrderController {
         }
 
         // get orderItem by order
-        const orderItems: any = await this.orderItemService.findOrderItemByOrderId(order._id);
+        let orderItems: any = await this.orderItemService.findOrderItemByOrderId(order._id);
+
+        let totalShippingCost = 0;
+
+        orderItems = orderItems.filter(item => item.product.freeShip === false);
+
+        if (orderItems.length === 0) {
+          const result: IRes<any> = {
+            status: HttpStatus.OK,
+            messages: [ResponseMessages.SUCCESS],
+            data: {
+              totalShippingCost
+            }
+          };
+
+          return resolve(result);
+        }
+
         let shopIds = orderItems.map(item => item.product.shop.toString());
         shopIds = _.uniq(shopIds);
-        let totalShippingCost = 0;
 
         //  calculate shipping cost for each orderItem
         await Promise.all(shopIds.map(async shopId => {
@@ -688,7 +704,7 @@ export class OrderController {
     return new Promise<IRes<any>>(async (resolve, reject) => {
       try {
 
-        const {error} = Joi.validate(request.body, GetNoLoginOrderShippingCostValidationSchema);
+        const { error } = Joi.validate(request.body, GetNoLoginOrderShippingCostValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -702,7 +718,7 @@ export class OrderController {
           return resolve(result);
         }
 
-        const {addressInfo, items} = request.body;
+        const { addressInfo, items } = request.body;
         if (!items || items.length === 0) {
           const result = {
             status: HttpStatus.NOT_FOUND,
@@ -717,9 +733,7 @@ export class OrderController {
           return item.productId;
         });
 
-        const products = await this.productService.findListProductByIds(productIds) as Product[];
-        let shopIds = products.map(p => p.shop.toString());
-        shopIds = _.uniq(shopIds);
+        let products = await this.productService.findListProductByIds(productIds) as Product[];
 
         if (productIds.length > products.length) {
           const result = {
@@ -731,7 +745,23 @@ export class OrderController {
           return resolve(result);
         }
 
+        products = products.filter(product => product.freeShip === false);
+
         let totalShippingCost = 0;
+
+        if (products.length === 0) {
+          const result: IRes<any> = {
+            status: HttpStatus.OK,
+            messages: [ResponseMessages.SUCCESS],
+            data: {
+              totalShippingCost
+            }
+          };
+          return resolve(result);
+        }
+
+        let shopIds = products.map(p => p.shop.toString());
+        shopIds = _.uniq(shopIds);
 
         //  calculate shipping cost for each orderItem
         await Promise.all(shopIds.map(async (shopId: string) => {

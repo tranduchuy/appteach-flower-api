@@ -22,7 +22,8 @@ const AddNewValidationSchema = Joi.object().keys({
       seoDescription: Joi.string(),
       seoImage: Joi.string(),
       keywordList: Joi.array(),
-      status: Joi.number().valid([Status.ACTIVE, Status.PRODUCT_HIDDEN])
+      status: Joi.number().valid([Status.ACTIVE, Status.PRODUCT_HIDDEN]),
+      freeShip: Joi.boolean(),
     }
 );
 

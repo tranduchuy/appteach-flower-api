@@ -92,6 +92,9 @@ export class Product extends Typegoose {
 
   @prop({default: Status.PRODUCT_PENDING_APPROVE})
   approvedStatus: number;
+
+  @prop({default: false})
+  freeShip: boolean;
 }
 
 export default new Product().getModelForClass(Product);
