@@ -12,6 +12,7 @@ const TYPES = {
   ShopStatisticController: Symbol.for('ShopStatisticController'),
   NotifyController: Symbol.for('NotifyController'),
   NewController: Symbol.for('NewController'),
+  SaleNotification: Symbol.for('SaleNotification'),
 
 
   MailerService: Symbol.for('MailerService'),
@@ -33,6 +34,7 @@ const TYPES = {
   OrderWorkerService: Symbol.for('OrderWorkerService'),
   SmsService: Symbol.for('SmsService'),
   NewService: Symbol.for('NewService'),
+  SaleNotificationService: Symbol.for('SaleNotificationService'),
 
 
   CheckTokenMiddleware: Symbol.for('CheckTokenMiddleware'),

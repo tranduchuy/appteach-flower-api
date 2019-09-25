@@ -44,6 +44,8 @@ import { SmsService } from '../services/sms.service';
 import { NewController } from '../controllers/NewsController';
 import { AdminNewController } from '../controllers/admin/AdminNewController';
 import { NewService } from '../services/new.service';
+import { SaleNotificationController } from '../controllers/SaleNotificationController';
+import { SaleNotificationService } from '../services/sale-notification.service';
 
 const container = new Container();
 
@@ -59,6 +61,8 @@ container.bind<OrderItemController>(TYPES.OrderItemController).to(OrderItemContr
 container.bind<ShopStatisticController>(TYPES.ShopStatisticController).to(ShopStatisticController);
 container.bind<NotifyController>(TYPES.NotifyController).to(NotifyController);
 container.bind<NewController>(TYPES.NewController).to(NewController);
+container.bind<SaleNotificationController>(TYPES.SaleNotification).to(SaleNotificationController);
+
 // Bind Admin Controller
 container.bind<AdminUserController>(TYPES.Admin.UserController).to(AdminUserController);
 container.bind<AdminProductController>(TYPES.Admin.ProductController).to(AdminProductController);
@@ -85,7 +89,7 @@ container.bind<OrderWorkerService>(TYPES.OrderWorkerService).to(OrderWorkerServi
 container.bind<GoogleGeocodingService>(TYPES.GoogleGeocodingService).to(GoogleGeocodingService);
 container.bind<SmsService>(TYPES.SmsService).to(SmsService);
 container.bind<NewService>(TYPES.NewService).to(NewService);
-
+container.bind<SaleNotificationService>(TYPES.SaleNotificationService).to(SaleNotificationService);
 
 // Bind model
 
