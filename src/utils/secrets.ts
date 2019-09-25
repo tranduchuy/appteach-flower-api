@@ -33,3 +33,5 @@ if (!MONGODB_URI) {
   console.error('No mongo connection string. Set MONGODB_URI environment variable.');
   process.exit(1);
 }
+
+export const SENDGRID_API_KEY = process.env['SENDGRID_API_KEY'];
