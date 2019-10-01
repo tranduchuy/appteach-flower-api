@@ -574,11 +574,12 @@ export class UserController {
         }
 
         const { email, googleId, name } = request.body;
-        let user = await this.userService.findByGoogleId(googleId);
 
+        let user = await this.userService.findByGoogleId(googleId);
 
         if (!user) {
           user = await this.userService.findByEmail(email);
+
           if (user) {
             user = await this.userService.updateGoogleId(user, googleId);
           } else {
@@ -586,7 +587,7 @@ export class UserController {
             const newUser = {
               name,
               email,
-              googleId
+              googleId,
             };
             user = await this.userService.createUserByGoogle(newUser);
 
@@ -615,7 +616,7 @@ export class UserController {
         }
 
         const userInfoResponse = {
-          _id: user.id,
+          id: user.id,
           role: user.role,
           email: user.email,
           username: user.username,
@@ -632,7 +633,7 @@ export class UserController {
           registerBy: user.registerBy,
           googleId: user.googleId
         };
-        const token = this.userService.generateToken({ _id: user._id });
+        const token = this.userService.generateToken({ _id: user.id });
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,

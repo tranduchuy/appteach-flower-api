@@ -102,7 +102,7 @@ export class UserService {
 
     const username = email.split('@')[0];
 
-    const newUser = new UserModel({
+    const newUser = new UserModel2({
       email,
       passwordHash: null,
       passwordSalt: null,
@@ -119,7 +119,8 @@ export class UserService {
       ward: null,
       gender: null,
       role: UserRoles.USER_ROLE_ENDUSER,
-      googleId
+      googleId,
+      facebookId: null
     });
     return await newUser.save();
   };
@@ -184,10 +185,10 @@ export class UserService {
     return await user.save();
   };
   findByEmail = async (email) => {
-    return await UserModel.findOne({ email: email });
+    return await UserModel2.findOne({ where: { email } });
   };
   findByGoogleId = async (googleId) => {
-    return await UserModel.findOne({ googleId: googleId });
+    return await UserModel2.findOne({ where: { googleId } });
   };
   findByFacebookId = async (facebookId) => {
     return await UserModel.findOne({ facebookId: facebookId });
