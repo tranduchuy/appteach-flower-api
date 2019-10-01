@@ -1,5 +1,6 @@
 import { injectable } from 'inversify';
 import UserModel, { User } from '../models/user';
+import UserModel2 from '../models/user.model';
 import { UserConstant } from '../constant/users';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -10,6 +11,7 @@ import { General } from '../constant/generals';
 import UserRoles = General.UserRoles;
 import UserTypes = General.UserTypes;
 import RegisterByTypes = General.RegisterByTypes;
+import * as Sequelize from 'sequelize';
 
 export interface IQueryUser {
   limit: number;
@@ -30,7 +32,7 @@ export interface IQueryUser {
 export class UserService {
   sellerInProductDetailFields = ['_id', 'avatar', 'name', 'address'];
 
-  createUser = async ({email, password, type, name, phone, address, city, district, ward, registerBy, gender, role, otpCode}) => {
+  createUser = async ({ email, password, type, name, phone, address, city, district, ward, registerBy, gender, role, otpCode }) => {
     const salt = bcrypt.genSaltSync(UserConstant.saltLength);
     const tokenEmailConfirm = RandomString.generate({
       length: UserConstant.tokenConfirmEmailLength,
@@ -90,13 +92,13 @@ export class UserService {
           delete newUser[key];
         }
       });
-      return await UserModel.findOneAndUpdate({_id: userId}, newUser);
+      return await UserModel.findOneAndUpdate({ _id: userId }, newUser);
     } catch (e) {
       console.log(e);
     }
   };
 
-  createUserByGoogle = async ({email, name, googleId}) => {
+  createUserByGoogle = async ({ email, name, googleId }) => {
 
     const username = email.split('@')[0];
 
@@ -122,7 +124,7 @@ export class UserService {
     return await newUser.save();
   };
 
-  createUserByFacebook = async ({name, facebookId}) => {
+  createUserByFacebook = async ({ name, facebookId }) => {
 
     const newUser = new UserModel({
       passwordHash: null,
@@ -153,7 +155,7 @@ export class UserService {
   };
 
   findByUsername = async (username: string) => {
-    return await UserModel.findOne({username});
+    return await UserModel.findOne({ username });
   };
 
   findByEmailOrUsername = async (email, username) => {
@@ -165,10 +167,11 @@ export class UserService {
   };
 
   findByEmailOrPhone = async (email, phone) => {
-    const userByEmail = await this.findByEmail(email);
-    const userByPhone = await this.findByPhone(phone);
-
-    return userByEmail || userByPhone || null;
+    return await UserModel2.findOne({
+      where: {
+        [Sequelize.Op.or]: [{ email }, { phone }]
+      }
+    });
   };
 
   updateGoogleId = async (user, googleId) => {
@@ -181,13 +184,13 @@ export class UserService {
     return await user.save();
   };
   findByEmail = async (email) => {
-    return await UserModel.findOne({email: email});
+    return await UserModel.findOne({ email: email });
   };
   findByGoogleId = async (googleId) => {
-    return await UserModel.findOne({googleId: googleId});
+    return await UserModel.findOne({ googleId: googleId });
   };
   findByFacebookId = async (facebookId) => {
-    return await UserModel.findOne({facebookId: facebookId});
+    return await UserModel.findOne({ facebookId: facebookId });
   };
   isValidHashPassword = (hashed: string, plainText: string) => {
     try {
@@ -197,7 +200,7 @@ export class UserService {
     }
   };
   getSellerInProductDetail = async (id) => {
-    return await UserModel.findOne({_id: id}, this.sellerInProductDetailFields);
+    return await UserModel.findOne({ _id: id }, this.sellerInProductDetailFields);
   };
   generateForgetPasswordToken = async (user) => {
     const reminderToken = RandomString.generate();
@@ -227,7 +230,7 @@ export class UserService {
   }
 
   async findByPhone(phone: string): Promise<User> {
-    return await UserModel.findOne({phone});
+    return await UserModel.findOne({ phone });
   }
 
   isRoleAdmin(role: number): boolean {
@@ -277,7 +280,7 @@ export class UserService {
     }
 
     if (Object.keys(matchStage).length > 0) {
-      stages.push({$match: matchStage});
+      stages.push({ $match: matchStage });
     }
 
     if (queryCondition.sortBy) {
@@ -291,11 +294,11 @@ export class UserService {
     stages.push({
       $facet: {
         entries: [
-          {$skip: (queryCondition.page - 1) * queryCondition.limit},
-          {$limit: queryCondition.limit}
+          { $skip: (queryCondition.page - 1) * queryCondition.limit },
+          { $limit: queryCondition.limit }
         ],
         meta: [
-          {$group: {_id: null, totalItems: {$sum: 1}}},
+          { $group: { _id: null, totalItems: { $sum: 1 } } },
         ],
       }
     });

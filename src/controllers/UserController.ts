@@ -512,7 +512,7 @@ export class UserController {
         }
 
         const userInfoResponse = {
-            _id: user._id,
+            _id: user.id,
             role: user.role,
             email: user.email,
             username: user.username,
@@ -529,7 +529,7 @@ export class UserController {
             registerBy: user.registerBy
           }
         ;
-        const token = this.userService.generateToken({_id: user._id});
+        const token = this.userService.generateToken({_id: user.id});
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
