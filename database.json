@@ -1,0 +1,11 @@
+{
+ "dev": {
+  "driver": "mysql",
+  "user": "root",
+  "password": "123456",
+  "database": "flower",
+  "host": "157.245.57.6",
+  "port": 3306,
+  "multipleStatements": true
+ }
+}
