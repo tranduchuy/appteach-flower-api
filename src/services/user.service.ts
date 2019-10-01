@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import UserModel, { User } from '../models/user';
-import UserModel2 from '../models/user.model';
+import UserModel2, { User2 } from '../models/user.model';
 import { UserConstant } from '../constant/users';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -39,7 +39,7 @@ export class UserService {
       charset: 'alphabetic'
     });
 
-    const newUser = new UserModel({
+    const newUser = new UserModel2({
       email,
       passwordHash: bcrypt.hashSync(password, salt),
       passwordSalt: salt,
@@ -229,8 +229,8 @@ export class UserService {
     return await UserModel.findById(id);
   }
 
-  async findByPhone(phone: string): Promise<User> {
-    return await UserModel.findOne({ phone });
+  async findByPhone(phone: string): Promise<User2> {
+    return await UserModel2.findOne({ where: { phone } });
   }
 
   isRoleAdmin(role: number): boolean {

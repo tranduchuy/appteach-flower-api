@@ -1,7 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
 
-export class User extends Model {
+export class User2 extends Model {
     id!: number;
     email: string;
     name: string;
@@ -31,7 +31,7 @@ export class User extends Model {
     registerBy: number;
 }
 
-User.init({
+User2.init({
     id: {
         type: DataTypes.INTEGER.UNSIGNED,
         field: 'ID',
@@ -152,4 +152,4 @@ User.init({
     sequelize: MYSQL_CONNECTION
 });
 
-export default User;
+export default User2;
