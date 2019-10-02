@@ -23,7 +23,7 @@ export class User2 extends Model {
     district: number;
     tokenEmailConfirm: string;
     passwordReminderToken: string;
-    passwordReminderExpire: string;
+    passwordReminderExpire: Date;
     googleId: string;
     facebookId: string;
     otpCodeConfirmAccount: string;
@@ -123,7 +123,7 @@ User2.init({
         field: 'PASSWORD_REMINDER_TOKEN'
     },
     passwordReminderExpire: {
-        type: DataTypes.STRING,
+        type: DataTypes.DATE,
         field: 'PASSWORD_REMINDER_EXPIRE'
     },
     googleId: {

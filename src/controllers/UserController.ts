@@ -335,7 +335,7 @@ export class UserController {
 
         if (phone) {
           if (phone !== user.phone) {
-            const duplicatedPhones = await UserModel.find({ phone: phone });
+            const duplicatedPhones = await UserModel2.findAll({ where: { phone } });
             if (duplicatedPhones.length !== 0) {
               const result: IRes<{}> = {
                 status: HttpStatus.INTERNAL_SERVER_ERROR,
