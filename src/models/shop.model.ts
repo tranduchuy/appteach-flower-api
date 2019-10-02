@@ -1,5 +1,6 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
+import ImageShop from './image-shop.model';
 import User2 from './user.model';
 
 export class Shop2 extends Model {
@@ -64,5 +65,7 @@ Shop2.init({
 Shop2.hasOne(User2, {
   foreignKey: 'USERS_ID'
 });
+
+Shop2.hasMany(ImageShop, {foreignKey: 'SHOPS_ID'});
 
 export default Shop2;
