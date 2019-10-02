@@ -6,7 +6,7 @@ import TYPES from '../constant/types';
 import { Request, Response } from 'express';
 import { IRes } from '../interfaces/i-res';
 import UserModel, { User } from '../models/user';
-import UserModel2 from '../models/user.model';
+import UserModel2, {User2} from '../models/user.model';
 import { SmsService } from '../services/sms.service';
 import { UserService } from '../services/user.service';
 import { General } from '../constant/generals';
@@ -56,16 +56,16 @@ export class UserController {
   }
 
   @httpGet('/info', TYPES.CheckTokenMiddleware)
-  public getLoggedInInfo(request: Request): Promise<IRes<User>> {
-    return new Promise<IRes<User>>((resolve => {
+  public getLoggedInInfo(request: Request): Promise<IRes<User2>> {
+    return new Promise<IRes<User2>>((resolve => {
       try {
-        const user: User = JSON.parse(JSON.stringify(<User>request.user));
+        const user: User2 = JSON.parse(JSON.stringify(<User2>request.user));
         delete user.passwordHash;
         delete user.passwordSalt;
         delete user.passwordReminderExpire;
         delete user.passwordReminderToken;
 
-        const result: IRes<User> = {
+        const result: IRes<User2> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: user
@@ -75,7 +75,7 @@ export class UserController {
 
       } catch (e) {
         console.error(e);
-        const result: IRes<User> = {
+        const result: IRes<User2> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: [JSON.stringify(e)]
         };
