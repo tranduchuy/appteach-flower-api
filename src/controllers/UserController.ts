@@ -148,7 +148,9 @@ export class UserController {
           ward: ward || null,
           registerBy: RegisterByTypes.NORMAL,
           address,
-          otpCode
+          otpCode,
+          googleId: null,
+          facebookId: null
         };
 
         const newUser = await this.userService.createUser(newUserData);

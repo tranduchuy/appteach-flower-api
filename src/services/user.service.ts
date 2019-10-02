@@ -32,7 +32,7 @@ export interface IQueryUser {
 export class UserService {
   sellerInProductDetailFields = ['_id', 'avatar', 'name', 'address'];
 
-  createUser = async ({ email, password, type, name, phone, address, city, district, ward, registerBy, gender, role, otpCode }) => {
+  createUser = async ({ email, password, type, name, phone, address, city, district, ward, registerBy, gender, role, otpCode, googleId, facebookId }) => {
     const salt = bcrypt.genSaltSync(UserConstant.saltLength);
     const tokenEmailConfirm = RandomString.generate({
       length: UserConstant.tokenConfirmEmailLength,
@@ -56,7 +56,9 @@ export class UserService {
       ward: ward || null,
       gender: gender || null,
       role: role || UserRoles.USER_ROLE_ENDUSER,
-      otpCodeConfirmAccount: otpCode
+      otpCodeConfirmAccount: otpCode,
+      googleId,
+      facebookId
     });
 
     return await newUser.save();
