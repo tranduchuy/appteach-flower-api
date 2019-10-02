@@ -5,6 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 import { General } from '../constant/generals';
 import { Status } from '../constant/status';
 import UserModel from '../models/user';
+import UserModel2 from '../models/user.model';
 import * as HttpStatus from 'http-status-codes';
 const WhiteList = require('./user-white-list');
 
@@ -42,8 +43,10 @@ export class CheckTokenMiddleware extends BaseMiddleware {
 
     try {
       const userInfo = jwt.verify(token, General.jwtSecret);
-      const user = await UserModel.findOne({
-        _id: userInfo._id
+      const user = await UserModel2.findOne({
+        where: {
+          id: userInfo._id
+        }
       });
 
       if (!user || user.status !== Status.ACTIVE) {
