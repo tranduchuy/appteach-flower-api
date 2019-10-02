@@ -5,8 +5,8 @@ import { inject } from 'inversify';
 import TYPES from '../constant/types';
 import { Request, Response } from 'express';
 import { IRes } from '../interfaces/i-res';
-import UserModel, { User } from '../models/user';
-import UserModel2, {User2} from '../models/user.model';
+import UserModel from '../models/user';
+import UserModel2, { User2 } from '../models/user.model';
 import { SmsService } from '../services/sms.service';
 import { UserService } from '../services/user.service';
 import { General } from '../constant/generals';
@@ -16,10 +16,8 @@ import UserTypes = General.UserTypes;
 import { MailerService } from '../services/mailer.service';
 import RegisterByTypes = General.RegisterByTypes;
 import * as HttpStatus from 'http-status-codes';
-import Joi from '@hapi/joi';
-// validate schema
+import Joi from '@hapi/joi'; // validate schema
 import UpdateUserValidationSchema from '../validation-schemas/user/update-user.schema';
-
 import loginValidationSchema from '../validation-schemas/user/login.schema';
 import loginGoogleSchema from '../validation-schemas/user/login-google.schema';
 import registerSchema from '../validation-schemas/user/register.schema';
