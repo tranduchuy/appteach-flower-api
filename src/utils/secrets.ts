@@ -1,14 +1,15 @@
 import dotenv from 'dotenv';
 import fs from 'fs';
+import { Sequelize } from 'sequelize';
 
 // // const console = process['console'];
 
 if (fs.existsSync('.env')) {
   console.info('Using .env file to supply config environment variables');
-  dotenv.config({path: '.env'});
+  dotenv.config({ path: '.env' });
 } else {
   console.info('Using .env.example file to supply config environment variables');
-  dotenv.config({path: '.env.example'});  // you can delete this after you create your own .env file!
+  dotenv.config({ path: '.env.example' });  // you can delete this after you create your own .env file!
 }
 export const ENVIRONMENT = process.env.NODE_ENV;
 export const prod = ENVIRONMENT === 'production'; // Anything else is treated as 'dev'
@@ -35,3 +36,13 @@ if (!MONGODB_URI) {
 }
 
 export const SENDGRID_API_KEY = process.env['SENDGRID_API_KEY'];
+
+export const MYSQL_CONNECTION = new Sequelize(
+  process.env['MYSQL_DATABASE'],
+  process.env['MYSQL_USERNAME'],
+  process.env['MYSQL_PASSWORD'],
+  {
+    host: process.env['MYSQL_HOST'],
+    dialect: 'mysql'
+  }
+);
