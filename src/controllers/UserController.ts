@@ -911,9 +911,7 @@ export class UserController {
       try {
         const { token } = request.query;
 
-        const user = await UserModel.findOne({
-          tokenEmailConfirm: token
-        });
+        const user = await UserModel2.findOne({ where: { tokenEmailConfirm: token } });
 
         if (!user) {
           const result: IRes<{}> = {

@@ -145,7 +145,8 @@ export class UserService {
       ward: null,
       gender: null,
       role: UserRoles.USER_ROLE_ENDUSER,
-      facebookId
+      facebookId,
+      googleId: null
     });
     return await newUser.save();
   };
@@ -193,7 +194,7 @@ export class UserService {
     return await UserModel2.findOne({ where: { googleId } });
   };
   findByFacebookId = async (facebookId) => {
-    return await UserModel.findOne({ facebookId: facebookId });
+    return await UserModel2.findOne({ where: facebookId });
   };
   isValidHashPassword = (hashed: string, plainText: string) => {
     try {
