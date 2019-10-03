@@ -1,5 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
+import City from './city.model';
+import Address2 from './address.model';
 
 export class User2 extends Model {
     id!: number;
@@ -37,6 +39,7 @@ User2.init({
         field: 'ID',
         primaryKey: true,
         unique: true,
+        allowNull: false,
         autoIncrement: true
     },
     email: {
@@ -147,9 +150,11 @@ User2.init({
         field: 'REGISTER_BY'
     }
 }, {
-    tableName: 'USERS',
-    freezeTableName: true,
-    sequelize: MYSQL_CONNECTION
-});
+        tableName: 'USERS',
+        freezeTableName: true,
+        sequelize: MYSQL_CONNECTION
+    });
+
+User2.hasMany(Address2, { foreignKey: 'USERS_ID' });
 
 export default User2;

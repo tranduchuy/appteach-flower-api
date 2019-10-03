@@ -162,7 +162,7 @@ export class UserController {
         } else {
           // Send email
           // this.mailerService.sendConfirmEmail(email, name, newUser.tokenEmailConfirm);
-          this.smsService.sendSMS([phone], `Mã xác thục tài khoản: ${otpCode}`, '');
+          this.smsService.sendSMS([phone], `Mã xác thực tài khoản: ${otpCode}`, '');
         }
 
         const result: IRes<{}> = {
@@ -210,7 +210,7 @@ export class UserController {
           shopName, slug, images, availableShipCountry, availableShipAddresses
         } = request.body;
 
-        const duplicatedPhones = await UserModel.find({ phone: phone });
+        const duplicatedPhones = await UserModel2.findAll({ where: { phone } });
         if (duplicatedPhones.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -239,7 +239,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const duplicatedUsers = await UserModel.find({ email: email });
+        const duplicatedUsers = await UserModel2.findAll({ where: { email } });
         if (duplicatedUsers.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -269,26 +269,37 @@ export class UserController {
 
         const newUser = await this.userService.createUser(newUserData);
 
-        const shop: any = await this.shopService.createNewShop(newUser.id.toString(), shopName, slug, images, availableShipCountry);
+        const shop: any = await this.shopService.createNewShop(newUser.id, shopName, slug, images, availableShipCountry);
 
-        await this.addressService.createShopAddress(shop._id.toString(), address, longitude, latitude);
+        await this.addressService.createShopAddress({
+          name,
+          email,
+          phone,
+          address,
+          longitude,
+          latitude,
+          usersId: newUser.id,
+          shopsId: shop.id,
+          citiesId: null,
+          districtsId: null
+        });
 
         if (availableShipAddresses.length > 0) {
           // delete old possibaleDeliveryAddress
-          await this.addressService.deleteOldPossibleDeliveryAddress(shop._id);
+          await this.addressService.deleteOldPossibleDeliveryAddress(shop.id);
         }
 
-        await Promise.all((availableShipAddresses || []).map(async (addressData: { city: string, district?: number }) => {
+        await Promise.all((availableShipAddresses || []).map(async (addressData: { city: number, district?: number }) => {
           await this.addressService.createPossibleDeliveryAddress({
             district: addressData.district,
             city: addressData.city,
-            shopId: shop._id.toString()
+            shopId: shop.id
           });
         }));
 
         // Send email
         // this.mailerService.sendConfirmEmail(email, name, newUser.tokenEmailConfirm);
-        this.smsService.sendSMS([phone], `Mã xác thục tài khoản: ${otpCode}`, '');
+        this.smsService.sendSMS([phone], `Mã xác thực tài khoản: ${otpCode}`, '');
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -616,7 +627,7 @@ export class UserController {
         }
 
         const userInfoResponse = {
-          id: user.id,
+          _id: user.id,
           role: user.role,
           email: user.email,
           username: user.username,
@@ -705,7 +716,7 @@ export class UserController {
         const otpCode: any = this.userService.generateOTPCode();
         user.phone = phone;
         user.otpCodeConfirmAccount = otpCode;
-        this.smsService.sendSMS([user.phone], `FlowerVietnam: Mã xác thục tài khoản: ${otpCode}`, '');
+        this.smsService.sendSMS([user.phone], `FlowerVietnam: Mã xác thực tài khoản: ${otpCode}`, '');
         await user.save();
 
         const result: IRes<{}> = {
@@ -775,7 +786,7 @@ export class UserController {
         const otpCode: any = this.userService.generateOTPCode();
         user.phone = phone;
         user.otpCodeConfirmAccount = otpCode;
-        this.smsService.sendSMS([user.phone], `FlowerVietnam: Mã xác thục tài khoản: ${otpCode}`, '');
+        this.smsService.sendSMS([user.phone], `FlowerVietnam: Mã xác thực tài khoản: ${otpCode}`, '');
         await user.save();
 
         const result: IRes<{}> = {
@@ -1242,7 +1253,7 @@ export class UserController {
         const otpCode = this.userService.generateOTPCode();
         user.noSentOTP++;
         user.otpCodeConfirmAccount = otpCode;
-        this.smsService.sendSMS([user.phone], `FlowerVietnam: Mã xác thục tài khoản: ${otpCode}`, '');
+        this.smsService.sendSMS([user.phone], `FlowerVietnam: Mã xác thực tài khoản: ${otpCode}`, '');
         await user.save();
 
         return resolve({

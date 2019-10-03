@@ -45,9 +45,9 @@ interface IResUpdateStatusMultipleProduct {
 @controller('/shop')
 export class ShopController {
   constructor(@inject(TYPES.ShopService) private shopService: ShopService,
-              @inject(TYPES.ProductService) private productService: ProductService,
-              @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-              @inject(TYPES.AddressService) private addressService: AddressService) {
+    @inject(TYPES.ProductService) private productService: ProductService,
+    @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+    @inject(TYPES.AddressService) private addressService: AddressService) {
 
   }
 
@@ -55,7 +55,7 @@ export class ShopController {
   public registerShop(req: Request): Promise<IRes<IResRegisterShop>> {
     return new Promise<IRes<any>>(async resolve => {
       try {
-        const {error} = Joi.validate(req.body, registerShopSchema);
+        const { error } = Joi.validate(req.body, registerShopSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -70,7 +70,7 @@ export class ShopController {
         }
 
         // 1 user only have 1 shop
-        const existShop = await this.shopService.findShopOfUser(req.user._id.toString());
+        const existShop = await this.shopService.findShopOfUser(req.user.id);
         if (existShop) {
           const result: IRes<IResRegisterShop> = {
             status: HttpStatus.BAD_REQUEST,
@@ -80,7 +80,7 @@ export class ShopController {
           return resolve(result);
         }
 
-        const {name, slug, images, availableShipCountry, availableShipAddresses, longitude, latitude, address} = req.body;
+        const { name, slug, images, availableShipCountry, availableShipAddresses, longitude, latitude, address } = req.body;
         const duplicateShopSlug: any = await this.shopService.findShopBySlug(slug);
         if (duplicateShopSlug) {
           const result: IRes<IResRegisterShop> = {
@@ -91,7 +91,7 @@ export class ShopController {
           return resolve(result);
         }
 
-        const shop: any = await this.shopService.createNewShop(req.user._id.toString(), name, slug, images, availableShipCountry);
+        const shop: any = await this.shopService.createNewShop(req.user._id, name, slug, images, availableShipCountry);
 
         // create shop address
         await this.addressService.createShopAddress(shop._id.toString(), address, longitude, latitude);
@@ -128,7 +128,7 @@ export class ShopController {
   public updateShop(req: Request): Promise<IRes<IResRegisterShop>> {
     return new Promise<IRes<any>>(async resolve => {
       try {
-        const {error} = Joi.validate(req.body, UpdateShopSchema);
+        const { error } = Joi.validate(req.body, UpdateShopSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -152,9 +152,9 @@ export class ShopController {
           return resolve(result);
         }
 
-        const {availableShipCountry, availableShipAddresses, address, city, district, ward, longitude, latitude} = req.body;
+        const { availableShipCountry, availableShipAddresses, address, city, district, ward, longitude, latitude } = req.body;
         // update shop address
-        await this.addressService.updateShopAddress(shop._id, {city, district, ward, address, longitude, latitude});
+        await this.addressService.updateShopAddress(shop._id, { city, district, ward, address, longitude, latitude });
         shop = await this.shopService.updateShop(shop, availableShipCountry);
 
         if (availableShipAddresses.length > 0) {
@@ -237,7 +237,7 @@ export class ShopController {
   public checkShopSlug(req: Request): Promise<IRes<IResCheckValidSlug>> {
     return new Promise<IRes<IResCheckValidSlug>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(req.query, checkShopSlugSchema);
+        const { error } = Joi.validate(req.query, checkShopSlugSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -251,7 +251,7 @@ export class ShopController {
           return resolve(result);
         }
 
-        const shop = await ShopModel.findOne({slug: req.query.slug});
+        const shop = await ShopModel.findOne({ slug: req.query.slug });
         if (shop) {
           return resolve({
             status: HttpStatus.BAD_REQUEST,
@@ -278,7 +278,7 @@ export class ShopController {
   public getShopProductsForControlling(req: Request): Promise<IRes<IResProductOfShop>> {
     return new Promise<IRes<IResProductOfShop>>(async resolve => {
       try {
-        const {error} = Joi.validate(req.body, listProductsOfShopSchema);
+        const { error } = Joi.validate(req.body, listProductsOfShopSchema);
 
         if (error) {
           const messages = error.details.map(detail => {
@@ -301,7 +301,7 @@ export class ShopController {
           });
         }
 
-        const {limit, page, title, status, approvedStatus, sb, sd} = req.query;
+        const { limit, page, title, status, approvedStatus, sb, sd } = req.query;
         const queryCondition: IQueryProductsOfShop = {
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
@@ -344,7 +344,7 @@ export class ShopController {
   public updateStatusMultipleProduct(req: Request): Promise<IRes<IResUpdateStatusMultipleProduct>> {
     return new Promise<IRes<IResUpdateStatusMultipleProduct>>(async resolve => {
       try {
-        const {error} = Joi.validate(req.body, checkUpdateStatusProducts);
+        const { error } = Joi.validate(req.body, checkUpdateStatusProducts);
 
         if (error) {
           const messages = error.details.map(detail => {
@@ -367,7 +367,7 @@ export class ShopController {
           });
         }
 
-        const {productIds, status} = req.body;
+        const { productIds, status } = req.body;
         const result: any = await this.productService.updateMultipleProducts(shop._id, productIds, status);
 
         return resolve({
@@ -390,7 +390,7 @@ export class ShopController {
   public getOrderItemList(req: Request): Promise<IRes<any>> {
     return new Promise<IRes<any>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(req.query, ListShopSchema);
+        const { error } = Joi.validate(req.query, ListShopSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -412,7 +412,7 @@ export class ShopController {
           });
         }
 
-        const {limit, sb, sd, page, status, startDate, endDate} = req.query;
+        const { limit, sb, sd, page, status, startDate, endDate } = req.query;
         const stages: any[] = this.orderItemService.buildStageGetListOrderItem({
           shop: shop._id ? shop._id : null,
           limit: parseInt((limit || 10).toString()),

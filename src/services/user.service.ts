@@ -63,7 +63,6 @@ export class UserService {
     });
 
     return await newUser.save();
-
   };
 
   updateUser = async (user, {
