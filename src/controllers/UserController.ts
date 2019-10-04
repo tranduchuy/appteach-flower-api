@@ -5,7 +5,6 @@ import { inject } from 'inversify';
 import TYPES from '../constant/types';
 import { Request, Response } from 'express';
 import { IRes } from '../interfaces/i-res';
-import UserModel from '../models/user';
 import UserModel2, { User2 } from '../models/user.model';
 import { SmsService } from '../services/sms.service';
 import { UserService } from '../services/user.service';
