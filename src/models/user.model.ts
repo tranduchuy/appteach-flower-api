@@ -1,6 +1,5 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
-import City from './city.model';
 import Address2 from './address.model';
 
 export class User2 extends Model {

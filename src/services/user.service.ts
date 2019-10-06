@@ -12,7 +12,6 @@ import UserRoles = General.UserRoles;
 import UserTypes = General.UserTypes;
 import RegisterByTypes = General.RegisterByTypes;
 import * as Sequelize from 'sequelize';
-import { where } from 'sequelize';
 
 export interface IQueryUser {
   limit: number;
