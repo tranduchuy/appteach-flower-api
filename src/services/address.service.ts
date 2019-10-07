@@ -1,10 +1,12 @@
 import { injectable } from 'inversify';
 import mongoose from 'mongoose';
 import AddressModel, { Address } from '../models/address';
+import AddressModel2 from '../models/address.model';
 import { General } from '../constant/generals';
 import AddressTypes = General.AddressTypes;
 import { SearchSelector } from '../constant/search-selector.constant';
 import Cities = SearchSelector.Cities;
+import * as Sequelize from 'sequelize';
 
 @injectable()
 export class AddressService {
@@ -40,20 +42,24 @@ export class AddressService {
     return await newAddress.save();
   };
 
-  createPossibleDeliveryAddress = async (addressData: { city: string; shopId: string; district: number }) => {
-    const newAddress = new AddressModel({
+  createPossibleDeliveryAddress = async (addressData: { city: number; shopId: number; district: number }) => {
+    const newAddress = new AddressModel2({
       city: addressData.city,
       district: addressData.district,
-      shop: new mongoose.Types.ObjectId(addressData.shopId),
+      shop: addressData.shopId,
       type: AddressTypes.POSSIBLE_DELIVERY
     });
 
     return await newAddress.save();
   };
 
-  deleteOldPossibleDeliveryAddress = async (shopId: string) => {
-
-    return await AddressModel.remove({ shop: shopId, type: AddressTypes.POSSIBLE_DELIVERY});
+  deleteOldPossibleDeliveryAddress = async (shopId: number) => {
+    return await AddressModel2.destroy({
+      where: {
+        shopId,
+        type: AddressTypes.POSSIBLE_DELIVERY
+      }
+    });
   };
   getDelieveryAddress = async (user) => {
     return await AddressModel.find({
@@ -213,16 +219,9 @@ export class AddressService {
     }
   };
 
-  async createShopAddress(shopId: string, address: string, longitude: number, latitude: number) {
-    const newAddress = new AddressModel({
-      address,
-      addressText: address,
-      longitude,
-      latitude,
-      shop: new mongoose.Types.ObjectId(shopId),
-      type: AddressTypes.SHOP_ADDRESS
-    });
-
+  async createShopAddress(param: any) {
+    param.type = AddressTypes.SHOP_ADDRESS;
+    const newAddress = new AddressModel2(param);
     return await newAddress.save();
   }
 

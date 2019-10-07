@@ -1,5 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
+import City from './city.model';
+import Address2 from './address.model';
 
 export class User2 extends Model {
     id!: number;
@@ -23,7 +25,7 @@ export class User2 extends Model {
     district: number;
     tokenEmailConfirm: string;
     passwordReminderToken: string;
-    passwordReminderExpire: string;
+    passwordReminderExpire: Date;
     googleId: string;
     facebookId: string;
     otpCodeConfirmAccount: string;
@@ -37,6 +39,7 @@ User2.init({
         field: 'ID',
         primaryKey: true,
         unique: true,
+        allowNull: false,
         autoIncrement: true
     },
     email: {
@@ -123,7 +126,7 @@ User2.init({
         field: 'PASSWORD_REMINDER_TOKEN'
     },
     passwordReminderExpire: {
-        type: DataTypes.STRING,
+        type: DataTypes.DATE,
         field: 'PASSWORD_REMINDER_EXPIRE'
     },
     googleId: {
@@ -147,9 +150,11 @@ User2.init({
         field: 'REGISTER_BY'
     }
 }, {
-    tableName: 'USERS',
-    freezeTableName: true,
-    sequelize: MYSQL_CONNECTION
-});
+        tableName: 'USERS',
+        freezeTableName: true,
+        sequelize: MYSQL_CONNECTION
+    });
+
+User2.hasMany(Address2, { foreignKey: 'USERS_ID' });
 
 export default User2;

@@ -2,6 +2,7 @@ import { injectable } from 'inversify';
 import mongoose from 'mongoose';
 import { Status } from '../constant/status';
 import ShopModel, { Shop } from '../models/shop';
+import ShopModel2, { Shop2 } from '../models/shop.model';
 
 export interface IQueryWaitingShop {
   limit: number;
@@ -35,27 +36,31 @@ export interface IQueryListShop {
 export class ShopService {
 
   async findShopById(shopId: string): Promise<Shop> {
-    return await ShopModel.findOne({_id: shopId});
+    return await ShopModel.findOne({ _id: shopId });
   }
 
-  async findShopOfUser(userId: string): Promise<Shop> {
-    return await ShopModel.findOne({
-      user: new mongoose.Types.ObjectId(userId),
-      status: Status.ACTIVE
-    });
+  async findShopOfUser(userId: number): Promise<Shop2> {
+    return await ShopModel2.findOne(
+      {
+        where: {
+          usersId: userId,
+          status: Status.ACTIVE
+        }
+      }
+    );
   }
 
-  async findShopBySlug(slug: string): Promise<Shop> {
-    return await ShopModel.findOne({slug});
+  async findShopBySlug(slug: string): Promise<Shop2> {
+    return await ShopModel2.findOne({ where: { slug } });
   }
 
-  async createNewShop(userId: string, name: string, slug: string, images: string[], availableShipCountry: boolean): Promise<Shop> {
-    const shop = new ShopModel({
+  async createNewShop(userId: number, name: string, slug: string, images: string[], availableShipCountry: boolean): Promise<Shop2> {
+    const shop = new ShopModel2({
       name,
       slug,
       images,
       availableShipCountry,
-      user: new mongoose.Types.ObjectId(userId),
+      usersId: userId,
       createdAt: new Date(),
       updatedAt: new Date()
     });
@@ -92,11 +97,11 @@ export class ShopService {
     stages.push({
       $facet: {
         entries: [
-          {$skip: (queryCondition.page - 1) * queryCondition.limit},
-          {$limit: queryCondition.limit}
+          { $skip: (queryCondition.page - 1) * queryCondition.limit },
+          { $limit: queryCondition.limit }
         ],
         meta: [
-          {$group: {_id: null, totalItems: {$sum: 1}}},
+          { $group: { _id: null, totalItems: { $sum: 1 } } },
         ],
       }
     });
@@ -149,11 +154,11 @@ export class ShopService {
     stages.push({
       $facet: {
         entries: [
-          {$skip: (queryCondition.page - 1) * queryCondition.limit},
-          {$limit: queryCondition.limit}
+          { $skip: (queryCondition.page - 1) * queryCondition.limit },
+          { $limit: queryCondition.limit }
         ],
         meta: [
-          {$group: {_id: null, totalItems: {$sum: 1}}},
+          { $group: { _id: null, totalItems: { $sum: 1 } } },
         ],
       }
     });
@@ -166,7 +171,7 @@ export class ShopService {
     const matchStage: any = {};
 
     if (queryCondition.name) {
-      matchStage['name'] = {'$regex': queryCondition.name, '$options': 'i'};
+      matchStage['name'] = { '$regex': queryCondition.name, '$options': 'i' };
     }
 
     if (queryCondition.status) {
@@ -174,7 +179,7 @@ export class ShopService {
     }
 
     if (Object.keys(matchStage).length > 0) {
-      stages.push({$match: matchStage});
+      stages.push({ $match: matchStage });
     }
 
     stages.push({
@@ -186,7 +191,7 @@ export class ShopService {
       }
     });
 
-    stages.push({$unwind: {path: '$userInfo'}});
+    stages.push({ $unwind: { path: '$userInfo' } });
 
     if (queryCondition.sb) {
       stages.push({
@@ -199,11 +204,11 @@ export class ShopService {
     stages.push({
       $facet: {
         entries: [
-          {$skip: (queryCondition.page - 1) * queryCondition.limit},
-          {$limit: queryCondition.limit}
+          { $skip: (queryCondition.page - 1) * queryCondition.limit },
+          { $limit: queryCondition.limit }
         ],
         meta: [
-          {$group: {_id: null, totalItems: {$sum: 1}}},
+          { $group: { _id: null, totalItems: { $sum: 1 } } },
         ],
       }
     });

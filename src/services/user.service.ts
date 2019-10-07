@@ -12,6 +12,7 @@ import UserRoles = General.UserRoles;
 import UserTypes = General.UserTypes;
 import RegisterByTypes = General.RegisterByTypes;
 import * as Sequelize from 'sequelize';
+import { where } from 'sequelize';
 
 export interface IQueryUser {
   limit: number;
@@ -32,7 +33,7 @@ export interface IQueryUser {
 export class UserService {
   sellerInProductDetailFields = ['_id', 'avatar', 'name', 'address'];
 
-  createUser = async ({ email, password, type, name, phone, address, city, district, ward, registerBy, gender, role, otpCode, googleId, facebookId }) => {
+  createUser = async ({ email, password, type, name, phone, address, city, district, ward, registerBy, gender, role, otpCode }) => {
     const salt = bcrypt.genSaltSync(UserConstant.saltLength);
     const tokenEmailConfirm = RandomString.generate({
       length: UserConstant.tokenConfirmEmailLength,
@@ -57,19 +58,18 @@ export class UserService {
       gender: gender || null,
       role: role || UserRoles.USER_ROLE_ENDUSER,
       otpCodeConfirmAccount: otpCode,
-      googleId,
-      facebookId
+      googleId: null,
+      facebookId: null
     });
 
     return await newUser.save();
-
   };
 
   updateUser = async (user, {
     newPassword, name, phone, address, city, district, ward, birthday, gender, avatar
   }) => {
     try {
-      const userId = user._id;
+      const userId = user.id;
 
       let passwordHash = null;
       if (newPassword) {
@@ -94,7 +94,13 @@ export class UserService {
           delete newUser[key];
         }
       });
-      return await UserModel.findOneAndUpdate({ _id: userId }, newUser);
+
+      return await UserModel2.update(
+        newUser,
+        {
+          where: { id: userId }
+        }
+      );
     } catch (e) {
       console.log(e);
     }
@@ -145,7 +151,8 @@ export class UserService {
       ward: null,
       gender: null,
       role: UserRoles.USER_ROLE_ENDUSER,
-      facebookId
+      facebookId,
+      googleId: null
     });
     return await newUser.save();
   };
@@ -193,7 +200,7 @@ export class UserService {
     return await UserModel2.findOne({ where: { googleId } });
   };
   findByFacebookId = async (facebookId) => {
-    return await UserModel.findOne({ facebookId: facebookId });
+    return await UserModel2.findOne({ where: facebookId });
   };
   isValidHashPassword = (hashed: string, plainText: string) => {
     try {
@@ -223,9 +230,7 @@ export class UserService {
     return await user.save();
   };
   findUserByPasswordReminderToken = async (passwordReminderToken) => {
-    return await UserModel.findOne({
-      passwordReminderToken: passwordReminderToken
-    });
+    return await UserModel2.findOne({ where: { passwordReminderToken } });
   };
 
   async findById(id: string): Promise<User> {
