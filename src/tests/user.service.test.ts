@@ -11,7 +11,7 @@ describe('isValidHashPassword function', () => {
 
         expect(isValid).toBe(false);
     });
-})
+});
 
 describe('createUser function', () => {
     it('newUser should return data of user when user was created successfully', async () => {
