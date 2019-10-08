@@ -148,8 +148,6 @@ export class UserController {
           registerBy: RegisterByTypes.NORMAL,
           address,
           otpCode,
-          googleId: null,
-          facebookId: null
         };
 
         const newUser = await this.userService.createUser(newUserData);
