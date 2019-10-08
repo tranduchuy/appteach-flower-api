@@ -4,15 +4,14 @@ import AddressModel, { Address } from '../models/address';
 import AddressModel2 from '../models/address.model';
 import { General } from '../constant/generals';
 import AddressTypes = General.AddressTypes;
-import { SearchSelector } from '../constant/search-selector.constant';
-import Cities = SearchSelector.Cities;
-import * as Sequelize from 'sequelize';
+import CityModel from '../models/city.model';
+import DistrictModel from '../models/district.model';
 
 @injectable()
 export class AddressService {
   listDeliveryAddressFields = ['name', 'user', 'phone', 'city', 'district', 'ward', 'address', 'addressText'];
   listPossibleDeliveryAddressFields = ['city', 'district'];
-  createDeliveryAddress = async ({name, user, phone, address, latitude, longitude}) => {
+  createDeliveryAddress = async ({ name, user, phone, address, latitude, longitude }) => {
     const newAddress = new AddressModel({
       name,
       phone,
@@ -27,7 +26,7 @@ export class AddressService {
     return await newAddress.save();
   };
 
-  createNoLoginDeliveryAddress = async ({name, phone, address, latitude, longitude}) => {
+  createNoLoginDeliveryAddress = async ({ name, phone, address, latitude, longitude }) => {
     const newAddress = new AddressModel({
       name,
       phone,
@@ -42,13 +41,9 @@ export class AddressService {
     return await newAddress.save();
   };
 
-  createPossibleDeliveryAddress = async (addressData: { city: number; shopId: number; district: number }) => {
-    const newAddress = new AddressModel2({
-      city: addressData.city,
-      district: addressData.district,
-      shop: addressData.shopId,
-      type: AddressTypes.POSSIBLE_DELIVERY
-    });
+  createPossibleDeliveryAddress = async (addressData: any) => {
+    addressData.type = AddressTypes.POSSIBLE_DELIVERY;
+    const newAddress = new AddressModel(addressData);
 
     return await newAddress.save();
   };
@@ -56,7 +51,7 @@ export class AddressService {
   deleteOldPossibleDeliveryAddress = async (shopId: number) => {
     return await AddressModel2.destroy({
       where: {
-        shopId,
+        shopsId: shopId,
         type: AddressTypes.POSSIBLE_DELIVERY
       }
     });
@@ -65,13 +60,13 @@ export class AddressService {
     return await AddressModel.find({
       user: user._id,
       type: AddressTypes.DELIVERY
-    }, this.listDeliveryAddressFields).sort({updatedAt: -1});
+    }, this.listDeliveryAddressFields).sort({ updatedAt: -1 });
   };
   getPossibleDelieveryAddress = async (user) => {
     return await AddressModel.find({
       user: user._id,
       type: AddressTypes.POSSIBLE_DELIVERY
-    }, this.listPossibleDeliveryAddressFields).sort({updatedAt: -1});
+    }, this.listPossibleDeliveryAddressFields).sort({ updatedAt: -1 });
   };
   updateDeliveryAddress = async (addressId, {
     name,
@@ -95,7 +90,7 @@ export class AddressService {
         delete newAddress[key];
       }
     });
-    await AddressModel.findOneAndUpdate({_id: addressId}, newAddress);
+    await AddressModel.findOneAndUpdate({ _id: addressId }, newAddress);
 
     return await AddressModel.findById(addressId);
   };
@@ -108,26 +103,18 @@ export class AddressService {
     longitude,
     latitude
   }) => {
-    const newAddress = {
-      city: null,
-      district: null,
-      ward: null,
-      address: address || null,
-      addressText: address || null,
-      longitude,
-      latitude,
-      updatedAt: new Date()
-    };
-
-    Object.keys(newAddress).map(key => {
-      if (newAddress[key] === null) {
-        delete newAddress[key];
+    const updatedAddress = await AddressModel2.findOne({
+      where: {
+        shopsId: shopId,
+        type: AddressTypes.SHOP_ADDRESS
       }
     });
 
-    console.log(newAddress);
+    updatedAddress.address = address;
+    updatedAddress.longitude = longitude;
+    updatedAddress.latitude = latitude;
 
-    return await AddressModel.findOneAndUpdate({shop: shopId, type: AddressTypes.SHOP_ADDRESS}, newAddress);
+    return await updatedAddress.save();
   };
 
   updateGeoAddress = async (address, {
@@ -149,7 +136,7 @@ export class AddressService {
     }
 
   };
-  findPossibleDeliveryAddress = async ({city, district, user}) => {
+  findPossibleDeliveryAddress = async ({ city, district, user }) => {
     try {
       return await AddressModel.findOne({
         city,
@@ -225,17 +212,12 @@ export class AddressService {
     return await newAddress.save();
   }
 
-  getCityByCode(cd: string): any {
-    return Cities.find(city => {
-      return city.code === cd;
-    });
+  getCityByCode = async (code: string): Promise<any> => {
+    return await CityModel.findOne({ where: { code } });
   }
 
-  getDistrictByValue(city: any, value: number): any {
-    const district = city.districts || [];
-    return district.find(d => {
-      return d.id === value;
-    });
+  getDistrictByCode = async (code: number): Promise<any> => {
+    return await DistrictModel.findOne({ where: { code } });
   }
 
   getWardByValue(district: any, value: number): any {

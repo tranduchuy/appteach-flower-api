@@ -68,7 +68,7 @@ export class ShopService {
     return await shop.save();
   }
 
-  async updateShop(shop, availableShipCountry: boolean): Promise<Shop> {
+  async updateShop(shop, availableShipCountry: boolean): Promise<Shop2> {
     if (availableShipCountry) {
       shop.availableShipCountry = availableShipCountry;
     }

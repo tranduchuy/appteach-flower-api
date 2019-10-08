@@ -204,20 +204,9 @@ export class UserController {
           return resolve(result);
         }
         const {
-          email, password, confirmedPassword,
-          name, username, phone, address, gender, longitude, latitude,
+          email, name, username, phone, address, gender, longitude, latitude,
           shopName, slug, images, availableShipCountry, availableShipAddresses
         } = request.body;
-
-        const duplicatedPhones = await UserModel2.findAll({ where: { phone } });
-        if (duplicatedPhones.length !== 0) {
-          const result: IRes<{}> = {
-            status: HttpStatus.INTERNAL_SERVER_ERROR,
-            messages: [ResponseMessages.User.Register.PHONE_DUPLICATED],
-            data: {}
-          };
-          return resolve(result);
-        }
 
         const duplicateShopSlug: any = await this.shopService.findShopBySlug(slug);
         if (duplicateShopSlug) {
@@ -229,46 +218,19 @@ export class UserController {
           return resolve(result);
         }
 
-        if (password !== confirmedPassword) {
-          const result: IRes<{}> = {
-            status: HttpStatus.INTERNAL_SERVER_ERROR,
-            messages: [ResponseMessages.User.Register.PASSWORD_DONT_MATCH],
-            data: {}
-          };
-          return resolve(result);
-        }
+        const shopUser = await this.userService.findByEmail(email);
 
-        const duplicatedUsers = await UserModel2.findAll({ where: { email } });
-        if (duplicatedUsers.length !== 0) {
-          const result: IRes<{}> = {
-            status: HttpStatus.INTERNAL_SERVER_ERROR,
-            messages: [ResponseMessages.User.Register.EMAIL_DUPLICATED],
-            data: {}
+        if (!shopUser) {
+          const result: IRes<any> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.USER_NOT_FOUND]
           };
+
           return resolve(result);
         }
 
         const otpCode = this.userService.generateOTPCode();
-
-        const newUserData = {
-          email,
-          name,
-          password,
-          type: UserTypes.TYPE_CUSTOMER,
-          role: null,
-          phone: phone,
-          gender,
-          city: null,
-          district: null,
-          ward: null,
-          registerBy: RegisterByTypes.NORMAL,
-          address: null,
-          otpCode
-        };
-
-        const newUser = await this.userService.createUser(newUserData);
-
-        const shop: any = await this.shopService.createNewShop(newUser.id, shopName, slug, images, availableShipCountry);
+        const newShop: any = await this.shopService.createNewShop(shopUser.id, shopName, slug, images, availableShipCountry);
 
         await this.addressService.createShopAddress({
           name,
@@ -277,27 +239,36 @@ export class UserController {
           address,
           longitude,
           latitude,
-          usersId: newUser.id,
-          shopsId: shop.id,
+          usersId: shopUser.id,
+          shopsId: newShop.id,
           citiesId: null,
           districtsId: null
         });
 
         if (availableShipAddresses.length > 0) {
-          // delete old possibaleDeliveryAddress
-          await this.addressService.deleteOldPossibleDeliveryAddress(shop.id);
+          await this.addressService.deleteOldPossibleDeliveryAddress(newShop.id);
         }
 
-        await Promise.all((availableShipAddresses || []).map(async (addressData: { city: number, district?: number }) => {
-          await this.addressService.createPossibleDeliveryAddress({
-            district: addressData.district,
-            city: addressData.city,
-            shopId: shop.id
-          });
-        }));
+        await Promise.all((availableShipAddresses || [])
+          .map(async (addressData: { cityCode: string, districtCode?: number }) => {
 
-        // Send email
-        // this.mailerService.sendConfirmEmail(email, name, newUser.tokenEmailConfirm);
+            const addressCity = await this.addressService.getCityByCode(addressData.cityCode);
+            const addressDistrict = await this.addressService.getDistrictByCode(addressData.districtCode);
+
+            await this.addressService.createPossibleDeliveryAddress({
+              name,
+              email,
+              phone,
+              address,
+              longitude,
+              latitude,
+              usersId: shopUser.id,
+              shopsId: newShop.id,
+              districtsId: addressDistrict.id,
+              citiesId: addressCity.id,
+            });
+          }));
+
         this.smsService.sendSMS([phone], `Mã xác thực tài khoản: ${otpCode}`, '');
 
         const result: IRes<{}> = {

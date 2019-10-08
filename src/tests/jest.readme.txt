@@ -1,0 +1,61 @@
+======================================================== J E S T ==============================================================
+
+    Javascript Testing Framework
+    Lastest version: 24.9
+    Document: jetjs.io
+
+-------------------------------------------------------------------------------------------------------------------------------
+:: Installation with Typescript
+
+    npm install --save-dev @types/jest jest ts-jest
+
+    Packages:
+    @types/jest         Types of Jest
+    jest                'jest' framework
+    ts-jest             'typescript' preprocessor for 'jest'
+    --save-dev          Save all packages to dev dependencies
+
+-------------------------------------------------------------------------------------------------------------------------------
+:: Configuration
+
+    1. Create file named 'jest.config.js' exports as below settings in root directory:
+
+    module.exports = {
+    testURL: "http://localhost/",
+    roots: ['<rootDir>/src'],
+    transform: {
+        '^.+\\.tsx?$': 'ts-jest',
+    },
+    testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
+    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+    }
+
+    Explaination:
+    - All *.ts files are assumed to be placed in /src as root directory.
+    - Apply 'jest' to all *.test|spec.ts|tsx files.
+
+    2. Create a *.test.ts file anywhere in /src and write test script inside.
+
+-------------------------------------------------------------------------------------------------------------------------------
+:: Tests Running
+
+    1. Add script target for npm scripts
+
+    package.json:
+
+    "scripts": {
+        "test": "jest"
+    }
+
+    npm run test
+
+    2. Simply run: npm t
+    3. Run with watch mode: npx jest --watch
+
+-------------------------------------------------------------------------------------------------------------------------------
+@Advantages:
+    - Easy for setting up
+    - Works fine with Babel, Typescript, Node, React, Angular, Vue ...
+    - All tests are run globally
+    - Test running options (all tests, failed tests) and test's name filtering in watch mode
+    - Asynchronous testing

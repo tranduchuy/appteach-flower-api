@@ -13,15 +13,21 @@ import checkShopSlugSchema from '../validation-schemas/shop/check-shop-slug.sche
 import listProductsOfShopSchema from '../validation-schemas/shop/list-product-of-shop.schema';
 import checkUpdateStatusProducts from '../validation-schemas/shop/check-update-status-products.schema';
 import Joi from '@hapi/joi';
-import ShopModel, { Shop } from '../models/shop';
 import ProductModel, { Product } from '../models/product';
 import ListShopSchema from '../validation-schemas/user/admin-list-shop.schema';
 import { OrderItemService } from '../services/order-item.service';
 import OrderItemModel from '../models/order-item';
 import UpdateShopSchema from '../validation-schemas/shop/update-shop.schema';
+import { UserService } from '../services/user.service';
+import { General } from '../constant/generals';
+import RegisterByTypes = General.RegisterByTypes;
+import UserTypes = General.UserTypes;
+import UserModel2 from '../models/user.model';
+import { SmsService } from '../services/sms.service';
+import ShopModel2, { Shop2 } from '../models/shop.model';
 
 interface IResRegisterShop {
-  shop: Shop;
+  shop: Shop2;
 }
 
 interface IResCheckValidSlug {
@@ -47,11 +53,13 @@ export class ShopController {
   constructor(@inject(TYPES.ShopService) private shopService: ShopService,
     @inject(TYPES.ProductService) private productService: ProductService,
     @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-    @inject(TYPES.AddressService) private addressService: AddressService) {
+    @inject(TYPES.AddressService) private addressService: AddressService,
+    @inject(TYPES.UserService) private userService: UserService,
+    @inject(TYPES.SmsService) private smsService: SmsService, ) {
 
   }
 
-  @httpPost('/', TYPES.CheckTokenMiddleware)
+  @httpPost('/')
   public registerShop(req: Request): Promise<IRes<IResRegisterShop>> {
     return new Promise<IRes<any>>(async resolve => {
       try {
@@ -69,21 +77,25 @@ export class ShopController {
           return resolve(result);
         }
 
-        // 1 user only have 1 shop
-        const existShop = await this.shopService.findShopOfUser(req.user.id);
-        if (existShop) {
-          const result: IRes<IResRegisterShop> = {
-            status: HttpStatus.BAD_REQUEST,
-            messages: [ResponseMessages.Shop.EXIST_SHOP_OF_USER]
-          };
+        const {
+          email, password, confirmedPassword,
+          name, username, phone, address, gender, longitude, latitude,
+          shopName, slug, images, availableShipCountry, availableShipAddresses
+        } = req.body;
 
+        const duplicatedPhones = await UserModel2.findAll({ where: { phone } });
+        if (duplicatedPhones.length !== 0) {
+          const result: IRes<{}> = {
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            messages: [ResponseMessages.User.Register.PHONE_DUPLICATED],
+            data: {}
+          };
           return resolve(result);
         }
 
-        const { name, slug, images, availableShipCountry, availableShipAddresses, longitude, latitude, address } = req.body;
         const duplicateShopSlug: any = await this.shopService.findShopBySlug(slug);
         if (duplicateShopSlug) {
-          const result: IRes<IResRegisterShop> = {
+          const result: IRes<any> = {
             status: HttpStatus.BAD_REQUEST,
             messages: [ResponseMessages.Shop.DUPLICATE_SLUG]
           };
@@ -91,24 +103,91 @@ export class ShopController {
           return resolve(result);
         }
 
-        const shop: any = await this.shopService.createNewShop(req.user._id, name, slug, images, availableShipCountry);
+        if (password !== confirmedPassword) {
+          const result: IRes<{}> = {
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            messages: [ResponseMessages.User.Register.PASSWORD_DONT_MATCH],
+            data: {}
+          };
+          return resolve(result);
+        }
 
-        // create shop address
-        await this.addressService.createShopAddress(shop._id.toString(), address, longitude, latitude);
+        const duplicatedUsers = await UserModel2.findAll({ where: { email } });
+        if (duplicatedUsers.length !== 0) {
+          const result: IRes<{}> = {
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            messages: [ResponseMessages.User.Register.EMAIL_DUPLICATED],
+            data: {}
+          };
+          return resolve(result);
+        }
 
-        await Promise.all((availableShipAddresses || []).map(async (addressData: { city: string, district?: number }) => {
-          await this.addressService.createPossibleDeliveryAddress({
-            district: addressData.district,
-            city: addressData.city,
-            shopId: shop._id.toString()
-          });
-        }));
+        const otpCode = this.userService.generateOTPCode();
 
-        const result: IRes<IResRegisterShop> = {
+        const newUserData = {
+          email,
+          name,
+          password,
+          type: UserTypes.TYPE_CUSTOMER,
+          role: null,
+          phone: phone,
+          gender,
+          city: null,
+          district: null,
+          ward: null,
+          registerBy: RegisterByTypes.NORMAL,
+          address: null,
+          otpCode
+        };
+
+        const newUser = await this.userService.createUser(newUserData);
+        const newShop: any = await this.shopService.createNewShop(newUser.id, shopName, slug, images, availableShipCountry);
+
+        await this.addressService.createShopAddress({
+          name,
+          email,
+          phone,
+          address,
+          longitude,
+          latitude,
+          usersId: newUser.id,
+          shopsId: newShop.id,
+          citiesId: null,
+          districtsId: null
+        });
+
+        if (availableShipAddresses.length > 0) {
+          await this.addressService.deleteOldPossibleDeliveryAddress(newShop.id);
+        }
+
+        await Promise.all((availableShipAddresses || [])
+          .map(async (addressData: { cityCode: string, districtCode?: number }) => {
+
+            const addressCity = await this.addressService.getCityByCode(addressData.cityCode);
+            const addressDistrict = await this.addressService.getDistrictByCode(addressData.districtCode);
+
+            await this.addressService.createPossibleDeliveryAddress({
+              name,
+              email,
+              phone,
+              address,
+              longitude,
+              latitude,
+              usersId: newUser.id,
+              shopsId: newShop.id,
+              districtsId: addressDistrict.id,
+              citiesId: addressCity.id,
+            });
+          }));
+
+        this.smsService.sendSMS([phone], `Mã xác thực tài khoản: ${otpCode}`, '');
+
+        const result: IRes<{}> = {
           status: HttpStatus.OK,
-          messages: [ResponseMessages.SUCCESS],
+          messages: [ResponseMessages.User.Register.REGISTER_SUCCESS],
           data: {
-            shop
+            meta: {},
+            entries: [{ email, name, username, phone, address, gender, longitude, latitude }]
           }
         };
 
@@ -142,7 +221,7 @@ export class ShopController {
           return resolve(result);
         }
 
-        let shop = await this.shopService.findShopOfUser(req.user._id.toString());
+        let shop = await this.shopService.findShopOfUser(req.user._id);
         if (!shop) {
           const result: IRes<IResRegisterShop> = {
             status: HttpStatus.BAD_REQUEST,
@@ -154,21 +233,26 @@ export class ShopController {
 
         const { availableShipCountry, availableShipAddresses, address, city, district, ward, longitude, latitude } = req.body;
         // update shop address
-        await this.addressService.updateShopAddress(shop._id, { city, district, ward, address, longitude, latitude });
+        await this.addressService.updateShopAddress(shop.id, { city, district, ward, address, longitude, latitude });
         shop = await this.shopService.updateShop(shop, availableShipCountry);
 
         if (availableShipAddresses.length > 0) {
           // delete old possibaleDeliveryAddress
-          await this.addressService.deleteOldPossibleDeliveryAddress(shop._id);
+          await this.addressService.deleteOldPossibleDeliveryAddress(shop.id);
         }
 
-        await Promise.all((availableShipAddresses || []).map(async (addressData: { city: string, district?: number }) => {
-          await this.addressService.createPossibleDeliveryAddress({
-            district: addressData.district,
-            city: addressData.city,
-            shopId: shop._id.toString()
-          });
-        }));
+        await Promise.all((availableShipAddresses || [])
+          .map(async (addressData: { cityCode: string, districtCode?: number }) => {
+
+            const addressCity = await this.addressService.getCityByCode(addressData.cityCode);
+            const addressDistrict = await this.addressService.getDistrictByCode(addressData.districtCode);
+
+            await this.addressService.createPossibleDeliveryAddress({
+              districtsId: addressCity.id,
+              citiesId: addressDistrict.id,
+              shopsId: shop.id,
+            });
+          }));
 
         const result: IRes<IResRegisterShop> = {
           status: HttpStatus.OK,
@@ -251,7 +335,7 @@ export class ShopController {
           return resolve(result);
         }
 
-        const shop = await ShopModel.findOne({ slug: req.query.slug });
+        const shop = await ShopModel2.findOne({ where: { slug: req.query.slug } });
         if (shop) {
           return resolve({
             status: HttpStatus.BAD_REQUEST,

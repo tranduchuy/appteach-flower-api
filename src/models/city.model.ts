@@ -36,7 +36,6 @@ City.init({
     freezeTableName: true
   });
 
-City.hasMany(District, { foreignKey: 'CITIES_ID' });
 City.hasMany(User2, { foreignKey: 'CITY' });
 City.hasMany(Address2, { foreignKey: 'CITIES_ID' });
 
