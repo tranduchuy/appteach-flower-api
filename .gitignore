@@ -40,3 +40,5 @@ dist/**/*
 .vscode/
 .idea/
 package-lock.json
+
+/test-output
