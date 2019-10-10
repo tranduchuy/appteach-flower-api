@@ -11,21 +11,21 @@ import ProductModel, { Product } from '../models/product';
 import { General } from '../constant/generals';
 import UserTypes = General.UserTypes;
 import Joi from '@hapi/joi';
-import mongoose from 'mongoose';
+// import mongoose from 'mongoose';
 import { ShopService } from '../services/shop.service';
 // validate schema
 import addProductSchema from '../validation-schemas/product/add-new.schema';
 import updateProductSchema from '../validation-schemas/product/update-one.schema';
-import updateStatusValidationSchema from '../validation-schemas/product/update-status.schema';
+// import updateStatusValidationSchema from '../validation-schemas/product/update-status.schema';
 import { ResponseMessages } from '../constant/messages';
 import { ImageService } from '../services/image.service';
 import GetInfoByIdsValidationSchema from '../validation-schemas/product/get-info-by-ids.schema';
 import { ProductWorkerService } from '../services/product-worker.service';
 import ListProductsValidationSchema from '../validation-schemas/product/list-products.schema';
 
-interface IResUpdateProductsStatus {
-  notFoundProducts?: string[];
-}
+// interface IResUpdateProductsStatus {
+//   notFoundProducts?: string[];
+// }
 
 @controller('/product')
 export class ProductController {
@@ -538,76 +538,76 @@ export class ProductController {
     });
   }
 
-  @httpPost('/status', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
-  public updateStatus(request: Request): Promise<IRes<IResUpdateProductsStatus>> {
-    return new Promise<IRes<{}>>(async (resolve) => {
-      try {
-        const {error} = Joi.validate(request.body, updateStatusValidationSchema);
-        if (error) {
-          const messages = error.details.map(detail => {
-            return detail.message;
-          });
-
-          const result: IRes<IResUpdateProductsStatus> = {
-            status: HttpStatus.BAD_REQUEST,
-            messages: messages
-          };
-          return resolve(result);
-        }
-
-        const {productIds, status} = request.body;
-        const shop = await this.shopService.findShopOfUser(request.user._id.toString());
-        if (!shop) {
-          const result: IRes<{}> = {
-            status: HttpStatus.NOT_FOUND,
-            messages: [ResponseMessages.Shop.SHOP_OF_USER_NOT_FOUND],
-          };
-
-          return resolve(result);
-        }
-
-        const notFoundProducts: string[] = [];
-        await Promise.all(productIds.map(async (productId: string) => {
-          const product = await ProductModel.findOne({
-            _id: new mongoose.Types.ObjectId(productId),
-            shop: new mongoose.Types.ObjectId(shop._id.toString())
-          });
-
-          if (!product) {
-            notFoundProducts.push(productId);
-          } else {
-            product.status = status;
-            await product.save();
-          }
-        }));
-
-        if (notFoundProducts.length !== 0) {
-          const result: IRes<IResUpdateProductsStatus> = {
-            status: HttpStatus.OK,
-            messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
-            data: {notFoundProducts}
-          };
-
-          return resolve(result);
-        }
-
-        const result: IRes<IResUpdateProductsStatus> = {
-          status: HttpStatus.OK,
-          messages: [ResponseMessages.Product.Update.UPDATE_PRODUCT_SUCCESS],
-          data: {}
-        };
-
-        return resolve(result);
-      } catch (e) {
-        console.error(e);
-        const result: IRes<{}> = {
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-        };
-        return resolve(result);
-      }
-    });
-  }
+  // @httpPost('/status', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
+  // public updateStatus(request: Request): Promise<IRes<IResUpdateProductsStatus>> {
+  //   return new Promise<IRes<{}>>(async (resolve) => {
+  //     try {
+  //       const {error} = Joi.validate(request.body, updateStatusValidationSchema);
+  //       if (error) {
+  //         const messages = error.details.map(detail => {
+  //           return detail.message;
+  //         });
+  //
+  //         const result: IRes<IResUpdateProductsStatus> = {
+  //           status: HttpStatus.BAD_REQUEST,
+  //           messages: messages
+  //         };
+  //         return resolve(result);
+  //       }
+  //
+  //       const {productIds, status} = request.body;
+  //       const shop = await this.shopService.findShopOfUser(request.user._id.toString());
+  //       if (!shop) {
+  //         const result: IRes<{}> = {
+  //           status: HttpStatus.NOT_FOUND,
+  //           messages: [ResponseMessages.Shop.SHOP_OF_USER_NOT_FOUND],
+  //         };
+  //
+  //         return resolve(result);
+  //       }
+  //
+  //       const notFoundProducts: string[] = [];
+  //       await Promise.all(productIds.map(async (productId: string) => {
+  //         const product = await ProductModel.findOne({
+  //           _id: new mongoose.Types.ObjectId(productId),
+  //           shop: new mongoose.Types.ObjectId(shop._id.toString())
+  //         });
+  //
+  //         if (!product) {
+  //           notFoundProducts.push(productId);
+  //         } else {
+  //           product.status = status;
+  //           await product.save();
+  //         }
+  //       }));
+  //
+  //       if (notFoundProducts.length !== 0) {
+  //         const result: IRes<IResUpdateProductsStatus> = {
+  //           status: HttpStatus.OK,
+  //           messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
+  //           data: {notFoundProducts}
+  //         };
+  //
+  //         return resolve(result);
+  //       }
+  //
+  //       const result: IRes<IResUpdateProductsStatus> = {
+  //         status: HttpStatus.OK,
+  //         messages: [ResponseMessages.Product.Update.UPDATE_PRODUCT_SUCCESS],
+  //         data: {}
+  //       };
+  //
+  //       return resolve(result);
+  //     } catch (e) {
+  //       console.error(e);
+  //       const result: IRes<{}> = {
+  //         status: HttpStatus.INTERNAL_SERVER_ERROR,
+  //         messages: [JSON.stringify(e)],
+  //       };
+  //       return resolve(result);
+  //     }
+  //   });
+  // }
 
 
 }

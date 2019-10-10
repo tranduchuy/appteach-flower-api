@@ -1,7 +1,8 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
 import User2 from './user.model';
-import Address2 from './address.model';
+
+// import Address2 from './address.model';
 
 class City extends Model {
   id: number;
@@ -30,13 +31,15 @@ City.init({
     type: DataTypes.STRING(255)
   }
 }, {
-    sequelize: MYSQL_CONNECTION,
-    tableName: 'CITIES',
-    freezeTableName: true,
-    timestamps: false
-  });
+  sequelize: MYSQL_CONNECTION,
+  tableName: 'CITIES',
+  freezeTableName: true,
+  timestamps: false,
+  modelName: 'city'
+});
 
-City.hasMany(User2, { foreignKey: 'CITY' });
-City.hasMany(Address2, { foreignKey: 'CITIES_ID' });
+console.log(User2);
+
+// City.hasMany(Address2, { foreignKey: 'CITIES_ID' });
 
 export default City;

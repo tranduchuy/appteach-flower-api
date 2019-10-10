@@ -10,6 +10,7 @@ import { Status } from '../../constant/status';
 import TYPES from '../../constant/types';
 import { IRes } from '../../interfaces/i-res';
 import UserModel, { User } from '../../models/user';
+import UserModel2 from '../../models/user.model';
 import { ShopService } from '../../services/shop.service';
 import { UserService } from '../../services/user.service';
 import ShopModel, { Shop } from '../../models/shop';
@@ -125,24 +126,26 @@ export class AdminUserController {
         }
 
         const userInfoResponse = {
-              id: user.id,
-              role: user.role,
-              email: user.email,
-              username: user.username,
-              name: user.name,
-              phone: user.phone,
-              address: user.address,
-              type: user.type,
-              status: user.status,
-              avatar: user.avatar,
-              gender: user.gender,
-              city: user.city,
-              district: user.district,
-              ward: user.ward,
-              registerBy: user.registerBy
-            }
-        ;
-        const token = this.userService.generateToken({_id: user._id});
+          id: user.id,
+          role: user.role,
+          email: user.email,
+          username: user.username,
+          name: user.name,
+          phone: user.phone,
+          address: user.address,
+          type: user.type,
+          status: user.status,
+          avatar: user.avatar,
+          gender: user.gender,
+          city: user.city,
+          district: user.district,
+          ward: user.ward,
+          registerBy: user.registerBy
+        };
+
+        console.log('=======');
+        console.log(user);
+        const token = this.userService.generateToken({_id: user.id});
 
         const result: IRes<any> = {
           status: HttpStatus.OK,
@@ -280,7 +283,8 @@ export class AdminUserController {
       }
 
       const {limit, page, sb, sd, user_id, email, username, facebook_id, google_id, gender, status, role} = req.query;
-      const stages: any[] = this.userService.buildStageGetListUser({
+
+      const queryObj = this.userService.getConditionQueryUserForAdmin({
         limit: parseInt((limit || 10).toString()),
         page: parseInt((page || 1).toString()),
         sortBy: sb,
@@ -294,19 +298,42 @@ export class AdminUserController {
         status: status ? parseInt(status) : null,
         gender: gender ? parseInt(gender) : null
       });
-      const result: any = await UserModel.aggregate(stages);
-      const response: IRes<IUsers> = {
-        status: HttpStatus.OK,
-        messages: [ResponseMessages.SUCCESS],
-        data: {
-          meta: {
-            totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0
-          },
-          users: result[0].entries
-        }
-      };
+      console.log('===========');
+      console.log(queryObj);
+      UserModel2.findAndCountAll(queryObj)
+        .then(result => {
+          console.log(result.count);
 
-      return resolve(response);
+          const response: IRes<any> = {
+            status: HttpStatus.OK,
+            messages: [ResponseMessages.SUCCESS],
+            data: {
+              meta: {
+                totalItems: result.count
+              },
+              users: result.rows
+            }
+          };
+
+          return resolve(response);
+        });
+
+      // const stages: any[] = this.userService.buildStageGetListUser({
+      //   limit: parseInt((limit || 10).toString()),
+      //   page: parseInt((page || 1).toString()),
+      //   sortBy: sb,
+      //   sortDirection: sd,
+      //   userId: user_id,
+      //   email: email,
+      //   username: username,
+      //   facebookId: facebook_id,
+      //   googleId: google_id,
+      //   role: role ? parseInt(role) : null,
+      //   status: status ? parseInt(status) : null,
+      //   gender: gender ? parseInt(gender) : null
+      // });
+      // const result: any = await UserModel.aggregate(stages);
+      //
     });
   }
 
@@ -359,9 +386,7 @@ export class AdminUserController {
             shop: shop
           }
         });
-      }
-
-      catch (e) {
+      } catch (e) {
         console.error(e);
         const result: IRes<IResUserUpdateStatus> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
