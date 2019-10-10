@@ -22,9 +22,11 @@ import { UserService } from '../services/user.service';
 import { General } from '../constant/generals';
 import RegisterByTypes = General.RegisterByTypes;
 import UserTypes = General.UserTypes;
-import UserModel2, { User2 } from '../models/user.model';
+import UserModel2 from '../models/user.model';
 import { SmsService } from '../services/sms.service';
 import ShopModel2, { Shop2 } from '../models/shop.model';
+import ProductModel2 from '../models/product.model';
+import Product2 from '../models/product.model';
 
 interface IResRegisterShop {
   shop: Shop2;
@@ -41,7 +43,7 @@ interface IResProductOfShop {
     item: number;
     page: number;
   };
-  products: Product[];
+  products: Product2[];
 }
 
 interface IResUpdateStatusMultipleProduct {
@@ -385,7 +387,8 @@ export class ShopController {
           return resolve(result);
         }
 
-        const shop: any = await this.shopService.findShopOfUser(req.user._id.toString());
+        const shop: any = await this.shopService.findShopOfUser(req.user.id);
+
         if (!shop) {
           return resolve({
             status: HttpStatus.BAD_REQUEST,
@@ -393,32 +396,42 @@ export class ShopController {
           });
         }
 
-        const { limit, page, title, status, approvedStatus, sb, sd } = req.query;
+        const { page, limit, title, status, approvedStatus, sb, sd } = req.query;
+
         const queryCondition: IQueryProductsOfShop = {
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
-          shopId: shop._id.toString(),
+          shopId: shop.id,
           title: title || null,
           status: status ? parseInt(status.toString()) : null,
           approvedStatus: approvedStatus ? parseInt(approvedStatus) : null,
           sortBy: sb || null,
           sortDirection: sd || null
         };
-        const stages: any[] = this.shopService.buildStageQueryProductOfShop(queryCondition);
-        console.log('stages query search', JSON.stringify(stages));
-        const result: any = await ProductModel.aggregate(stages);
+        // const stages: any[] = this.shopService.buildStageQueryProductOfShop(queryCondition);
+        // console.log('stages query search', JSON.stringify(stages));
+        // const result: any = await ProductModel.aggregate(stages);
+
+        const offset = (parseInt((queryCondition.page || 1).toString()) - 1) * 10;
+        const products: any = [];
+
+
 
         return resolve({
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: {
             meta: {
-              totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0,
-              item: result[0].entries.length,
-              limit: queryCondition.limit,
-              page: queryCondition.page,
+              // totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0,
+              // item: result[0].entries.length,
+              // limit: queryCondition.limit,
+              // page: queryCondition.page,
+              totalItems: products.count,
+              item: products.rows.length,
+              limit,
+              page
             },
-            products: result[0].entries
+            products: products.rows
           }
         });
       } catch (e) {

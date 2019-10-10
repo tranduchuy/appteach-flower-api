@@ -21,7 +21,7 @@ export interface IQueryProductsOfShop {
   status?: number;
   approvedStatus?: number;
   title?: string;
-  shopId: string;
+  shopId: number;
 }
 
 export interface IQueryListShop {
