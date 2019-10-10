@@ -863,7 +863,7 @@ export class UserController {
           registerBy: user.registerBy,
           facebookId: user.facebookId
         };
-        const resToken = this.userService.generateToken({ _id: user._id });
+        const resToken = this.userService.generateToken({ id: user.id});
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,

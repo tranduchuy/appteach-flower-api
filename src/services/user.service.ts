@@ -1,5 +1,7 @@
 import { injectable } from 'inversify';
-import UserModel, { User } from '../models/user';
+import City from '../models/city.model';
+import District from '../models/district.model';
+import UserModel from '../models/user';
 import UserModel2, { User2 } from '../models/user.model';
 import { UserConstant } from '../constant/users';
 import bcrypt from 'bcrypt';
@@ -32,7 +34,7 @@ export interface IQueryUser {
 export class UserService {
   sellerInProductDetailFields = ['_id', 'avatar', 'name', 'address'];
 
-  createUser = async ({ email, password, type, name, phone, address, city, district, ward, registerBy, gender, role, otpCode }) => {
+  createUser = async ({email, password, type, name, phone, address, city, district, ward, registerBy, gender, role, otpCode}) => {
     const salt = bcrypt.genSaltSync(UserConstant.saltLength);
     const tokenEmailConfirm = RandomString.generate({
       length: UserConstant.tokenConfirmEmailLength,
@@ -97,7 +99,7 @@ export class UserService {
       return await UserModel2.update(
         newUser,
         {
-          where: { id: userId }
+          where: {id: userId}
         }
       );
     } catch (e) {
@@ -105,7 +107,7 @@ export class UserService {
     }
   };
 
-  createUserByGoogle = async ({ email, name, googleId }) => {
+  createUserByGoogle = async ({email, name, googleId}) => {
 
     const username = email.split('@')[0];
 
@@ -132,7 +134,7 @@ export class UserService {
     return await newUser.save();
   };
 
-  createUserByFacebook = async ({ name, facebookId }) => {
+  createUserByFacebook = async ({name, facebookId}) => {
 
     const newUser = new UserModel({
       passwordHash: null,
@@ -164,7 +166,7 @@ export class UserService {
   };
 
   findByUsername = async (username: string) => {
-    return await UserModel.findOne({ username });
+    return await UserModel.findOne({username});
   };
 
   findByEmailOrUsername = async (email, username) => {
@@ -178,7 +180,7 @@ export class UserService {
   findByEmailOrPhone = async (email, phone) => {
     return await UserModel2.findOne({
       where: {
-        [Sequelize.Op.or]: [{ email }, { phone }]
+        [Sequelize.Op.or]: [{email}, {phone}]
       }
     });
   };
@@ -191,20 +193,20 @@ export class UserService {
   updateOtpCode = async (user, otpCode) => {
     user.otpCodeConfirmAccount = otpCode;
     return await user.save();
-  }
+  };
 
   updateFacebookId = async (user, facebookId) => {
     user.facebookId = facebookId;
     return await user.save();
   };
   findByEmail = async (email) => {
-    return await UserModel2.findOne({ where: { email } });
+    return await UserModel2.findOne({where: {email}});
   };
   findByGoogleId = async (googleId) => {
-    return await UserModel2.findOne({ where: { googleId } });
+    return await UserModel2.findOne({where: {googleId}});
   };
   findByFacebookId = async (facebookId) => {
-    return await UserModel2.findOne({ where: facebookId });
+    return await UserModel2.findOne({where: facebookId});
   };
   isValidHashPassword = (hashed: string, plainText: string) => {
     try {
@@ -214,7 +216,7 @@ export class UserService {
     }
   };
   getSellerInProductDetail = async (id) => {
-    return await UserModel.findOne({ _id: id }, this.sellerInProductDetailFields);
+    return await UserModel.findOne({_id: id}, this.sellerInProductDetailFields);
   };
   generateForgetPasswordToken = async (user) => {
     const reminderToken = RandomString.generate();
@@ -234,15 +236,15 @@ export class UserService {
     return await user.save();
   };
   findUserByPasswordReminderToken = async (passwordReminderToken) => {
-    return await UserModel2.findOne({ where: { passwordReminderToken } });
+    return await UserModel2.findOne({where: {passwordReminderToken}});
   };
 
   async findById(id: string): Promise<User2> {
-    return await UserModel2.findOne({ where: { id } });
+    return await UserModel2.findOne({where: {id}});
   }
 
   async findByPhone(phone: string): Promise<User2> {
-    return await UserModel2.findOne({ where: { phone } });
+    return await UserModel2.findOne({where: {phone}});
   }
 
   isRoleAdmin(role: number): boolean {
@@ -292,7 +294,7 @@ export class UserService {
     }
 
     if (Object.keys(matchStage).length > 0) {
-      stages.push({ $match: matchStage });
+      stages.push({$match: matchStage});
     }
 
     if (queryCondition.sortBy) {
@@ -306,11 +308,11 @@ export class UserService {
     stages.push({
       $facet: {
         entries: [
-          { $skip: (queryCondition.page - 1) * queryCondition.limit },
-          { $limit: queryCondition.limit }
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
         ],
         meta: [
-          { $group: { _id: null, totalItems: { $sum: 1 } } },
+          {$group: {_id: null, totalItems: {$sum: 1}}},
         ],
       }
     });
@@ -320,5 +322,39 @@ export class UserService {
 
   generateOTPCode(): string {
     return Math.floor(1000 + Math.random() * 9000).toString();
+  }
+
+  getConditionQueryUserForAdmin(query: any): { [key: string]: any } {
+    const cond: any = {};
+
+    if (query.userId) {
+      cond.id = query.userId;
+    }
+
+    if (query.email) {
+      cond.email = query.email;
+    }
+
+    if (query.googleId) {
+      cond.googleId = query.googleId;
+    }
+
+    if (query.facebookId) {
+      cond.facebookId = query.facebookId;
+    }
+
+    if (query.role) {
+      cond.role = query.role;
+    }
+
+    return {
+      $where: cond,
+      limit: query.limit,
+      offset: query.limit * (query.page - 1),
+      include: [
+        { model: City, as: 'cityInfo' },
+        { model: District, as: 'district' },
+      ]
+    };
   }
 }

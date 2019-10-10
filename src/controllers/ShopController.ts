@@ -22,7 +22,7 @@ import { UserService } from '../services/user.service';
 import { General } from '../constant/generals';
 import RegisterByTypes = General.RegisterByTypes;
 import UserTypes = General.UserTypes;
-import UserModel2, { User2 } from '../models/user.model';
+import UserModel2  from '../models/user.model';
 import { SmsService } from '../services/sms.service';
 import ShopModel2, { Shop2 } from '../models/shop.model';
 
@@ -282,47 +282,47 @@ export class ShopController {
     });
   }
 
-  @httpGet('/detail', TYPES.CheckTokenMiddleware)
-  public getDetailShop(req: Request): Promise<IRes<IResCheckValidSlug>> {
-    return new Promise<IRes<IResCheckValidSlug>>(async (resolve) => {
-      try {
-        const shop = await this.shopService.findShopOfUser(req.user._id.toString());
-        if (!shop) {
-          return resolve({
-            status: HttpStatus.BAD_REQUEST,
-            messages: [ResponseMessages.Shop.SHOP_NOT_FOUND]
-          });
-        }
-
-        const shopAddress = await this.addressService.getShopAddress(shop._id);
-        const possibleDeliveryAddress = await this.addressService.getShopPossibleDeliveryAddress(shop._id);
-        possibleDeliveryAddress.map(address => {
-          return {
-            district: address.district,
-            city: address.city
-          };
-        });
-        const result = {
-          availableShipCountry: shop.availableShipCountry,
-          availableShipAddresses: possibleDeliveryAddress,
-          address: shopAddress
-        };
-
-        return resolve({
-          status: HttpStatus.OK,
-          messages: [ResponseMessages.SUCCESS],
-          data: result
-        });
-      } catch (e) {
-        console.error(e);
-        const result: IRes<{}> = {
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-        };
-        return resolve(result);
-      }
-    });
-  }
+  // @httpGet('/detail', TYPES.CheckTokenMiddleware)
+  // public getDetailShop(req: Request): Promise<IRes<IResCheckValidSlug>> {
+  //   return new Promise<IRes<IResCheckValidSlug>>(async (resolve) => {
+  //     try {
+  //       const shop = await this.shopService.findShopOfUser(req.user._id.toString());
+  //       if (!shop) {
+  //         return resolve({
+  //           status: HttpStatus.BAD_REQUEST,
+  //           messages: [ResponseMessages.Shop.SHOP_NOT_FOUND]
+  //         });
+  //       }
+  //
+  //       const shopAddress = await this.addressService.getShopAddress(shop._id);
+  //       const possibleDeliveryAddress = await this.addressService.getShopPossibleDeliveryAddress(shop._id);
+  //       possibleDeliveryAddress.map(address => {
+  //         return {
+  //           district: address.district,
+  //           city: address.city
+  //         };
+  //       });
+  //       const result = {
+  //         availableShipCountry: shop.availableShipCountry,
+  //         availableShipAddresses: possibleDeliveryAddress,
+  //         address: shopAddress
+  //       };
+  //
+  //       return resolve({
+  //         status: HttpStatus.OK,
+  //         messages: [ResponseMessages.SUCCESS],
+  //         data: result
+  //       });
+  //     } catch (e) {
+  //       console.error(e);
+  //       const result: IRes<{}> = {
+  //         status: HttpStatus.INTERNAL_SERVER_ERROR,
+  //         messages: [JSON.stringify(e)],
+  //       };
+  //       return resolve(result);
+  //     }
+  //   });
+  // }
 
 
   @httpGet('/check-shop-slug')

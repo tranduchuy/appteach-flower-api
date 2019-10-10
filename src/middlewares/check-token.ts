@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { General } from '../constant/generals';
 import { Status } from '../constant/status';
-import UserModel from '../models/user';
+// import UserModel from '../models/user';
 import UserModel2 from '../models/user.model';
 import * as HttpStatus from 'http-status-codes';
 const WhiteList = require('./user-white-list');
