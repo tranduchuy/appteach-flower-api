@@ -1,32 +1,32 @@
 import { DataTypes, Model } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
-import Shop2 from './shop.model';
+import Product2 from './product.model';
 
-export class ImageShop extends Model {
+export class ImageProduct extends Model {
   imageUrl!: string;
-  shopsId!: number;
+  productsId!: number;
 }
 
-ImageShop.init({
+ImageProduct.init({
   imageUrl: {
     field: 'IMAGE_URL',
     type: DataTypes.TEXT({length: 'long'}),
     allowNull: false
   },
-  shopsId: {
-    field: 'SHOPS_ID',
+  productsId: {
+    field: 'PRODUCTS_ID',
     allowNull: false,
     type: DataTypes.INTEGER.UNSIGNED
   }
 }, {
-  tableName: 'IMAGES_SHOPS',
+  tableName: 'IMAGES_PRODUCTS',
   freezeTableName: true,
   sequelize: MYSQL_CONNECTION,
   timestamps: false
 });
 
-ImageShop.removeAttribute('id');
+ImageProduct.removeAttribute('id');
 
-ImageShop.belongsTo(Shop2, {foreignKey: 'SHOPS_ID'});
+ImageProduct.belongsTo(Product2, {foreignKey: 'PRODUCTS_ID'});
 
-export default ImageShop;
+export default ImageProduct;

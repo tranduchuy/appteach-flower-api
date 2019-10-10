@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { Status } from '../constant/status';
 import ShopModel, { Shop } from '../models/shop';
 import ShopModel2, { Shop2 } from '../models/shop.model';
+import ImageShopModel, { ImageShop } from '../models/image-shop.model';
 
 export interface IQueryWaitingShop {
   limit: number;
@@ -58,17 +59,31 @@ export class ShopService {
     const shop = new ShopModel2({
       name,
       slug,
-      images,
       availableShipCountry,
       usersId: userId,
       createdAt: new Date(),
       updatedAt: new Date()
     });
 
-    return await shop.save();
+    await shop.save();
+
+    await Promise.all((images || [])
+      .map(async (imageUrl: string) => {
+        await this.createImageShop(shop.id, imageUrl);
+      }));
+
+    return shop;
   }
 
-  async updateShop(shop, availableShipCountry: boolean): Promise<Shop2> {
+  createImageShop = async (shopId: number, imageUrl: string): Promise<ImageShop> => {
+    const newImage = new ImageShopModel({
+      imageUrl,
+      shopsId: shopId
+    });
+    return await newImage.save();
+  }
+
+  async updateShop(shop: Shop2, availableShipCountry: boolean): Promise<Shop2> {
     if (availableShipCountry) {
       shop.availableShipCountry = availableShipCountry;
     }

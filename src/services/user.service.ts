@@ -188,6 +188,11 @@ export class UserService {
     return await user.save();
   };
 
+  updateOtpCode = async (user, otpCode) => {
+    user.otpCodeConfirmAccount = otpCode;
+    return await user.save();
+  }
+
   updateFacebookId = async (user, facebookId) => {
     user.facebookId = facebookId;
     return await user.save();
@@ -232,8 +237,8 @@ export class UserService {
     return await UserModel2.findOne({ where: { passwordReminderToken } });
   };
 
-  async findById(id: string): Promise<User> {
-    return await UserModel.findById(id);
+  async findById(id: string): Promise<User2> {
+    return await UserModel2.findOne({ where: { id } });
   }
 
   async findByPhone(phone: string): Promise<User2> {

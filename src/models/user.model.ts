@@ -151,7 +151,8 @@ User2.init({
 }, {
         tableName: 'USERS',
         freezeTableName: true,
-        sequelize: MYSQL_CONNECTION
+        sequelize: MYSQL_CONNECTION,
+        timestamps: false
     });
 
 User2.hasMany(Address2, { foreignKey: 'USERS_ID' });

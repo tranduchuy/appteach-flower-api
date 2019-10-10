@@ -230,6 +230,8 @@ export class UserController {
         }
 
         const otpCode = this.userService.generateOTPCode();
+        await this.userService.updateOtpCode(shopUser, otpCode);
+
         const newShop: any = await this.shopService.createNewShop(shopUser.id, shopName, slug, images, availableShipCountry);
 
         await this.addressService.createShopAddress({

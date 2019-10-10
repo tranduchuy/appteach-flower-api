@@ -43,8 +43,7 @@ export class AddressService {
 
   createPossibleDeliveryAddress = async (addressData: any) => {
     addressData.type = AddressTypes.POSSIBLE_DELIVERY;
-    const newAddress = new AddressModel(addressData);
-
+    const newAddress = new AddressModel2(addressData);
     return await newAddress.save();
   };
 
@@ -95,26 +94,27 @@ export class AddressService {
     return await AddressModel.findById(addressId);
   };
 
-  updateShopAddress = async (shopId, {
-    city,
-    district,
-    ward,
-    address,
-    longitude,
-    latitude
-  }) => {
-    const updatedAddress = await AddressModel2.findOne({
-      where: {
-        shopsId: shopId,
-        type: AddressTypes.SHOP_ADDRESS
+  updateShopAddress = async (
+    shopId,
+    {
+      address,
+      longitude,
+      latitude
+    }) => {
+
+    return await AddressModel2.update(
+      {
+        address,
+        longitude,
+        latitude
+      },
+      {
+        where: {
+          shopsId: shopId,
+          type: AddressTypes.SHOP_ADDRESS
+        }
       }
-    });
-
-    updatedAddress.address = address;
-    updatedAddress.longitude = longitude;
-    updatedAddress.latitude = latitude;
-
-    return await updatedAddress.save();
+    );
   };
 
   updateGeoAddress = async (address, {

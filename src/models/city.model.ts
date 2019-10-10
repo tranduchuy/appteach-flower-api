@@ -1,10 +1,9 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
-import District from './district.model';
 import User2 from './user.model';
 import Address2 from './address.model';
 
-export class City extends Model {
+class City extends Model {
   id: number;
   code: string;
   name: string;
@@ -33,7 +32,8 @@ City.init({
 }, {
     sequelize: MYSQL_CONNECTION,
     tableName: 'CITIES',
-    freezeTableName: true
+    freezeTableName: true,
+    timestamps: false
   });
 
 City.hasMany(User2, { foreignKey: 'CITY' });

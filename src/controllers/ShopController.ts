@@ -22,7 +22,7 @@ import { UserService } from '../services/user.service';
 import { General } from '../constant/generals';
 import RegisterByTypes = General.RegisterByTypes;
 import UserTypes = General.UserTypes;
-import UserModel2 from '../models/user.model';
+import UserModel2, { User2 } from '../models/user.model';
 import { SmsService } from '../services/sms.service';
 import ShopModel2, { Shop2 } from '../models/shop.model';
 
@@ -161,10 +161,10 @@ export class ShopController {
         }
 
         await Promise.all((availableShipAddresses || [])
-          .map(async (addressData: { cityCode: string, districtCode?: number }) => {
+          .map(async (addressData: { city: string, district?: number }) => {
 
-            const addressCity = await this.addressService.getCityByCode(addressData.cityCode);
-            const addressDistrict = await this.addressService.getDistrictByCode(addressData.districtCode);
+            const addressCity = await this.addressService.getCityByCode(addressData.city);
+            const addressDistrict = await this.addressService.getDistrictByCode(addressData.district);
 
             await this.addressService.createPossibleDeliveryAddress({
               name,
@@ -221,7 +221,7 @@ export class ShopController {
           return resolve(result);
         }
 
-        let shop = await this.shopService.findShopOfUser(req.user._id);
+        let shop = await this.shopService.findShopOfUser(req.user.id);
         if (!shop) {
           const result: IRes<IResRegisterShop> = {
             status: HttpStatus.BAD_REQUEST,
@@ -231,9 +231,10 @@ export class ShopController {
           return resolve(result);
         }
 
-        const { availableShipCountry, availableShipAddresses, address, city, district, ward, longitude, latitude } = req.body;
-        // update shop address
-        await this.addressService.updateShopAddress(shop.id, { city, district, ward, address, longitude, latitude });
+        const shopUser = await this.userService.findById(req.user.id);
+
+        const { availableShipCountry, availableShipAddresses, address, longitude, latitude } = req.body;
+        await this.addressService.updateShopAddress(shop.id, { address, longitude, latitude });
         shop = await this.shopService.updateShop(shop, availableShipCountry);
 
         if (availableShipAddresses.length > 0) {
@@ -242,15 +243,22 @@ export class ShopController {
         }
 
         await Promise.all((availableShipAddresses || [])
-          .map(async (addressData: { cityCode: string, districtCode?: number }) => {
+          .map(async (addressData: { city: string, district?: number }) => {
 
-            const addressCity = await this.addressService.getCityByCode(addressData.cityCode);
-            const addressDistrict = await this.addressService.getDistrictByCode(addressData.districtCode);
+            const addressCity = await this.addressService.getCityByCode(addressData.city);
+            const addressDistrict = await this.addressService.getDistrictByCode(addressData.district);
 
             await this.addressService.createPossibleDeliveryAddress({
-              districtsId: addressCity.id,
-              citiesId: addressDistrict.id,
+              name: shopUser.name,
+              email: shopUser.email,
+              phone: shopUser.phone,
+              address,
+              longitude,
+              latitude,
+              usersId: shopUser.id,
               shopsId: shop.id,
+              districtsId: addressDistrict.id,
+              citiesId: addressCity.id,
             });
           }));
 

@@ -39,7 +39,8 @@ District.init({
 }, {
     tableName: 'DISTRICTS',
     freezeTableName: true,
-    sequelize: MYSQL_CONNECTION
+    sequelize: MYSQL_CONNECTION,
+    timestamps: false
   });
 
 District.belongsTo(City, { foreignKey: 'CITIES_ID' });
