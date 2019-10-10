@@ -335,6 +335,10 @@ export class UserService {
       cond.email = query.email;
     }
 
+    if (query.username) {
+      cond.username = query.username;
+    }
+
     if (query.googleId) {
       cond.googleId = query.googleId;
     }
@@ -348,12 +352,12 @@ export class UserService {
     }
 
     return {
-      $where: cond,
+      where: cond,
       limit: query.limit,
       offset: query.limit * (query.page - 1),
       include: [
         { model: City, as: 'cityInfo' },
-        { model: District, as: 'district' },
+        { model: District, as: 'districtInfo' },
       ]
     };
   }

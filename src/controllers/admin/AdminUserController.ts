@@ -298,12 +298,10 @@ export class AdminUserController {
         status: status ? parseInt(status) : null,
         gender: gender ? parseInt(gender) : null
       });
-      console.log('===========');
+
       console.log(queryObj);
       UserModel2.findAndCountAll(queryObj)
         .then(result => {
-          console.log(result.count);
-
           const response: IRes<any> = {
             status: HttpStatus.OK,
             messages: [ResponseMessages.SUCCESS],
