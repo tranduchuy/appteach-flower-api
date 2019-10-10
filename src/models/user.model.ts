@@ -1,9 +1,16 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
 
-export class User2 extends Model {
+export class Staff extends Model {
   id!: number;
   email: string;
+  passwordHash: string;
+  passwordSalt: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export class User2 extends Staff {
   name: string;
   username: string;
   phone: string;
@@ -13,10 +20,6 @@ export class User2 extends Model {
   status!: number;
   avatar: string;
   birthday: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  passwordHash: string;
-  passwordSalt: string;
   address: string;
   ward: number;
   tokenEmailConfirm: string;
@@ -144,6 +147,10 @@ User2.init({
   registerBy: {
     type: DataTypes.INTEGER.UNSIGNED,
     field: 'REGISTER_BY'
+  },
+  roleInShop: {
+    type: DataTypes.INTEGER,
+    field: 'ROLE_IN_SHOP'
   }
 }, {
   tableName: 'USERS',

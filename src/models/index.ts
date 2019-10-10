@@ -2,6 +2,7 @@ import Address2 from './address.model';
 import District from './district.model';
 import User2 from './user.model';
 import City from './city.model';
+import Shop from './shop.model';
 
 // Relation: City and User
 City.hasMany(User2, {foreignKey: 'id', as: 'users'});
@@ -18,3 +19,8 @@ District.hasMany(User2, { foreignKey: 'id', as: 'users'});
 
 // Realtion: User and Address
 User2.hasMany(Address2, {foreignKey: 'USERS_ID'});
+
+
+// Realtion: User and Shop
+Shop.hasMany(User2, {foreignKey: 'id', as: 'users'});
+User2.belongsTo(Shop, {foreignKey: 'shop', as: 'shopInfo'});

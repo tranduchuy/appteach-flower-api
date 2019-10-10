@@ -4,6 +4,7 @@ import { Status } from '../constant/status';
 import ShopModel, { Shop } from '../models/shop';
 import ShopModel2, { Shop2 } from '../models/shop.model';
 import ImageShopModel, { ImageShop } from '../models/image-shop.model';
+import { Op } from 'sequelize';
 
 export interface IQueryWaitingShop {
   limit: number;
@@ -37,7 +38,7 @@ export interface IQueryListShop {
 export class ShopService {
 
   async findShopById(shopId: string): Promise<Shop> {
-    return await ShopModel.findOne({ _id: shopId });
+    return await ShopModel.findOne({_id: shopId});
   }
 
   async findShopOfUser(userId: number): Promise<Shop2> {
@@ -52,7 +53,7 @@ export class ShopService {
   }
 
   async findShopBySlug(slug: string): Promise<Shop2> {
-    return await ShopModel2.findOne({ where: { slug } });
+    return await ShopModel2.findOne({where: {slug}});
   }
 
   async createNewShop(userId: number, name: string, slug: string, images: string[], availableShipCountry: boolean): Promise<Shop2> {
@@ -81,7 +82,7 @@ export class ShopService {
       shopsId: shopId
     });
     return await newImage.save();
-  }
+  };
 
   async updateShop(shop: Shop2, availableShipCountry: boolean): Promise<Shop2> {
     if (availableShipCountry) {
@@ -112,11 +113,11 @@ export class ShopService {
     stages.push({
       $facet: {
         entries: [
-          { $skip: (queryCondition.page - 1) * queryCondition.limit },
-          { $limit: queryCondition.limit }
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
         ],
         meta: [
-          { $group: { _id: null, totalItems: { $sum: 1 } } },
+          {$group: {_id: null, totalItems: {$sum: 1}}},
         ],
       }
     });
@@ -169,11 +170,11 @@ export class ShopService {
     stages.push({
       $facet: {
         entries: [
-          { $skip: (queryCondition.page - 1) * queryCondition.limit },
-          { $limit: queryCondition.limit }
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
         ],
         meta: [
-          { $group: { _id: null, totalItems: { $sum: 1 } } },
+          {$group: {_id: null, totalItems: {$sum: 1}}},
         ],
       }
     });
@@ -181,12 +182,35 @@ export class ShopService {
     return stages;
   }
 
+  buildQueryGetListShop(queryCondition: IQueryListShop): any {
+    const cond: any = {};
+
+    if (queryCondition.name) {
+      cond.name = {
+        [Op.like]: queryCondition.name
+      };
+    }
+
+    const order = [];
+    if (queryCondition.sb) {
+      order.push(queryCondition.sb);
+      order.push(queryCondition.sd);
+    }
+
+    return {
+      where: cond,
+      order,
+      offset: (queryCondition.page - 1) * queryCondition.limit,
+      limit: queryCondition.limit
+    };
+  }
+
   buildStageGetListShop(queryCondition: IQueryListShop): any[] {
     const stages = [];
     const matchStage: any = {};
 
     if (queryCondition.name) {
-      matchStage['name'] = { '$regex': queryCondition.name, '$options': 'i' };
+      matchStage['name'] = {'$regex': queryCondition.name, '$options': 'i'};
     }
 
     if (queryCondition.status) {
@@ -194,7 +218,7 @@ export class ShopService {
     }
 
     if (Object.keys(matchStage).length > 0) {
-      stages.push({ $match: matchStage });
+      stages.push({$match: matchStage});
     }
 
     stages.push({
@@ -206,7 +230,7 @@ export class ShopService {
       }
     });
 
-    stages.push({ $unwind: { path: '$userInfo' } });
+    stages.push({$unwind: {path: '$userInfo'}});
 
     if (queryCondition.sb) {
       stages.push({
@@ -219,11 +243,11 @@ export class ShopService {
     stages.push({
       $facet: {
         entries: [
-          { $skip: (queryCondition.page - 1) * queryCondition.limit },
-          { $limit: queryCondition.limit }
+          {$skip: (queryCondition.page - 1) * queryCondition.limit},
+          {$limit: queryCondition.limit}
         ],
         meta: [
-          { $group: { _id: null, totalItems: { $sum: 1 } } },
+          {$group: {_id: null, totalItems: {$sum: 1}}},
         ],
       }
     });
