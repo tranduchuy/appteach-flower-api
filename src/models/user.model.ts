@@ -21,6 +21,8 @@ export class User2 extends Staff {
   avatar: string;
   birthday: Date;
   address: string;
+  city?: number;
+  district?: number;
   ward: number;
   tokenEmailConfirm: string;
   passwordReminderToken: string;
@@ -105,18 +107,18 @@ User2.init({
     type: DataTypes.STRING,
     field: 'ADDRESS'
   },
-  // city: {
-  //   type: DataTypes.INTEGER.UNSIGNED,
-  //   field: 'CITY'
-  // },
+  city: {
+    type: DataTypes.INTEGER.UNSIGNED,
+    field: 'CITY'
+  },
   ward: {
     type: DataTypes.INTEGER.UNSIGNED,
     field: 'WARD'
   },
-  // district: {
-  //     type: DataTypes.INTEGER.UNSIGNED,
-  //     field: 'DISTRICT'
-  // },
+  district: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      field: 'DISTRICT'
+  },
   tokenEmailConfirm: {
     type: DataTypes.STRING,
     field: 'TOKEN_EMAIL_CONFIRM'
@@ -152,6 +154,10 @@ User2.init({
   roleInShop: {
     type: DataTypes.INTEGER.UNSIGNED,
     field: 'ROLE_IN_SHOP'
+  },
+  shopsId: {
+    type: DataTypes.INTEGER.UNSIGNED,
+    field: 'SHOPS_ID'
   }
 }, {
   tableName: 'USERS',

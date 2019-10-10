@@ -6,11 +6,11 @@ import { Request } from 'express';
 import { IRes } from '../interfaces/i-res';
 import { AddressService } from '../services/address.service';
 import { ProductService } from '../services/product.service';
-import { IQueryProductsOfShop, ShopService } from '../services/shop.service';
+import { ShopService } from '../services/shop.service';
 import * as HttpStatus from 'http-status-codes';
 import registerShopSchema from '../validation-schemas/shop/shop-register.schema';
 import checkShopSlugSchema from '../validation-schemas/shop/check-shop-slug.schema';
-import listProductsOfShopSchema from '../validation-schemas/shop/list-product-of-shop.schema';
+// import listProductsOfShopSchema from '../validation-schemas/shop/list-product-of-shop.schema';
 import checkUpdateStatusProducts from '../validation-schemas/shop/check-update-status-products.schema';
 import Joi from '@hapi/joi';
 import ListShopSchema from '../validation-schemas/user/admin-list-shop.schema';
@@ -24,7 +24,7 @@ import UserTypes = General.UserTypes;
 import UserModel2  from '../models/user.model';
 import { SmsService } from '../services/sms.service';
 import ShopModel2, { Shop2 } from '../models/shop.model';
-import ProductModel2 from '../models/product.model';
+// import ProductModel2 from '../models/product.model';
 import Product2 from '../models/product.model';
 
 interface IResRegisterShop {
@@ -367,82 +367,82 @@ export class ShopController {
     });
   }
 
-  @httpGet('/products', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
-  public getShopProductsForControlling(req: Request): Promise<IRes<IResProductOfShop>> {
-    return new Promise<IRes<IResProductOfShop>>(async resolve => {
-      try {
-        const { error } = Joi.validate(req.body, listProductsOfShopSchema);
-
-        if (error) {
-          const messages = error.details.map(detail => {
-            return detail.message;
-          });
-
-          const result: IRes<IResProductOfShop> = {
-            status: HttpStatus.BAD_REQUEST,
-            messages: messages
-          };
-
-          return resolve(result);
-        }
-
-        const shop: any = await this.shopService.findShopOfUser(req.user.id);
-
-        if (!shop) {
-          return resolve({
-            status: HttpStatus.BAD_REQUEST,
-            messages: [ResponseMessages.Shop.SHOP_OF_USER_NOT_FOUND]
-          });
-        }
-
-        const { page, limit, title, status, approvedStatus, sb, sd } = req.query;
-
-        const queryCondition: IQueryProductsOfShop = {
-          limit: parseInt((limit || 10).toString()),
-          page: parseInt((page || 1).toString()),
-          shopId: shop.id,
-          title: title || null,
-          status: status ? parseInt(status.toString()) : null,
-          approvedStatus: approvedStatus ? parseInt(approvedStatus) : null,
-          sortBy: sb || null,
-          sortDirection: sd || null
-        };
-        // const stages: any[] = this.shopService.buildStageQueryProductOfShop(queryCondition);
-        // console.log('stages query search', JSON.stringify(stages));
-        // const result: any = await ProductModel.aggregate(stages);
-
-        const offset = (parseInt((queryCondition.page || 1).toString()) - 1) * 10;
-        const products: any = [];
-
-
-
-        return resolve({
-          status: HttpStatus.OK,
-          messages: [ResponseMessages.SUCCESS],
-          data: {
-            meta: {
-              // totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0,
-              // item: result[0].entries.length,
-              // limit: queryCondition.limit,
-              // page: queryCondition.page,
-              totalItems: products.count,
-              item: products.rows.length,
-              limit,
-              page
-            },
-            products: products.rows
-          }
-        });
-      } catch (e) {
-        console.error(e);
-        const result: IRes<IResProductOfShop> = {
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          messages: [JSON.stringify(e)],
-        };
-        return resolve(result);
-      }
-    });
-  }
+  // @httpGet('/products', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
+  // public getShopProductsForControlling(req: Request): Promise<IRes<IResProductOfShop>> {
+  //   return new Promise<IRes<IResProductOfShop>>(async resolve => {
+  //     try {
+  //       const { error } = Joi.validate(req.body, listProductsOfShopSchema);
+  //
+  //       if (error) {
+  //         const messages = error.details.map(detail => {
+  //           return detail.message;
+  //         });
+  //
+  //         const result: IRes<IResProductOfShop> = {
+  //           status: HttpStatus.BAD_REQUEST,
+  //           messages: messages
+  //         };
+  //
+  //         return resolve(result);
+  //       }
+  //
+  //       const shop: any = await this.shopService.findShopOfUser(req.user.id);
+  //
+  //       if (!shop) {
+  //         return resolve({
+  //           status: HttpStatus.BAD_REQUEST,
+  //           messages: [ResponseMessages.Shop.SHOP_OF_USER_NOT_FOUND]
+  //         });
+  //       }
+  //
+  //       const { page, limit, title, status, approvedStatus, sb, sd } = req.query;
+  //
+  //       const queryCondition: IQueryProductsOfShop = {
+  //         limit: parseInt((limit || 10).toString()),
+  //         page: parseInt((page || 1).toString()),
+  //         shopId: shop.id,
+  //         title: title || null,
+  //         status: status ? parseInt(status.toString()) : null,
+  //         approvedStatus: approvedStatus ? parseInt(approvedStatus) : null,
+  //         sortBy: sb || null,
+  //         sortDirection: sd || null
+  //       };
+  //       // const stages: any[] = this.shopService.buildStageQueryProductOfShop(queryCondition);
+  //       // console.log('stages query search', JSON.stringify(stages));
+  //       // const result: any = await ProductModel.aggregate(stages);
+  //
+  //       // const offset = (parseInt((queryCondition.page || 1).toString()) - 1) * 10;
+  //       const products: any = [];
+  //
+  //
+  //
+  //       return resolve({
+  //         status: HttpStatus.OK,
+  //         messages: [ResponseMessages.SUCCESS],
+  //         data: {
+  //           meta: {
+  //             // totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0,
+  //             // item: result[0].entries.length,
+  //             // limit: queryCondition.limit,
+  //             // page: queryCondition.page,
+  //             totalItems: products.count,
+  //             item: products.rows.length,
+  //             limit,
+  //             page
+  //           },
+  //           products: products.rows
+  //         }
+  //       });
+  //     } catch (e) {
+  //       console.error(e);
+  //       const result: IRes<IResProductOfShop> = {
+  //         status: HttpStatus.INTERNAL_SERVER_ERROR,
+  //         messages: [JSON.stringify(e)],
+  //       };
+  //       return resolve(result);
+  //     }
+  //   });
+  // }
 
   @httpPost('/products/update-status', TYPES.CheckTokenMiddleware, TYPES.CheckUserTypeSellerMiddleware)
   public updateStatusMultipleProduct(req: Request): Promise<IRes<IResUpdateStatusMultipleProduct>> {

@@ -61,7 +61,8 @@ Shop2.init({
   tableName: 'SHOPS',
   freezeTableName: true,
   sequelize: MYSQL_CONNECTION,
-  timestamps: false
+  timestamps: false,
+  modelName: 'shop'
 });
 
 // Shop2.belongsTo(User2, {
