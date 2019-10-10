@@ -1,6 +1,5 @@
 import { DataTypes, Model } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
-import Shop2 from './shop.model';
 
 export class ImageShop extends Model {
   imageUrl!: string;
@@ -10,11 +9,13 @@ export class ImageShop extends Model {
 ImageShop.init({
   imageUrl: {
     field: 'IMAGE_URL',
-    type: DataTypes.TEXT({length: 'long'}),
+    type: DataTypes.STRING(1000),
+    primaryKey: true,
     allowNull: false
   },
   shopsId: {
     field: 'SHOPS_ID',
+    primaryKey: true,
     allowNull: false,
     type: DataTypes.INTEGER.UNSIGNED
   }
@@ -26,7 +27,5 @@ ImageShop.init({
 });
 
 ImageShop.removeAttribute('id');
-
-ImageShop.belongsTo(Shop2, {foreignKey: 'SHOPS_ID'});
 
 export default ImageShop;

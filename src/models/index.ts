@@ -5,6 +5,8 @@ import City from './city.model';
 import ShopHasProduct from './shop-has-product.model';
 import Shop2 from './shop.model';
 import Product2 from './product.model';
+import ImageShop from './image-shop.model';
+import ImageProduct from './image-product.model';
 
 City.hasMany(User2, { foreignKey: 'id', as: 'users' });
 User2.hasMany(Address2, { foreignKey: 'USERS_ID' });
@@ -16,4 +18,8 @@ District.hasMany(Address2, { foreignKey: 'DISTRICT_ID' });
 ShopHasProduct.belongsTo(Shop2, { foreignKey: 'SHOPS_ID' });
 ShopHasProduct.belongsTo(Product2, { foreignKey: 'PRODUCTS_ID' });
 Shop2.hasMany(ShopHasProduct, { foreignKey: 'SHOPS_ID' });
+Shop2.hasMany(ImageShop, { foreignKey: 'SHOPS_ID' });
 Product2.hasMany(ShopHasProduct, { foreignKey: 'PRODUCTS_ID' });
+Product2.hasMany(ImageShop, { foreignKey: 'PRODUCTS_ID' });
+ImageShop.belongsTo(Shop2, { foreignKey: 'SHOPS_ID' });
+ImageProduct.belongsTo(Product2, { foreignKey: 'PRODUCTS_ID' });

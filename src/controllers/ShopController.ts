@@ -13,7 +13,6 @@ import checkShopSlugSchema from '../validation-schemas/shop/check-shop-slug.sche
 import listProductsOfShopSchema from '../validation-schemas/shop/list-product-of-shop.schema';
 import checkUpdateStatusProducts from '../validation-schemas/shop/check-update-status-products.schema';
 import Joi from '@hapi/joi';
-import ProductModel, { Product } from '../models/product';
 import ListShopSchema from '../validation-schemas/user/admin-list-shop.schema';
 import { OrderItemService } from '../services/order-item.service';
 import OrderItemModel from '../models/order-item';
@@ -23,7 +22,6 @@ import { General } from '../constant/generals';
 import RegisterByTypes = General.RegisterByTypes;
 import UserTypes = General.UserTypes;
 import UserModel2  from '../models/user.model';
->>>>>>> 467a89dfc02c2e7cf553219565487176c22d37a5
 import { SmsService } from '../services/sms.service';
 import ShopModel2, { Shop2 } from '../models/shop.model';
 import ProductModel2 from '../models/product.model';
