@@ -8,6 +8,7 @@ import { ResponseMessages } from '../../constant/messages';
 import TYPES from '../../constant/types';
 import { IRes } from '../../interfaces/i-res';
 import ShopModel, { Shop } from '../../models/shop';
+import ShopModel2 from '../../models/shop.model';
 import { ShopService } from '../../services/shop.service';
 import Joi from '@hapi/joi';
 import { UserService } from '../../services/user.service';
@@ -53,7 +54,8 @@ export class AdminShopController {
         }
 
         const {name, limit, page, status, sb, sd} = req.query;
-        const stages: any[] = this.shopService.buildStageGetListShop({
+
+        const queryObj = this.shopService.buildQueryGetListShop({
           name: name ? name : null,
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
@@ -62,20 +64,21 @@ export class AdminShopController {
           sd: sd,
         });
 
-        console.log(JSON.stringify(stages));
-        const result: any = await ShopModel.aggregate(stages);
-        const response: IRes<IResShops> = {
-          status: HttpStatus.OK,
-          messages: [ResponseMessages.SUCCESS],
-          data: {
-            meta: {
-              totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0
-            },
-            shops: result[0].entries
-          }
-        };
+        ShopModel2.findAndCountAll(queryObj)
+          .then(result => {
+            const response: IRes<any> = {
+              status: HttpStatus.OK,
+              messages: [ResponseMessages.SUCCESS],
+              data: {
+                meta: {
+                  totalItems: result.count
+                },
+                shops: result.rows
+              }
+            };
 
-        return resolve(response);
+            return resolve(response);
+          });
       } catch (e) {
         console.error(e);
         const result: IRes<IResShops> = {
@@ -107,7 +110,7 @@ export class AdminShopController {
 
         const {shopId, status} = req.body;
 
-        const shop = await ShopModel.findById(shopId);
+        const shop = await ShopModel.findOne({where: {id: shopId}});
         if (!shop) {
           const result: IRes<IResShopUpdateStatus> = {
             status: HttpStatus.NOT_FOUND,

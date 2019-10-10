@@ -1,7 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
-import User2 from './user.model';
-import Address2 from './address.model';
+// import User2 from './user.model';
+// import Address2 from './address.model';
 
 export class Shop2 extends Model {
   id!: number;
@@ -64,11 +64,11 @@ Shop2.init({
   timestamps: false
 });
 
-Shop2.belongsTo(User2, {
-  foreignKey: 'USERS_ID'
-});
-Shop2.hasMany(Address2, {
-  foreignKey: 'SHOPS_ID'
-});
+// Shop2.belongsTo(User2, {
+//   foreignKey: 'USERS_ID'
+// });
+// Shop2.hasMany(Address2, {
+//   foreignKey: 'SHOPS_ID'
+// });
 
 export default Shop2;

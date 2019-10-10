@@ -23,3 +23,5 @@ Product2.hasMany(ShopHasProduct, { foreignKey: 'PRODUCTS_ID' });
 Product2.hasMany(ImageShop, { foreignKey: 'PRODUCTS_ID' });
 ImageShop.belongsTo(Shop2, { foreignKey: 'SHOPS_ID' });
 ImageProduct.belongsTo(Product2, { foreignKey: 'PRODUCTS_ID' });
+Shop2.hasMany(User2, { foreignKey: 'id', as: 'users' });
+User2.belongsTo(Shop2, { foreignKey: 'shop', as: 'shopInfo', targetKey: 'id' });
