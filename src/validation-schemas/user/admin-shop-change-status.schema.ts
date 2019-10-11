@@ -3,7 +3,7 @@ import { Status } from '../../constant/status';
 
 const AdminShopChangeStatus = Joi.object().keys(
   {
-    shopId: Joi.string().required(),
+    shopId: Joi.number().required(),
     status: Joi.number().valid([Status.ACTIVE, Status.BLOCKED]).required(),
   }
 );

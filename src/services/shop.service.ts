@@ -204,12 +204,8 @@ export class ShopService {
       offset: (queryCondition.page - 1) * queryCondition.limit,
       limit: queryCondition.limit,
       include: [
-        {
-          model: User2,
-          as: 'users',
-          duplicating: false
-        },
-      ],
+        {model: User2, as: 'users', duplicating: false}
+      ]
     };
   }
 
