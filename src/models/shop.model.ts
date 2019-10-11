@@ -51,11 +51,6 @@ Shop2.init({
   discountRate: {
     field: 'DISCOUNT_RATE',
     type: DataTypes.FLOAT
-  },
-  usersId: {
-    field: 'USERS_ID',
-    type: DataTypes.INTEGER.UNSIGNED,
-    allowNull: false
   }
 }, {
   tableName: 'SHOPS',
