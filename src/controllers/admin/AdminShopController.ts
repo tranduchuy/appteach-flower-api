@@ -7,11 +7,10 @@ import { HttpCodes } from '../../constant/http-codes';
 import { ResponseMessages } from '../../constant/messages';
 import TYPES from '../../constant/types';
 import { IRes } from '../../interfaces/i-res';
-import ShopModel, { Shop } from '../../models/shop';
 import ShopModel2 from '../../models/shop.model';
 import { ShopService } from '../../services/shop.service';
 import Joi from '@hapi/joi';
-import { UserService } from '../../services/user.service';
+import User from '../../models/user.model';
 
 // schemas
 import ListShopSchema from '../../validation-schemas/user/admin-list-shop.schema';
@@ -22,19 +21,16 @@ interface IResShops {
   meta: {
     totalItems: number
   };
-  shops: Shop[];
+  shops: ShopModel2[];
 }
 
 interface IResShopUpdateStatus {
-  shop?: Shop;
+  shop?: ShopModel2;
 }
 
 @controller('/admin/shop')
 export class AdminShopController {
-  constructor(@inject(TYPES.ShopService) private shopService: ShopService,
-              @inject(TYPES.UserService) private userService: UserService) {
-
-  }
+  constructor(@inject(TYPES.ShopService) private shopService: ShopService) {}
 
   @httpGet('/', TYPES.CheckTokenMiddleware, TYPES.CheckAdminMiddleware)
   public getList(req: Request): Promise<IRes<IResShops>> {
@@ -66,7 +62,7 @@ export class AdminShopController {
 
         ShopModel2.findAndCountAll(queryObj)
           .then(result => {
-            const response: IRes<any> = {
+            const response: IRes<IResShops> = {
               status: HttpStatus.OK,
               messages: [ResponseMessages.SUCCESS],
               data: {
@@ -110,7 +106,7 @@ export class AdminShopController {
 
         const {shopId, status} = req.body;
 
-        const shop = await ShopModel.findOne({where: {id: shopId}});
+        const shop = await ShopModel2.findOne({where: {id: shopId}});
         if (!shop) {
           const result: IRes<IResShopUpdateStatus> = {
             status: HttpStatus.NOT_FOUND,
@@ -124,7 +120,12 @@ export class AdminShopController {
         shop.status = status;
         await shop.save();
 
-        const user: any = await this.userService.findById(shop.user.toString());
+        const user: any = await User.findOne({
+          where: {
+            shopsId: shop.id,
+            roleInShop: 1 //  TODO: should use constant, waiting for commit from Tue
+          }
+        });
         user.type = UserTypes.TYPE_SELLER;
         await user.save();
 
