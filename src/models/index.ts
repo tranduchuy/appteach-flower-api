@@ -27,5 +27,5 @@ User.belongsTo(District, { foreignKey: 'district', as: 'districtInfo', targetKey
 City.hasMany(User, { foreignKey: 'city', as: 'users', sourceKey: 'id' });
 User.belongsTo(City, { foreignKey: 'city', as: 'cityInfo', targetKey: 'id' });
 
-Shop.hasMany(User, { foreignKey: 'shopsId', as: 'users', sourceKey: 'id' });
-User.belongsTo(Shop, { foreignKey: 'shopsId', as: 'shopInfo', targetKey: 'id' });
+Shop.hasMany(User, { foreignKey: 'shopsId', as: 'users', sourceKey: 'id'});
+User.belongsTo(Shop, { foreignKey: 'shopsId', as: 'shopInfo', targetKey: 'id'});

@@ -12,7 +12,6 @@ export class Shop2 extends Model {
   createdAt: Date;
   updatedAt: Date;
   discountRate: number;
-  usersId!: number;
 }
 
 Shop2.init({

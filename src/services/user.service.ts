@@ -1,6 +1,7 @@
 import { injectable } from 'inversify';
 import City from '../models/city.model';
 import District from '../models/district.model';
+import Shop2 from '../models/shop.model';
 import UserModel from '../models/user';
 import UserModel2, { User2 } from '../models/user.model';
 import { UserConstant } from '../constant/users';
@@ -358,6 +359,7 @@ export class UserService {
       include: [
         { model: City, as: 'cityInfo' },
         { model: District, as: 'districtInfo' },
+        { model: Shop2, as: 'shopInfo' },
       ]
     };
   }

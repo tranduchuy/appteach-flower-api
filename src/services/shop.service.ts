@@ -5,6 +5,7 @@ import ShopModel, { Shop } from '../models/shop';
 import ShopModel2, { Shop2 } from '../models/shop.model';
 import ImageShopModel, { ImageShop } from '../models/image-shop.model';
 import { Op } from 'sequelize';
+import User2 from '../models/user.model';
 
 export interface IQueryWaitingShop {
   limit: number;
@@ -201,7 +202,10 @@ export class ShopService {
       where: cond,
       order,
       offset: (queryCondition.page - 1) * queryCondition.limit,
-      limit: queryCondition.limit
+      limit: queryCondition.limit,
+      include: [
+        {model: User2, as: 'users'}
+      ]
     };
   }
 
