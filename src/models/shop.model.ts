@@ -12,7 +12,6 @@ export class Shop2 extends Model {
   createdAt: Date;
   updatedAt: Date;
   discountRate: number;
-  usersId!: number;
 }
 
 Shop2.init({
@@ -52,11 +51,6 @@ Shop2.init({
     field: 'DISCOUNT_RATE',
     type: DataTypes.FLOAT
   },
-  usersId: {
-    field: 'USERS_ID',
-    type: DataTypes.INTEGER.UNSIGNED,
-    allowNull: false
-  }
 }, {
   tableName: 'SHOPS',
   freezeTableName: true,

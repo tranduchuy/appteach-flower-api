@@ -16,6 +16,9 @@ export namespace ResponseMessages {
       export const EXCEED_MAX_SEND_OTP = 'Đã quá số lần gửi OTP. Tài khoản của bạn đã bị khóa. Vui lòng liên hệ ADMIN';
       export const RESEND_OTP = 'Hệ thống đã gửi 1 mã OTP đến số điện thoại của bạn';
     }
+    export namespace ReigsterShop {
+      export const USER_WAS_SHOP_OWNER  = 'Tài khoản này hiện đang là chủ shop! Không thể mở thêm.';
+    }
     export namespace Login {
       export const USER_NOT_FOUND = 'Tài khoản không tồn tại';
       export const WRONG_PASSWORD = 'Sai mật khẩu';
