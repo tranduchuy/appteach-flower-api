@@ -50,7 +50,7 @@ Shop2.init({
   discountRate: {
     field: 'DISCOUNT_RATE',
     type: DataTypes.FLOAT
-  },
+  }
 }, {
   tableName: 'SHOPS',
   freezeTableName: true,

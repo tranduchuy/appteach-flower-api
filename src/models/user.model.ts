@@ -32,7 +32,8 @@ export class User2 extends Staff {
   otpCodeConfirmAccount: string;
   noSendOtp: number;
   registerBy: number;
-  roleInShop: number;
+  roleInShop?: number;
+  shopsId?: number;
 }
 
 User2.init({

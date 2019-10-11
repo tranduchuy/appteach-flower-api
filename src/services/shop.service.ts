@@ -202,7 +202,10 @@ export class ShopService {
       where: cond,
       order,
       offset: (queryCondition.page - 1) * queryCondition.limit,
-      limit: queryCondition.limit
+      limit: queryCondition.limit,
+      include: [
+        {model: User2, as: 'users'}
+      ]
     };
   }
 

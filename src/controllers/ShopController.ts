@@ -425,7 +425,7 @@ export class ShopController {
         // find by attributes (title, status, approvedStatus)
         // sort by colum name
         // sort asc, desc
-        // pagination   
+        // pagination
         productsData = await ProductModel2.findAndCountAll({
           offset,
           limit: queryCondition.limit
