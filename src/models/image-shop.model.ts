@@ -26,6 +26,4 @@ ImageShop.init({
   timestamps: false
 });
 
-ImageShop.removeAttribute('id');
-
 export default ImageShop;

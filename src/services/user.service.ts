@@ -138,7 +138,6 @@ export class UserService {
   };
 
   createUserByFacebook = async ({ name, facebookId }) => {
-
     const newUser = new UserModel({
       passwordHash: null,
       passwordSalt: null,

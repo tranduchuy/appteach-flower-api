@@ -22,6 +22,7 @@ export namespace General {
 
   export const UserRolesInShop = {
     ROLE_IN_SHOP_OWNER: 1,
+    ROLE_IN_SHOP_STAFF: 2
   };
 
   export const AddressTypes = {

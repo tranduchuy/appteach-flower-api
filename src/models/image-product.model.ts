@@ -26,6 +26,4 @@ ImageProduct.init({
   timestamps: false
 });
 
-ImageProduct.removeAttribute('id');
-
 export default ImageProduct;
