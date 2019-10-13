@@ -35,6 +35,7 @@ import ConfirmByPhoneValidationSchema from '../validation-schemas/user/confirm-b
 import RegisterShopValidationSchema from '../validation-schemas/user/register-shop.schema';
 import { ShopService } from '../services/shop.service';
 import { AddressService } from '../services/address.service';
+import UserRolesInShop = General.UserRolesInShop;
 
 interface IResResendConfirmEmail {
 }
@@ -149,7 +150,9 @@ export class UserController {
           address,
           otpCode,
           googleId: null,
-          facebookId: null
+          facebookId: null,
+          roleInShop: null,
+          shopsId: null
         };
 
         const newUser = await this.userService.createUser(newUserData);
@@ -229,10 +232,19 @@ export class UserController {
           return resolve(result);
         }
 
+        if (shopUser.roleInShop === UserRolesInShop.ROLE_IN_SHOP_OWNER) {
+          const result: IRes<any> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.ReigsterShop.USER_WAS_SHOP_OWNER]
+          };
+
+          return resolve(result);
+        }
+
         const otpCode = this.userService.generateOTPCode();
         await this.userService.updateOtpCode(shopUser, otpCode);
 
-        const newShop: any = await this.shopService.createNewShop(shopUser.id, shopName, slug, images, availableShipCountry);
+        const newShop: any = await this.shopService.createNewShop(shopName, slug, images, availableShipCountry);
 
         await this.addressService.createShopAddress({
           name,
@@ -863,7 +875,7 @@ export class UserController {
           registerBy: user.registerBy,
           facebookId: user.facebookId
         };
-        const resToken = this.userService.generateToken({ id: user.id});
+        const resToken = this.userService.generateToken({ id: user.id });
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,

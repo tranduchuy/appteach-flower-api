@@ -20,6 +20,11 @@ export namespace General {
     TYPE_SELLER: 2
   };
 
+  export const UserRolesInShop = {
+    ROLE_IN_SHOP_OWNER: 1,
+    ROLE_IN_SHOP_STAFF: 2
+  };
+
   export const AddressTypes = {
     DELIVERY: 1,
     POSSIBLE_DELIVERY: 2,

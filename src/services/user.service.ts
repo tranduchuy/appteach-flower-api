@@ -35,7 +35,7 @@ export interface IQueryUser {
 export class UserService {
   sellerInProductDetailFields = ['_id', 'avatar', 'name', 'address'];
 
-  createUser = async ({email, password, type, name, phone, address, city, district, ward, registerBy, gender, role, otpCode}) => {
+  createUser = async ({ email, password, type, name, phone, address, city, district, ward, registerBy, gender, role, otpCode, roleInShop, shopsId }) => {
     const salt = bcrypt.genSaltSync(UserConstant.saltLength);
     const tokenEmailConfirm = RandomString.generate({
       length: UserConstant.tokenConfirmEmailLength,
@@ -61,7 +61,9 @@ export class UserService {
       role: role || UserRoles.USER_ROLE_ENDUSER,
       otpCodeConfirmAccount: otpCode,
       googleId: null,
-      facebookId: null
+      facebookId: null,
+      roleInShop,
+      shopsId
     });
 
     return await newUser.save();
@@ -100,7 +102,7 @@ export class UserService {
       return await UserModel2.update(
         newUser,
         {
-          where: {id: userId}
+          where: { id: userId }
         }
       );
     } catch (e) {
@@ -108,7 +110,7 @@ export class UserService {
     }
   };
 
-  createUserByGoogle = async ({email, name, googleId}) => {
+  createUserByGoogle = async ({ email, name, googleId }) => {
 
     const username = email.split('@')[0];
 
@@ -135,8 +137,7 @@ export class UserService {
     return await newUser.save();
   };
 
-  createUserByFacebook = async ({name, facebookId}) => {
-
+  createUserByFacebook = async ({ name, facebookId }) => {
     const newUser = new UserModel({
       passwordHash: null,
       passwordSalt: null,
@@ -167,7 +168,7 @@ export class UserService {
   };
 
   findByUsername = async (username: string) => {
-    return await UserModel.findOne({username});
+    return await UserModel.findOne({ username });
   };
 
   findByEmailOrUsername = async (email, username) => {
@@ -181,7 +182,7 @@ export class UserService {
   findByEmailOrPhone = async (email, phone) => {
     return await UserModel2.findOne({
       where: {
-        [Sequelize.Op.or]: [{email}, {phone}]
+        [Sequelize.Op.or]: [{ email }, { phone }]
       }
     });
   };
@@ -201,13 +202,13 @@ export class UserService {
     return await user.save();
   };
   findByEmail = async (email) => {
-    return await UserModel2.findOne({where: {email}});
+    return await UserModel2.findOne({ where: { email } });
   };
   findByGoogleId = async (googleId) => {
-    return await UserModel2.findOne({where: {googleId}});
+    return await UserModel2.findOne({ where: { googleId } });
   };
   findByFacebookId = async (facebookId) => {
-    return await UserModel2.findOne({where: facebookId});
+    return await UserModel2.findOne({ where: facebookId });
   };
   isValidHashPassword = (hashed: string, plainText: string) => {
     try {
@@ -217,7 +218,7 @@ export class UserService {
     }
   };
   getSellerInProductDetail = async (id) => {
-    return await UserModel.findOne({_id: id}, this.sellerInProductDetailFields);
+    return await UserModel.findOne({ _id: id }, this.sellerInProductDetailFields);
   };
   generateForgetPasswordToken = async (user) => {
     const reminderToken = RandomString.generate();
@@ -237,15 +238,15 @@ export class UserService {
     return await user.save();
   };
   findUserByPasswordReminderToken = async (passwordReminderToken) => {
-    return await UserModel2.findOne({where: {passwordReminderToken}});
+    return await UserModel2.findOne({ where: { passwordReminderToken } });
   };
 
   async findById(id: string): Promise<User2> {
-    return await UserModel2.findOne({where: {id}});
+    return await UserModel2.findOne({ where: { id } });
   }
 
   async findByPhone(phone: string): Promise<User2> {
-    return await UserModel2.findOne({where: {phone}});
+    return await UserModel2.findOne({ where: { phone } });
   }
 
   isRoleAdmin(role: number): boolean {
@@ -295,7 +296,7 @@ export class UserService {
     }
 
     if (Object.keys(matchStage).length > 0) {
-      stages.push({$match: matchStage});
+      stages.push({ $match: matchStage });
     }
 
     if (queryCondition.sortBy) {
@@ -309,11 +310,11 @@ export class UserService {
     stages.push({
       $facet: {
         entries: [
-          {$skip: (queryCondition.page - 1) * queryCondition.limit},
-          {$limit: queryCondition.limit}
+          { $skip: (queryCondition.page - 1) * queryCondition.limit },
+          { $limit: queryCondition.limit }
         ],
         meta: [
-          {$group: {_id: null, totalItems: {$sum: 1}}},
+          { $group: { _id: null, totalItems: { $sum: 1 } } },
         ],
       }
     });
