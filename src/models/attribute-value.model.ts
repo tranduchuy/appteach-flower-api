@@ -24,11 +24,11 @@ AttributeValue.init({
     field: 'ATTRIBUTES_ID'
   }
 }, {
-  tableName: 'ATTRIBUTES',
+  tableName: 'ATTRIBUTE_VALUES',
   freezeTableName: true,
   sequelize: MYSQL_CONNECTION,
   timestamps: false,
-  modelName: 'attribute'
+  modelName: 'attributeValue'
 });
 
 export default AttributeValue;

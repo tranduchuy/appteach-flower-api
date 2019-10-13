@@ -1,4 +1,6 @@
 import Address2 from './address.model';
+import AttributeValue from './attribute-value.model';
+import Attribute from './attribute.model';
 import District from './district.model';
 import User from './user.model';
 import City from './city.model';
@@ -29,3 +31,6 @@ User.belongsTo(City, { foreignKey: 'city', as: 'cityInfo', targetKey: 'id' });
 
 Shop.hasMany(User, { foreignKey: 'shopsId', as: 'users', sourceKey: 'id'});
 User.belongsTo(Shop, { foreignKey: 'shopsId', as: 'shopInfo', targetKey: 'id'});
+
+Attribute.hasMany(AttributeValue, {foreignKey: 'attributesId', as: 'values', sourceKey: 'id'});
+AttributeValue.belongsTo(Attribute, {foreignKey: 'attributesId', as: 'attribute', targetKey: 'id'});

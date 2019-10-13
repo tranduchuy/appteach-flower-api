@@ -32,3 +32,8 @@ export enum OrderItemRoute {
 
   // DELETE
 }
+
+
+export enum Attribute {
+  All = '/'
+}

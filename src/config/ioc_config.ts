@@ -9,6 +9,7 @@ import { AdminProductController } from '../controllers/admin/AdminProductControl
 import { AdminStatisticController } from '../controllers/admin/AdminStatisticController';
 import { AdminUserController } from '../controllers/admin/AdminUserController';
 import { AdminShopController } from '../controllers/admin/AdminShopController';
+import { AttributeController } from '../controllers/AttributeController';
 import { SearchController } from '../controllers/SearchController';
 import { ShopController } from '../controllers/ShopController';
 import { CheckAdminMiddleware } from '../middlewares/check-admin';
@@ -62,6 +63,7 @@ container.bind<ShopStatisticController>(TYPES.ShopStatisticController).to(ShopSt
 container.bind<NotifyController>(TYPES.NotifyController).to(NotifyController);
 container.bind<NewController>(TYPES.NewController).to(NewController);
 container.bind<SaleNotificationController>(TYPES.SaleNotification).to(SaleNotificationController);
+container.bind<AttributeController>(TYPES.AttributeController).to(AttributeController);
 
 // Bind Admin Controller
 container.bind<AdminUserController>(TYPES.Admin.UserController).to(AdminUserController);

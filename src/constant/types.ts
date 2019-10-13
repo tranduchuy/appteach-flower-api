@@ -13,6 +13,7 @@ const TYPES = {
   NotifyController: Symbol.for('NotifyController'),
   NewController: Symbol.for('NewController'),
   SaleNotification: Symbol.for('SaleNotification'),
+  AttributeController: Symbol.for('AttributeController'),
 
 
   MailerService: Symbol.for('MailerService'),
