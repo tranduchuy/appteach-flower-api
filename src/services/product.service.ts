@@ -10,6 +10,14 @@ import mongoose from 'mongoose';
 import { General } from '../constant/generals';
 import { Status } from '../constant/status';
 import * as _ from 'lodash';
+import AttributeValueModel from '../models/attribute-value.model';
+import AttributeModel from '../models/attribute.model';
+import sequelize from 'sequelize';
+// import Product2 from '../models/product.model';
+import ProductHasTag from '../models/product-has-tags.model';
+import ImageProduct from '../models/image-product.model';
+
+const requireAttributeWhenCreateNew = [1];
 
 export interface IQueryProduct {
     shop_id: string;
@@ -581,4 +589,55 @@ export class ProductService {
         const codeLength = 10;
         return generate(characters, codeLength);
     };
+
+    async invalidAttrNameForCreating(attrValueIds: number[]): Promise<string[]> {
+        const attributeValueRecords = await AttributeValueModel.findAll({
+          where: {
+            id: {
+              [sequelize.Op.in]: attrValueIds
+            }
+          }
+        });
+
+        const attributeIds = [
+          ...new Set(attributeValueRecords.map(a => a.attributesId))
+        ];
+
+        const invalidAttrIds = requireAttributeWhenCreateNew.filter(
+          id => attributeIds.indexOf(id) === -1
+        );
+
+        const attrs = await AttributeModel.findAll({
+            where: {
+                id: {
+                    [sequelize.Op.in]: invalidAttrIds
+                }
+            },
+            attributes: ['name']
+        });
+
+        return attrs.map(a => a.name);
+    }
+
+    async insertProductImages(productId: number, images: string[]) {
+        const bulk = images.map(img => {
+            return {
+                imageUrl: img,
+                productsId: productId
+            };
+        });
+
+        await ImageProduct.bulkCreate(bulk);
+    }
+
+    async insertProductTags(productId: number, tagsIds: number[]) {
+        const bulk: ProductHasTag[] = tagsIds.map(tagId => {
+            return <ProductHasTag>{
+                productsId: productId,
+                tagsId: tagId
+            };
+        });
+
+        await ProductHasTag.bulkCreate(bulk);
+    }
 }

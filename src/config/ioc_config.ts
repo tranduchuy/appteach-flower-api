@@ -47,6 +47,7 @@ import { AdminNewController } from '../controllers/admin/AdminNewController';
 import { NewService } from '../services/new.service';
 import { SaleNotificationController } from '../controllers/SaleNotificationController';
 import { SaleNotificationService } from '../services/sale-notification.service';
+import { TagService } from '../services/tag.service';
 
 const container = new Container();
 
@@ -92,6 +93,7 @@ container.bind<GoogleGeocodingService>(TYPES.GoogleGeocodingService).to(GoogleGe
 container.bind<SmsService>(TYPES.SmsService).to(SmsService);
 container.bind<NewService>(TYPES.NewService).to(NewService);
 container.bind<SaleNotificationService>(TYPES.SaleNotificationService).to(SaleNotificationService);
+container.bind<TagService>(TYPES.TagService).to(TagService);
 
 // Bind model
 
