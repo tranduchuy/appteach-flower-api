@@ -22,6 +22,11 @@ import { ImageService } from '../services/image.service';
 import GetInfoByIdsValidationSchema from '../validation-schemas/product/get-info-by-ids.schema';
 import { ProductWorkerService } from '../services/product-worker.service';
 import ListProductsValidationSchema from '../validation-schemas/product/list-products.schema';
+import moment = require('moment');
+import Product2 from '../models/product.model';
+import urlSlug from 'url-slug';
+import { TagService } from '../services/tag.service';
+import Tag from '../models/tag.model';
 
 // interface IResUpdateProductsStatus {
 //   notFoundProducts?: string[];
@@ -33,7 +38,8 @@ export class ProductController {
       @inject(TYPES.ProductService) private productService: ProductService,
       @inject(TYPES.ImageService) private imageService: ImageService,
       @inject(TYPES.ShopService) private shopService: ShopService,
-      @inject(TYPES.ProductWorkerService) private productWorkerService: ProductWorkerService
+      @inject(TYPES.ProductWorkerService) private productWorkerService: ProductWorkerService,
+      @inject(TYPES.TagService) private tagService: TagService
   ) {
     this.productWorkerService.runChangeProductSaleOffJob();
   }
@@ -312,10 +318,14 @@ export class ProductController {
 
         const user = request.user;
         const {
-          title, sku, description, images, topic, salePrice, originalPrice,
-          keywordList, startDate, endDate, saleActive, freeShip,
-          design, specialOccasion, floret, status, city, district, color, seoUrl, seoDescription, seoImage
+          title, images, description, originalPrice, attributeValues, keywordList, freeShip, status,
+          salePrice, saleActive, startDate, endDate
         } = request.body;
+
+        console.log({
+          title, images, description, originalPrice, attributeValues, keywordList, freeShip, status,
+          salePrice
+        });
 
         if (user.type !== UserTypes.TYPE_SELLER) {
           const result: IRes<{}> = {
@@ -327,59 +337,71 @@ export class ProductController {
         }
 
         // check sale price vs original price.
-        if (Number(salePrice) > Number(originalPrice)) {
-          const result: IRes<{}> = {
-            status: HttpStatus.BAD_REQUEST,
-            messages: [ResponseMessages.Product.NOT_VALID_PRICE],
-            data: {}
-          };
-          return resolve(result);
-        }
-
-        const shop: any = await this.shopService.findShopOfUser(request.user._id.toString());
-
-        const newProduct = await this.productService.createProduct({
-          title,
-          sku,
-          description,
-          topic,
-          saleActive,
-          freeShip,
-          startDate: startDate || null,
-          endDate: endDate || null,
-          originalPrice,
-          status,
-          shopId: shop._id.toString(),
-          keywordList: keywordList || [],
-          salePrice: salePrice || null,
-          images: images || [],
-          design: design || null,
-          specialOccasion: specialOccasion || null,
-          floret: floret || null,
-          city: city || null,
-          district: district || null,
-          color: color || null,
-          seoUrl: seoUrl || null,
-          seoDescription: seoDescription || null,
-          seoImage: seoImage || null
-        });
-
-        // confirm images
-        const paths = newProduct.images || [];
-
-        if (paths.length > 0) {
-          this.imageService.confirmImages(newProduct.images);
-        }
-
-        const result: IRes<{}> = {
-          status: HttpStatus.OK,
-          messages: [ResponseMessages.Product.Add.ADD_PRODUCT_SUCCESS],
-          data: {
-            meta: {},
-            entries: [newProduct]
+        if (saleActive === true) {
+          if (Number(salePrice) > Number(originalPrice)) {
+            const result: IRes<{}> = {
+              status: HttpStatus.BAD_REQUEST,
+              messages: [ResponseMessages.Product.NOT_VALID_PRICE],
+              data: {}
+            };
+            return resolve(result);
           }
-        };
-        return resolve(result);
+
+          if (startDate && endDate) {
+            const _startDate = moment(startDate).startOf('day');
+            const _endDate = moment(endDate).startOf('day');
+
+            if (_startDate.isAfter(_endDate)) {
+              const result: IRes<{}> = {
+                status: HttpStatus.BAD_REQUEST,
+                messages: [ResponseMessages.Product.NOT_VALID_SALE_OFF_DATE_RANGE],
+                data: {}
+              };
+              return resolve(result);
+            }
+          }
+        }
+
+        const lackAttrNames = await this.productService.invalidAttrNameForCreating(attributeValues);
+        if (lackAttrNames.length > 0) {
+          return resolve({
+            status: HttpStatus.BAD_REQUEST,
+            messages: [
+              `Thiếu thông tin thuộc tính ${lackAttrNames.join(',')}`
+            ],
+            data: {}
+          });
+        }
+        // const shop: any = await this.shopService.findShopOfUser(request.user._id.toString());
+        const newProductData = new Product2({
+          title: title.trim(),
+          description: title.trim(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          slug: urlSlug(title) + '-' + new Date().getTime(),
+          discountRate: 0,
+          availableShipCountry: false,
+          status: 2,
+          originalPrice
+        });
+        const newProduct = await newProductData.save();
+
+        // product images
+        await this.productService.insertProductImages(newProduct.id, images);
+
+        // product tags
+        const newTags: Tag[] = await this.tagService.insertMany(keywordList);
+        const tagsIds: number[] = newTags.map(t => t.id);
+        await this.productService.insertProductTags(newProduct.id, tagsIds);
+
+        return resolve({
+          status: HttpStatus.OK,
+          messages: [],
+          data: {
+              meta: {},
+              entries: [newProduct]
+            }
+        });
       } catch (e) {
         console.error(e);
         const result: IRes<{}> = {

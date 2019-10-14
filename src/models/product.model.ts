@@ -2,7 +2,7 @@ import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
 
 class Product2 extends Model {
-    id!: number;
+    id: number;
     title!: string;
     sku: string;
     description: string;
@@ -28,8 +28,8 @@ class Product2 extends Model {
 
 Product2.init({
     id: {
-        field: 'ID',
         type: DataTypes.INTEGER.UNSIGNED,
+        field: 'ID',
         primaryKey: true,
         unique: true,
         allowNull: false,
