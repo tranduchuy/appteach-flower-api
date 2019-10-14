@@ -16,8 +16,17 @@ import sequelize from 'sequelize';
 // import Product2 from '../models/product.model';
 import ProductHasTag from '../models/product-has-tags.model';
 import ImageProduct from '../models/image-product.model';
+import SaleOffProduct from '../models/sale-off-product.model';
 
 const requireAttributeWhenCreateNew = [1];
+
+export interface ISaleOffProduct {
+    status: number;
+    price: number;
+    startDate: Date;
+    endDate: Date;
+    productId: number;
+}
 
 export interface IQueryProduct {
     shop_id: string;
@@ -639,5 +648,17 @@ export class ProductService {
         });
 
         await ProductHasTag.bulkCreate(bulk);
+    }
+
+    async insertSaleOffProduct(params: ISaleOffProduct): Promise<SaleOffProduct> {
+        const saleOff = SaleOffProduct.build({
+            productsId: params.productId,
+            price: params.price,
+            status: params.status,
+            startDate: params.startDate,
+            endDate: params.endDate
+        });
+
+        return saleOff.save();
     }
 }

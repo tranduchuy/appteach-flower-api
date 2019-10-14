@@ -27,6 +27,7 @@ import Product2 from '../models/product.model';
 import urlSlug from 'url-slug';
 import { TagService } from '../services/tag.service';
 import Tag from '../models/tag.model';
+import { Status } from '../constant/status';
 
 // interface IResUpdateProductsStatus {
 //   notFoundProducts?: string[];
@@ -393,6 +394,17 @@ export class ProductController {
         const newTags: Tag[] = await this.tagService.insertMany(keywordList);
         const tagsIds: number[] = newTags.map(t => t.id);
         await this.productService.insertProductTags(newProduct.id, tagsIds);
+
+        // sale off
+        if (saleActive) {
+          await this.productService.insertSaleOffProduct({
+            productId: newProduct.id,
+            status: Status.ACTIVE,
+            startDate: new Date(startDate),
+            endDate: new Date(endDate),
+            price: salePrice
+          });
+        }
 
         return resolve({
           status: HttpStatus.OK,
