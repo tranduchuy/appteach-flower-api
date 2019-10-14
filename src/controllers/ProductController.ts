@@ -365,7 +365,7 @@ export class ProductController {
         const lackAttrNames = await this.productService.invalidAttrNameForCreating(attributeValues);
         if (lackAttrNames.length > 0) {
           return resolve({
-            status: 500,
+            status: HttpStatus.BAD_REQUEST,
             messages: [
               `Thiếu thông tin thuộc tính ${lackAttrNames.join(',')}`
             ],
@@ -395,52 +395,13 @@ export class ProductController {
         await this.productService.insertProductTags(newProduct.id, tagsIds);
 
         return resolve({
-          status: 200,
+          status: HttpStatus.OK,
           messages: [],
-          data: newProduct
+          data: {
+              meta: {},
+              entries: [newProduct]
+            }
         });
-        // const newProduct = await this.productService.createProduct({
-        //   title,
-        //   sku,
-        //   description,
-        //   topic,
-        //   saleActive,
-        //   freeShip,
-        //   startDate: startDate || null,
-        //   endDate: endDate || null,
-        //   originalPrice,
-        //   status,
-        //   shopId: shop._id.toString(),
-        //   keywordList: keywordList || [],
-        //   salePrice: salePrice || null,
-        //   images: images || [],
-        //   design: design || null,
-        //   specialOccasion: specialOccasion || null,
-        //   floret: floret || null,
-        //   city: city || null,
-        //   district: district || null,
-        //   color: color || null,
-        //   seoUrl: seoUrl || null,
-        //   seoDescription: seoDescription || null,
-        //   seoImage: seoImage || null
-        // });
-
-        // confirm images
-        // const paths = newProduct.images || [];
-
-        // if (paths.length > 0) {
-        //   this.imageService.confirmImages(newProduct.images);
-        // }
-
-        // const result: IRes<{}> = {
-        //   status: HttpStatus.OK,
-        //   messages: [ResponseMessages.Product.Add.ADD_PRODUCT_SUCCESS],
-        //   data: {
-        //     meta: {},
-        //     entries: [newProduct]
-        //   }
-        // };
-        // return resolve(result);
       } catch (e) {
         console.error(e);
         const result: IRes<{}> = {
