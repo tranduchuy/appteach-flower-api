@@ -16,10 +16,13 @@ District.init({
     type: DataTypes.INTEGER.UNSIGNED,
     allowNull: false,
     autoIncrement: true,
+    unique: true
   },
   code: {
     type: DataTypes.INTEGER,
-    field: 'CODE'
+    field: 'CODE',
+    allowNull: false,
+    unique: true
   },
   name: {
     type: DataTypes.STRING(255),

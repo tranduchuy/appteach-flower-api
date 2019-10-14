@@ -17,7 +17,8 @@ export namespace ResponseMessages {
       export const RESEND_OTP = 'Hệ thống đã gửi 1 mã OTP đến số điện thoại của bạn';
     }
     export namespace ReigsterShop {
-      export const USER_WAS_SHOP_OWNER  = 'Tài khoản này hiện đang là chủ shop! Không thể mở thêm.';
+      export const USER_WAS_SHOP_OWNER  = 'Tài khoản hiện đang là chủ một shop! Không thể đăng ký thêm';
+      export const USER_WAS_SHOP_STAFF = 'Tài khoản hiện đang là nhân viên của một shop! Không thể đăng ký shop';
     }
     export namespace Login {
       export const USER_NOT_FOUND = 'Tài khoản không tồn tại';

@@ -189,7 +189,7 @@ export class UserController {
   }
 
 
-  @httpPost('/shop')
+  @httpPost('/shop', TYPES.CheckTokenMiddleware)
   public registerNewShop(request: Request, response: Response): Promise<IRes<{}>> {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
@@ -207,8 +207,8 @@ export class UserController {
           return resolve(result);
         }
         const {
-          email, name, username, phone, address, gender, longitude, latitude,
-          shopName, slug, images, availableShipCountry, availableShipAddresses
+          longitude, latitude, address,
+          name, slug, images, availableShipCountry, availableShipAddresses
         } = request.body;
 
         const duplicateShopSlug: any = await this.shopService.findShopBySlug(slug);
@@ -221,7 +221,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const shopUser = await this.userService.findByEmail(email);
+        const shopUser = await this.userService.findById(request.user.id);
 
         if (!shopUser) {
           const result: IRes<any> = {
@@ -241,15 +241,25 @@ export class UserController {
           return resolve(result);
         }
 
-        const otpCode = this.userService.generateOTPCode();
-        await this.userService.updateOtpCode(shopUser, otpCode);
+        if (shopUser.roleInShop === UserRolesInShop.ROLE_IN_SHOP_STAFF) {
+          const result: IRes<any> = {
+            status: HttpStatus.BAD_REQUEST,
+            messages: [ResponseMessages.User.ReigsterShop.USER_WAS_SHOP_STAFF]
+          };
 
-        const newShop: any = await this.shopService.createNewShop(shopName, slug, images, availableShipCountry);
+          return resolve(result);
+        }
+        const newShop: any = await this.shopService.createNewShop(name, slug, images, availableShipCountry);
+        const otpCode = this.userService.generateOTPCode();
+        shopUser.otpCodeConfirmAccount = otpCode;
+        shopUser.roleInShop = UserRolesInShop.ROLE_IN_SHOP_OWNER;
+        shopUser.shopsId = newShop.id;
+        await shopUser.save();
 
         await this.addressService.createShopAddress({
-          name,
-          email,
-          phone,
+          name: shopUser.name,
+          email: shopUser.email,
+          phone: shopUser.phone,
           address,
           longitude,
           latitude,
@@ -264,15 +274,15 @@ export class UserController {
         }
 
         await Promise.all((availableShipAddresses || [])
-          .map(async (addressData: { cityCode: string, districtCode?: number }) => {
+          .map(async (addressData: { city: string, district?: number }) => {
 
-            const addressCity = await this.addressService.getCityByCode(addressData.cityCode);
-            const addressDistrict = await this.addressService.getDistrictByCode(addressData.districtCode);
+            const addressCity = await this.addressService.getCityByCode(addressData.city);
+            const addressDistrict = await this.addressService.getDistrictByCode(addressData.district);
 
             await this.addressService.createPossibleDeliveryAddress({
-              name,
-              email,
-              phone,
+              name: shopUser.name,
+              email: shopUser.email,
+              phone: shopUser.phone,
               address,
               longitude,
               latitude,
@@ -283,14 +293,25 @@ export class UserController {
             });
           }));
 
-        this.smsService.sendSMS([phone], `Mã xác thực tài khoản: ${otpCode}`, '');
+        this.smsService.sendSMS([shopUser.phone], `Mã xác thực tài khoản: ${otpCode}`, '');
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.User.Register.REGISTER_SUCCESS],
           data: {
             meta: {},
-            entries: [{ email, name, username, phone, address, gender, longitude, latitude }]
+            entries: [
+              {
+                email: shopUser.email,
+                name: shopUser.name,
+                username: shopUser.username,
+                phone: shopUser.phone,
+                gender: shopUser.gender,
+                address,
+                longitude,
+                latitude
+              }
+            ]
           }
         };
 

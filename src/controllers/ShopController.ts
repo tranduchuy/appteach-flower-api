@@ -115,6 +115,7 @@ export class ShopController {
         }
 
         const duplicatedUsers = await UserModel2.findAll({ where: { email } });
+
         if (duplicatedUsers.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -125,9 +126,7 @@ export class ShopController {
         }
 
         const otpCode = this.userService.generateOTPCode();
-
         const newShop: any = await this.shopService.createNewShop(shopName, slug, images, availableShipCountry);
-
         const newUserData = {
           email,
           name,
@@ -400,7 +399,7 @@ export class ShopController {
 
         const { page, limit, title, status, approvedStatus, sb, sd } = req.query;
 
-        const queryCondition: IQueryProductsOfShop = {
+        const queryCondition: any = this.shopService.buildQueryGetProductsOfShop({
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
           shopId: shop.id,
@@ -409,45 +408,26 @@ export class ShopController {
           approvedStatus: approvedStatus ? parseInt(approvedStatus) : null,
           sortBy: sb || null,
           sortDirection: sd || null
-        };
-        // const stages: any[] = this.shopService.buildStageQueryProductOfShop(queryCondition);
-        // console.log('stages query search', JSON.stringify(stages));
-        // const result: any = await ProductModel.aggregate(stages);
-
-        const offset = (parseInt((queryCondition.page || 1).toString()) - 1) * 10;
-        let productsData: any = {};
-        // const attributes: any = {};
-
-        // for (const key in queryCondition)
-        //   if (queryCondition[key] && key !== 'page' && key !== 'limit' && key !== 'shopId')
-        //     attributes[key] = queryCondition[key];
-
-        // find by attributes (title, status, approvedStatus)
-        // sort by colum name
-        // sort asc, desc
-        // pagination
-        productsData = await ProductModel2.findAndCountAll({
-          offset,
-          limit: queryCondition.limit
         });
 
-        return resolve({
-          status: HttpStatus.OK,
-          messages: [ResponseMessages.SUCCESS],
-          data: {
-            meta: {
-              // totalItems: result[0].meta[0] ? result[0].meta[0].totalItems : 0,
-              // item: result[0].entries.length,
-              // limit: queryCondition.limit,
-              // page: queryCondition.page,
-              totalItems: productsData.count,
-              item: productsData.rows.length,
-              limit,
-              page
-            },
-            products: productsData.rows
-          }
-        });
+        ProductModel2.findAndCountAll(queryCondition)
+          .then(result => {
+            const response = {
+              status: HttpStatus.OK,
+              messages: [ResponseMessages.SUCCESS],
+              data: {
+                meta: {
+                  totalItems: result.count,
+                  item: result.rows.length,
+                  limit,
+                  page
+                },
+                products: result.rows
+              }
+            };
+            return resolve(response);
+          });
+
       } catch (e) {
         console.error(e);
         const result: IRes<IResProductOfShop> = {
@@ -478,7 +458,7 @@ export class ShopController {
           return resolve(result);
         }
 
-        const shop: any = await this.shopService.findShopOfUser(req.user._id.toString());
+        const shop: any = await this.shopService.findShopOfUser(req.user.id);
         if (!shop) {
           return resolve({
             status: HttpStatus.BAD_REQUEST,
@@ -487,11 +467,11 @@ export class ShopController {
         }
 
         const { productIds, status } = req.body;
-        const result: any = await this.productService.updateMultipleProducts(shop._id, productIds, status);
+        await this.productService.updateMultipleProducts(productIds, status);
 
         return resolve({
           status: HttpStatus.OK,
-          messages: [`Cập nhật trạng thái thành công cho ${result.modifiedCount} sản phẩm`]
+          messages: [`Cập nhật trạng thái thành công cho ${productIds.length} sản phẩm`]
         });
 
       } catch (e) {
