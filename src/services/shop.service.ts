@@ -6,6 +6,7 @@ import ShopModel2, { Shop2 } from '../models/shop.model';
 import ImageShopModel, { ImageShop } from '../models/image-shop.model';
 import { Op } from 'sequelize';
 import User2 from '../models/user.model';
+import ShopHasProduct from '../models/shop-has-product.model';
 
 export interface IQueryWaitingShop {
   limit: number;
@@ -56,6 +57,46 @@ export class ShopService {
 
   async findShopBySlug(slug: string): Promise<Shop2> {
     return await ShopModel2.findOne({ where: { slug } });
+  }
+
+  buildQueryGetProductsOfShop(queryCondition: IQueryProductsOfShop) {
+    const cond: any = {};
+
+    if (queryCondition.approvedStatus)
+      cond.approvedStatus = queryCondition.approvedStatus;
+
+    if (queryCondition.status)
+      cond.status = queryCondition.status;
+    else
+      cond.status = {
+        [Op.ne]: Status.DELETE
+      };
+
+    if (queryCondition.title) {
+      cond.title = {
+        [Op.like]: queryCondition.title
+      };
+    }
+
+    const order = [];
+    if (queryCondition.sortBy) {
+      order.push(queryCondition.sortBy);
+      order.push(queryCondition.sortDirection);
+    }
+
+    return {
+      where: cond,
+      order: [order],
+      offset: (queryCondition.page - 1) * queryCondition.limit,
+      limit: queryCondition.limit,
+      include: [
+        {
+          model: ShopHasProduct,
+          as: 'shopHasProductInfo',
+          duplicating: false
+        }
+      ]
+    };
   }
 
   async createNewShop(name: string, slug: string, images: string[], availableShipCountry: boolean): Promise<Shop2> {
@@ -200,11 +241,11 @@ export class ShopService {
 
     return {
       where: cond,
-      order,
+      order: [order],
       offset: (queryCondition.page - 1) * queryCondition.limit,
       limit: queryCondition.limit,
       include: [
-        {model: User2, as: 'users', duplicating: false}
+        { model: User2, as: 'userInfo', duplicating: false }
       ]
     };
   }

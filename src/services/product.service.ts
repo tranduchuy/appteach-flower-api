@@ -1,5 +1,6 @@
 import { injectable } from 'inversify';
 import ProductModel, { Product } from '../models/product';
+import ProductModel2 from '../models/product.model';
 import TagModel from '../models/tag';
 import ShopModel from '../models/shop';
 import urlSlug from 'url-slug';
@@ -473,17 +474,16 @@ export class ProductService {
         return stages;
     }
 
-    updateMultipleProducts(shopId: string, productIds: string[], status: number) {
-        return ProductModel.updateMany(
+    async updateMultipleProducts(productIds: number[], status: number) {
+        await ProductModel2.update(
             {
-                _id: { $in: productIds.map(pId => new mongoose.Types.ObjectId(pId)) },
-                shop: new mongoose.Types.ObjectId(shopId)
+                status
             },
             {
-                $set: {
-                    status
-                }
-            }
+                where: {
+                    id: productIds
+                },
+            },
         );
     }
 

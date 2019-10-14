@@ -23,6 +23,7 @@ class Product2 extends Model {
     quantitySold: number;
     sold: number;
     freeShip: boolean;
+    approvedStatus: number;
 }
 
 Product2.init({
@@ -31,6 +32,7 @@ Product2.init({
         field: 'ID',
         primaryKey: true,
         unique: true,
+        allowNull: false,
         autoIncrement: true
     },
     title: {
@@ -109,6 +111,10 @@ Product2.init({
     freeShip: {
         field: 'FREE_SHIP',
         type: DataTypes.TINYINT
+    },
+    approvedStatus: {
+        field: 'APPROVED_STATUS',
+        type: DataTypes.INTEGER
     }
 }, {
         sequelize: MYSQL_CONNECTION,
