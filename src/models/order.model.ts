@@ -70,7 +70,8 @@ Order.init({
     },
     addressesId: {
         field: 'ADDRESSES_ID',
-        type: DataTypes.INTEGER.UNSIGNED
+        type: DataTypes.INTEGER.UNSIGNED,
+        defaultValue: null
     }
 }, {
         sequelize: MYSQL_CONNECTION,

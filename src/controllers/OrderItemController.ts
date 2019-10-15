@@ -16,6 +16,7 @@ import { ObjectID } from 'bson';
 import { ShopService } from '../services/shop.service';
 import UpdateOrderItemStatusValidationSchema from '../validation-schemas/order-item/update-order-item-status.schema';
 import { NotifyService } from '../services/notify.service';
+import OrderItem from '../models/order-item.model';
 
 @controller(OrderItemRoute.Name)
 export class OrderItemController {
@@ -44,7 +45,7 @@ export class OrderItemController {
           return resolve(result);
         }
 
-        const id = parseInt(request.user.id);
+        const id: number = parseInt(request.params.id);
         if (!ObjectID.isValid(id)) {
           const result = {
             status: HttpStatus.BAD_REQUEST,
@@ -53,7 +54,7 @@ export class OrderItemController {
           return resolve(result);
         }
 
-        const orderItem = await this.orderItemService.findNewOrderItemById(id);
+        const orderItem: OrderItem = await this.orderItemService.findNewOrderItemById(id);
         if (!orderItem) {
           const result = {
             status: HttpStatus.NOT_FOUND,
@@ -134,7 +135,7 @@ export class OrderItemController {
         }
 
         await Promise.all((orderItemIds || []).map(async (orderItemId: number) => {
-          const orderItem = await this.orderItemService.findOrderItemById(orderItemId);
+          const orderItem: any = await this.orderItemService.findOrderItemById(orderItemId);
 
           if (shop.id !== orderItem.shopsId) {
             throw new Error(ResponseMessages.OrderItem.ORDER_ITEM_NOT_FOUND);
@@ -149,7 +150,7 @@ export class OrderItemController {
           }
 
           await this.orderItemService.updateStatus(orderItem.id, status);
-          await this.notifyService.notifyUpdateOrderItemStatusToUser(orderItem.id);
+          // await this.notifyService.notifyUpdateOrderItemStatusToUser(orderItem.id);
         }));
 
         const result: IRes<Order> = {

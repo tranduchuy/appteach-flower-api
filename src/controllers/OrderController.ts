@@ -35,7 +35,7 @@ import { ShopService } from '../services/shop.service';
 
 interface IResAddOrderItem {
   order: Order;
-  orderItem: OrderItem | number;
+  orderItem: OrderItem;
 }
 
 export interface IResAddManyProducts {
@@ -270,11 +270,10 @@ export class OrderController {
       let order = await this.orderService.findPendingOrder(user.id);
       if (!order) {
         order = await this.orderService.createOrder(user);
-        order.usersId = user.id;
       }
 
       const results: IResAddManyProducts[] = await this.orderService.addManyProductsToCart(order, req.body.items || []);
-      console.log('Add many product to cart successfully. UserId: ', req.user._id.toString(), '. Items: ', JSON.stringify(req.body.items || []));
+      console.log('Add many product to cart successfully. UserId: ', req.user.id, '. Items: ', JSON.stringify(req.body.items || []));
 
       const result: IRes<IResAddManyProducts[]> = {
         status: HttpStatus.OK,
@@ -319,7 +318,7 @@ export class OrderController {
 
         const shop: Shop = await this.shopService.findShopOfUser(user.id);
         if (shop) {
-          if (shop.id === product.shopHasProductInfo.shopsId) {
+          if (shop.id === product.shopHasProductInfo[0].shopsId) {
             const result = {
               status: HttpStatus.BAD_REQUEST,
               messages: [ResponseMessages.Product.NO_ADD_ITEM_PERMISSION],
@@ -334,7 +333,7 @@ export class OrderController {
           order = await this.orderService.createOrder(user);
         }
 
-        let orderItem: OrderItem | number = await this.orderService.findOrderItem(order, product);
+        let orderItem: OrderItem = await this.orderService.findOrderItem(order, product);
         if (!orderItem && quantity > 0) {
           orderItem = await this.orderService.addItem(order, product, quantity);
         } else {

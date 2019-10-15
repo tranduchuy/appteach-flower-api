@@ -42,9 +42,10 @@ export class OrderService {
   }
 
   createOrder = async (user: User): Promise<Order> => {
-    // must find user's address??
-
-    const newOrder = new OrderModel({ usersId: user.id });
+    const newOrder = new OrderModel({
+      usersId: user.id,
+      status: Status.ORDER_PENDING
+    });
     return await newOrder.save();
   };
 
@@ -142,7 +143,7 @@ export class OrderService {
         const shopInfo = await ShopModel.findOne({
           attributes: this.shopInfoFields,
           where: {
-            id: productInfo.shopHasProductInfo.shopsId
+            id: productInfo.shopHasProductInfo[0].shopsId
           }
         });
         item.shop = shopInfo;
@@ -177,7 +178,8 @@ export class OrderService {
   updateQuantityItem = async (orderItem: OrderItem, quantity: number) => {
     try {
       if (quantity === 0) {
-        return await this.deleteItem(orderItem.id);
+        await this.deleteItem(orderItem.id);
+        return null;
       } else {
         orderItem.quantity = quantity;
         return await orderItem.save();
@@ -429,7 +431,7 @@ export class OrderService {
       return Promise.resolve(null);
     }
 
-    const orderItem = await this.findOrderItem(order, product);
+    const orderItem: OrderItem = await this.findOrderItem(order, product);
     if (!orderItem && quantity > 0) {
       await this.addItem(order, product, quantity);
     } else {
@@ -438,7 +440,7 @@ export class OrderService {
 
     result.product = product;
 
-    const shopOfProduct = await ShopModel.findOne({ where: { id: product.shopHasProduct.shopsId } });
+    const shopOfProduct = await ShopModel.findOne({ where: { id: product.shopHasProductInfo[0].shopsId } });
 
     result.shop = shopOfProduct as Shop;
 

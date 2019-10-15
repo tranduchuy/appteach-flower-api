@@ -110,7 +110,7 @@ OrderItem.init({
     total: {
         field: 'TOTAL',
         type: DataTypes.INTEGER.UNSIGNED,
-        allowNull: false
+        defaultValue: null
     },
     ordersId: {
         field: 'ORDERS_ID',

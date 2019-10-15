@@ -4,6 +4,7 @@ import ProductModel, { Product } from '../models/product.model';
 import ShopModel from '../models/shop';
 import { Status } from '../constant/status';
 import { Op } from 'sequelize';
+import ShopHasProduct from '../models/shop-has-product.model';
 
 @injectable()
 export class OrderItemService {
@@ -29,15 +30,27 @@ export class OrderItemService {
     return await orderItem.save();
   };
 
-  findNewOrderItemById = async (id: number) => {
+  findNewOrderItemById = async (id: number): Promise<OrderItem> => {
     return await OrderItemModel.findOne({ where: { id, status: Status.ORDER_ITEM_NEW } });
   };
 
-  findOrderItemById = async (id: number) => {
-    return await OrderItemModel.findOne({ where: { id } });
+  findOrderItemById = async (id: number): Promise<any> => {
+    const orderItem: any = await OrderItemModel.findOne({ where: { id } });
+    const productInfo: any = await ProductModel.findOne({
+      where: { id: orderItem.productsId },
+      include: [
+        {
+          model: ShopHasProduct,
+          as: 'shopHasProductInfo',
+          duplicating: false
+        }
+      ]
+    });
+    orderItem.shopsId = productInfo.shopHasProductInfo[0].shopsId;
+    return orderItem;
   };
 
-  findOrderItemByOrderId = async (orderId: number) => {
+  findOrderItemByOrderId = async (orderId: number): Promise<any> => {
     return await OrderItemModel.findAll(
       {
         where: { ordersId: orderId },
@@ -54,10 +67,10 @@ export class OrderItemService {
 
   findPendingOrderItems = async (orderId: string): Promise<Array<any>> => {
     try {
-      const orderItems = await OrderItemModel.find({ order: orderId, status: Status.ORDER_ITEM_NEW });
+      const orderItems = await OrderItemModel.findAll({ where: { ordersId: orderId, status: Status.ORDER_ITEM_NEW } });
       return await Promise.all(orderItems.map(async item => {
         // get product info.
-        const productInfo = await ProductModel.findOne({ _id: item.product }, this.productInfoFields);
+        const productInfo = await ProductModel.findOne({ id: item.productsId }, this.productInfoFields);
         item.product = productInfo;
         // get shop info.
         const shopInfo = await ShopModel.findOne({ _id: productInfo.shop }, this.shopInfoFields);
