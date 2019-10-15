@@ -244,7 +244,7 @@ export class UserController {
         if (shopUser.roleInShop === UserRolesInShop.ROLE_IN_SHOP_STAFF) {
           const result: IRes<any> = {
             status: HttpStatus.BAD_REQUEST,
-            messages: [ResponseMessages.User.ReigsterShop.USER_WAS_SHOP_STAFF]
+            messages: [ResponseMessages.User.ReigsterShop.USER_WAS_SHOP_OWNER]
           };
 
           return resolve(result);
