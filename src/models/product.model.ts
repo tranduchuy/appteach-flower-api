@@ -1,5 +1,6 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
+import ImageProduct from './image-product.model';
 
 export class Product extends Model {
     id: number;
@@ -115,6 +116,19 @@ Product.init({
     approvedStatus: {
         field: 'APPROVED_STATUS',
         type: DataTypes.INTEGER
+    },
+    images: {
+        type: DataTypes.VIRTUAL,
+        async get() {
+            const currentId = this.getDataValue('id');
+            const images: ImageProduct[] = await ImageProduct.findAll({
+                where: {
+                    productsId: currentId
+                }
+            });
+
+            return images.map(i => i.imageUrl);
+        }
     }
 }, {
         sequelize: MYSQL_CONNECTION,
