@@ -5,10 +5,11 @@ import * as HttpStatus from 'http-status-codes';
 import TYPES from '../constant/types';
 import { IRes } from '../interfaces/i-res';
 import Joi from '@hapi/joi';
-import { Product } from '../models/product';
+// import { Product } from '../models/product';
+import Product2 from '../models/product.model';
 import { UrlParam } from '../models/url-param';
 import { SearchService } from '../services/search.service';
-import { ShopService } from '../services/shop.service';
+// import { ShopService } from '../services/shop.service';
 import boxSchema from '../validation-schemas/search/box.schema';
 import searchSchema from '../validation-schemas/search/search.schema';
 import Url from 'url';
@@ -22,9 +23,9 @@ interface ISearchResponse {
   searchQuery?: any;
   isList?: boolean;
   isDetail?: boolean;
-  products?: Product[];
-  product?: Product;
-  relatedProducts?: Product[];
+  products?: Product2[];
+  product?: Product2;
+  relatedProducts?: Product2[];
   shopInfo?: any;
   totalItems?: number;
 }
@@ -36,7 +37,7 @@ const SLUG_TAG = 'tag';
 @controller('/search')
 export class SearchController {
   constructor(@inject(TYPES.SearchService) private searchService: SearchService,
-              @inject(TYPES.ShopService) private shopService: ShopService,
+              //TODO @inject(TYPES.ShopService) private shopService: ShopService,
               @inject(TYPES.ProductService) private productService: ProductService) {
 
   }
@@ -95,7 +96,7 @@ export class SearchController {
             sortDirection: req.query.sd || ''
           });
           resultSuccess.data.isList = true;
-          resultSuccess.data.products = result.products;
+          // TODO: resultSuccess.data.products = result.products;
           resultSuccess.data.totalItems = result.total;
           resultSuccess.data.searchQuery = await this.searchService.getSearchQueryFromUrlParam(eles[1]);
         } else if (SLUG_DETAIL === eles[0]) {
@@ -104,8 +105,8 @@ export class SearchController {
           resultSuccess.data.product = await this.productService.getProductDetail(eles[1]);
           resultSuccess.data.searchQuery = this.productService.getSearchQueryFromProduct(resultSuccess.data.product);
           resultSuccess.data.relatedProducts = await this.productService.getRelatedProducts(resultSuccess.data.product);
-          resultSuccess.data.shopInfo = await this.shopService.findShopById(resultSuccess.data.product.shop.toString());
-          delete resultSuccess.data.product.shop;
+          // TODO: resultSuccess.data.shopInfo = await this.shopService.findShopById(resultSuccess.data.product.shop.toString());
+          // TODO: delete resultSuccess.data.product.shop;
           // update product view
           await this.productService.updateViews(eles[1]);
         } else if (SLUG_TAG === eles[0]) {
@@ -117,7 +118,7 @@ export class SearchController {
             sortDirection: req.query.sd || ''
           });
           resultSuccess.data.isList = true;
-          resultSuccess.data.products = result.products;
+          // TODO: resultSuccess.data.products = result.products;
           resultSuccess.data.totalItems = result.total;
           resultSuccess.data.searchQuery = result.searchQuery;
         }

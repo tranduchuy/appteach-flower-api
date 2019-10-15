@@ -13,6 +13,7 @@ export class Order extends Model {
     code: string;
     usersId: number;
     addressesId: number;
+    expectedDeliveryTime?: string;
 }
 
 Order.init({
@@ -71,6 +72,12 @@ Order.init({
     addressesId: {
         field: 'ADDRESSES_ID',
         type: DataTypes.INTEGER.UNSIGNED
+    },
+    expectedDeliveryTime: {
+        field: 'EXPECTED_DELIVERY_TIME',
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: ''
     }
 }, {
         sequelize: MYSQL_CONNECTION,

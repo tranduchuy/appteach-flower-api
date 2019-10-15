@@ -167,7 +167,11 @@ export class UserService {
   };
 
   findByUsername = async (username: string) => {
-    return await UserModel.findOne({ username });
+    return await UserModel.findOne({ 
+      where: {
+        username
+      }
+     });
   };
 
   findByEmailOrUsername = async (email, username) => {
@@ -216,8 +220,12 @@ export class UserService {
       return false;
     }
   };
-  getSellerInProductDetail = async (id) => {
-    return await UserModel.findOne({ _id: id }, this.sellerInProductDetailFields);
+  getSellerInProductDetail = async (id: number) => {
+    return await UserModel.findOne({
+      where: {
+        id
+      }
+    });
   };
   generateForgetPasswordToken = async (user) => {
     const reminderToken = RandomString.generate();

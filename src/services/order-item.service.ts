@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
 import OrderItemModel, { OrderItem } from '../models/order-item.model';
 import ProductModel, { Product } from '../models/product.model';
-import ShopModel from '../models/shop';
+// import ShopModel from '../models/shop';
 import { Status } from '../constant/status';
 import { Op } from 'sequelize';
 
@@ -54,14 +54,20 @@ export class OrderItemService {
 
   findPendingOrderItems = async (orderId: string): Promise<Array<any>> => {
     try {
-      const orderItems = await OrderItemModel.find({ order: orderId, status: Status.ORDER_ITEM_NEW });
+      const orderItems = await OrderItemModel.findAll({
+        where: { order: orderId, status: Status.ORDER_ITEM_NEW }
+      });
+
       return await Promise.all(orderItems.map(async item => {
         // get product info.
-        const productInfo = await ProductModel.findOne({ _id: item.product }, this.productInfoFields);
-        item.product = productInfo;
+        const productInfo = await ProductModel.findOne({ where: {
+          id: item.productsId
+        } });
+
+        (item as any).product = productInfo;
         // get shop info.
-        const shopInfo = await ShopModel.findOne({ _id: productInfo.shop }, this.shopInfoFields);
-        item.shop = shopInfo;
+        // TODO: const shopInfo = await ShopModel.findOne({ _id: productInfo.shop }, this.shopInfoFields);
+        // TODO: item.shop = shopInfo;
         return item;
       }));
     } catch (e) {
