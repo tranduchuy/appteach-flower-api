@@ -1,7 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
 
-class Product2 extends Model {
+export class Product extends Model {
     id: number;
     title!: string;
     sku: string;
@@ -26,7 +26,7 @@ class Product2 extends Model {
     approvedStatus: number;
 }
 
-Product2.init({
+Product.init({
     id: {
         type: DataTypes.INTEGER.UNSIGNED,
         field: 'ID',
@@ -123,4 +123,4 @@ Product2.init({
         timestamps: false
     });
 
-export default Product2;
+export default Product;

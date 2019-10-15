@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
-import ProductModel, { Product } from '../models/product';
-import ProductModel2 from '../models/product.model';
+import ProductModel, { Product } from '../models/product.model';
+import ProductModel from '../models/product.model';
 import TagModel from '../models/tag';
 import ShopModel from '../models/shop';
 import urlSlug from 'url-slug';
@@ -14,10 +14,10 @@ import * as _ from 'lodash';
 import AttributeValueModel from '../models/attribute-value.model';
 import AttributeModel from '../models/attribute.model';
 import sequelize from 'sequelize';
-// import Product2 from '../models/product.model';
 import ProductHasTag from '../models/product-has-tags.model';
 import ImageProduct from '../models/image-product.model';
 import SaleOffProduct from '../models/sale-off-product.model';
+import ShopHasProduct from '../models/shop-has-product.model';
 
 const requireAttributeWhenCreateNew = [1];
 
@@ -132,10 +132,18 @@ export class ProductService {
 
         return await newProduct.save();
     };
-    findProductById = async (productId) => {
+    findProductById = async (productId: number) => {
         try {
-            return await ProductModel.findOne({ _id: productId })
-                .populate({ model: ShopModel, path: 'shop' });
+            return await ProductModel.findOne({
+                where: { id: productId },
+                include: [
+                    {
+                        model: ShopHasProduct,
+                        as: 'shopHasProductInfo',
+                        duplicating: false
+                    }
+                ]
+            });
         } catch (e) {
             console.log(e);
         }
@@ -475,7 +483,7 @@ export class ProductService {
     }
 
     async updateMultipleProducts(productIds: number[], status: number) {
-        await ProductModel2.update(
+        await ProductModel.update(
             {
                 status
             },
@@ -601,19 +609,19 @@ export class ProductService {
 
     async invalidAttrNameForCreating(attrValueIds: number[]): Promise<string[]> {
         const attributeValueRecords = await AttributeValueModel.findAll({
-          where: {
-            id: {
-              [sequelize.Op.in]: attrValueIds
+            where: {
+                id: {
+                    [sequelize.Op.in]: attrValueIds
+                }
             }
-          }
         });
 
         const attributeIds = [
-          ...new Set(attributeValueRecords.map(a => a.attributesId))
+            ...new Set(attributeValueRecords.map(a => a.attributesId))
         ];
 
         const invalidAttrIds = requireAttributeWhenCreateNew.filter(
-          id => attributeIds.indexOf(id) === -1
+            id => attributeIds.indexOf(id) === -1
         );
 
         const attrs = await AttributeModel.findAll({

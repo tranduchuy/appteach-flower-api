@@ -1,11 +1,10 @@
 import { injectable } from 'inversify';
 import mongoose from 'mongoose';
 import { Status } from '../constant/status';
-import ShopModel, { Shop } from '../models/shop';
-import ShopModel2, { Shop2 } from '../models/shop.model';
+import ShopModel, { Shop } from '../models/shop.model';
 import ImageShopModel, { ImageShop } from '../models/image-shop.model';
 import { Op } from 'sequelize';
-import User2 from '../models/user.model';
+import User from '../models/user.model';
 import ShopHasProduct from '../models/shop-has-product.model';
 
 export interface IQueryWaitingShop {
@@ -39,13 +38,13 @@ export interface IQueryListShop {
 @injectable()
 export class ShopService {
 
-  async findShopById(shopId: string): Promise<Shop> {
-    return await ShopModel.findOne({ _id: shopId });
+  async findShopById(shopId: number): Promise<Shop> {
+    return await ShopModel.findOne({ where: { id: shopId } });
   }
 
-  async findShopOfUser(userId: number): Promise<Shop2> {
-    const user: any = await User2.findOne({ where: { id: userId } });
-    return await ShopModel2.findOne(
+  async findShopOfUser(userId: number): Promise<Shop> {
+    const user: any = await User.findOne({ where: { id: userId } });
+    return await ShopModel.findOne(
       {
         where: {
           id: user.shopsId,
@@ -55,8 +54,8 @@ export class ShopService {
     );
   }
 
-  async findShopBySlug(slug: string): Promise<Shop2> {
-    return await ShopModel2.findOne({ where: { slug } });
+  async findShopBySlug(slug: string): Promise<Shop> {
+    return await ShopModel.findOne({ where: { slug } });
   }
 
   buildQueryGetProductsOfShop(queryCondition: IQueryProductsOfShop) {
@@ -99,8 +98,8 @@ export class ShopService {
     };
   }
 
-  async createNewShop(name: string, slug: string, images: string[], availableShipCountry: boolean): Promise<Shop2> {
-    const shop = new ShopModel2({
+  async createNewShop(name: string, slug: string, images: string[], availableShipCountry: boolean): Promise<Shop> {
+    const shop = new ShopModel({
       name,
       slug,
       availableShipCountry,
@@ -126,7 +125,7 @@ export class ShopService {
     return await newImage.save();
   };
 
-  async updateShop(shop: Shop2, availableShipCountry: boolean): Promise<Shop2> {
+  async updateShop(shop: Shop, availableShipCountry: boolean): Promise<Shop> {
     if (availableShipCountry) {
       shop.availableShipCountry = availableShipCountry;
     }
@@ -245,7 +244,7 @@ export class ShopService {
       offset: (queryCondition.page - 1) * queryCondition.limit,
       limit: queryCondition.limit,
       include: [
-        { model: User2, as: 'userInfo', duplicating: false }
+        { model: User, as: 'userInfo', duplicating: false }
       ]
     };
   }

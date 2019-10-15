@@ -24,12 +24,12 @@ import UserTypes = General.UserTypes;
 import UserRolesInShop = General.UserRolesInShop;
 import UserModel2 from '../models/user.model';
 import { SmsService } from '../services/sms.service';
-import ShopModel2, { Shop2 } from '../models/shop.model';
-import ProductModel2 from '../models/product.model';
-import Product2 from '../models/product.model';
+import ShopModel2, { Shop } from '../models/shop.model';
+import ProductModel from '../models/product.model';
+import { Product } from '../models/product.model';
 
 interface IResRegisterShop {
-  shop: Shop2;
+  shop: Shop;
 }
 
 interface IResCheckValidSlug {
@@ -43,7 +43,7 @@ interface IResProductOfShop {
     item: number;
     page: number;
   };
-  products: Product2[];
+  products: Product[];
 }
 
 interface IResUpdateStatusMultipleProduct {
@@ -131,7 +131,7 @@ export class ShopController {
           email,
           name,
           password,
-          type: UserTypes.TYPE_CUSTOMER,
+          type: UserTypes.TYPE_SELLER,
           role: null,
           phone: phone,
           gender,
@@ -410,7 +410,7 @@ export class ShopController {
           sortDirection: sd || null
         });
 
-        ProductModel2.findAndCountAll(queryCondition)
+        ProductModel.findAndCountAll(queryCondition)
           .then(result => {
             const response = {
               status: HttpStatus.OK,
@@ -502,7 +502,7 @@ export class ShopController {
           return resolve(result);
         }
 
-        const shop: any = await this.shopService.findShopOfUser(req.user._id.toString());
+        const shop: any = await this.shopService.findShopOfUser(req.user.id);
 
         if (!shop) {
           return resolve({
@@ -513,7 +513,7 @@ export class ShopController {
 
         const { limit, sb, sd, page, status, startDate, endDate } = req.query;
         const stages: any[] = this.orderItemService.buildStageGetListOrderItem({
-          shop: shop._id ? shop._id : null,
+          shopsId: shop.id ? shop.id : null,
           limit: parseInt((limit || 10).toString()),
           page: parseInt((page || 1).toString()),
           status: status ? parseInt(status) : null,
@@ -523,7 +523,6 @@ export class ShopController {
           endDate
         });
 
-        console.log('stages: ', JSON.stringify(stages));
         const result: any = await OrderItemModel.aggregate(stages);
 
         // const orderItems = await Promise.all(result[0].entries.map(async oi => {
@@ -542,7 +541,6 @@ export class ShopController {
         //   oi.receiverInfo = await AddressModel.findOne({_id: oi.orderInfo.address});
         //   return oi;
         // }));
-
 
         const response: IRes<any> = {
           status: HttpStatus.OK,

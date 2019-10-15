@@ -13,7 +13,7 @@ export class AttributeController {
         data: {
           attributes: await AttributeModel.findAll({
             include: [
-              {model: AttributeValue, as: 'values'}
+              { model: AttributeValue, as: 'attributeValueInfo' }
             ]
           })
         }

@@ -1,7 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
 
-class Address2 extends Model {
+class Address extends Model {
     id!: number;
     name: string;
     email: string;
@@ -16,7 +16,7 @@ class Address2 extends Model {
     districtsId: number;
 }
 
-Address2.init({
+Address.init({
     id: {
         field: 'ID',
         type: DataTypes.INTEGER.UNSIGNED,
@@ -81,4 +81,4 @@ Address2.init({
         timestamps: false
     });
 
-export default Address2;
+export default Address;

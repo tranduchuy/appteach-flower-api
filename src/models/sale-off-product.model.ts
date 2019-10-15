@@ -17,9 +17,10 @@ SaleOffProduct.init(
   {
     id: {
       field: 'ID',
-      type: DataTypes.NUMBER.UNSIGNED,
+      type: DataTypes.INTEGER.UNSIGNED,
       primaryKey: true,
-      autoIncrement: true
+      autoIncrement: true,
+      unique: true
     },
     price: {
       field: 'PRICE',
@@ -27,7 +28,7 @@ SaleOffProduct.init(
     },
     productsId: {
       field: 'PRODUCTS_ID',
-      type: DataTypes.NUMBER.UNSIGNED,
+      type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false
     },
     status: {
@@ -60,7 +61,8 @@ SaleOffProduct.init(
     tableName: 'SALE_OFF_PRODUCTS',
     freezeTableName: true,
     sequelize: MYSQL_CONNECTION,
-    timestamps: true
+    timestamps: false,
+    modelName: 'saleOffProduct'
   }
 );
 

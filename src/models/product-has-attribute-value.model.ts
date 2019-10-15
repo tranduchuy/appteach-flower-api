@@ -20,7 +20,7 @@ ProductHasAttributeValue.init({
   freezeTableName: true,
   sequelize: MYSQL_CONNECTION,
   timestamps: false,
-  modelName: 'productHasAttributeValues'
+  modelName: 'productHasAttributeValue'
 });
 
 export default ProductHasAttributeValue;

@@ -10,7 +10,7 @@ export class Staff extends Model {
   updatedAt: Date;
 }
 
-export class User2 extends Staff {
+export class User extends Staff {
   name: string;
   username: string;
   phone: string;
@@ -36,7 +36,7 @@ export class User2 extends Staff {
   shopsId?: number;
 }
 
-User2.init({
+User.init({
   id: {
     type: DataTypes.INTEGER.UNSIGNED,
     field: 'ID',
@@ -168,4 +168,4 @@ User2.init({
   modelName: 'user'
 });
 
-export default User2;
+export default User;
