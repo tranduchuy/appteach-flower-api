@@ -1,9 +1,8 @@
 import { injectable } from 'inversify';
 import City from '../models/city.model';
 import District from '../models/district.model';
-import Shop2 from '../models/shop.model';
-import UserModel from '../models/user';
-import UserModel2, { User2 } from '../models/user.model';
+import Shop from '../models/shop.model';
+import UserModel, { User } from '../models/user.model';
 import { UserConstant } from '../constant/users';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -42,7 +41,7 @@ export class UserService {
       charset: 'alphabetic'
     });
 
-    const newUser = new UserModel2({
+    const newUser = new UserModel({
       email,
       passwordHash: bcrypt.hashSync(password, salt),
       passwordSalt: salt,
@@ -99,7 +98,7 @@ export class UserService {
         }
       });
 
-      return await UserModel2.update(
+      return await UserModel.update(
         newUser,
         {
           where: { id: userId }
@@ -114,7 +113,7 @@ export class UserService {
 
     const username = email.split('@')[0];
 
-    const newUser = new UserModel2({
+    const newUser = new UserModel({
       email,
       passwordHash: null,
       passwordSalt: null,
@@ -180,7 +179,7 @@ export class UserService {
   };
 
   findByEmailOrPhone = async (email, phone) => {
-    return await UserModel2.findOne({
+    return await UserModel.findOne({
       where: {
         [Sequelize.Op.or]: [{ email }, { phone }]
       }
@@ -202,13 +201,13 @@ export class UserService {
     return await user.save();
   };
   findByEmail = async (email) => {
-    return await UserModel2.findOne({ where: { email } });
+    return await UserModel.findOne({ where: { email } });
   };
   findByGoogleId = async (googleId) => {
-    return await UserModel2.findOne({ where: { googleId } });
+    return await UserModel.findOne({ where: { googleId } });
   };
   findByFacebookId = async (facebookId) => {
-    return await UserModel2.findOne({ where: facebookId });
+    return await UserModel.findOne({ where: facebookId });
   };
   isValidHashPassword = (hashed: string, plainText: string) => {
     try {
@@ -238,15 +237,15 @@ export class UserService {
     return await user.save();
   };
   findUserByPasswordReminderToken = async (passwordReminderToken) => {
-    return await UserModel2.findOne({ where: { passwordReminderToken } });
+    return await UserModel.findOne({ where: { passwordReminderToken } });
   };
 
-  async findById(id: string): Promise<User2> {
-    return await UserModel2.findOne({ where: { id } });
+  async findById(id: string): Promise<User> {
+    return await UserModel.findOne({ where: { id } });
   }
 
-  async findByPhone(phone: string): Promise<User2> {
-    return await UserModel2.findOne({ where: { phone } });
+  async findByPhone(phone: string): Promise<User> {
+    return await UserModel.findOne({ where: { phone } });
   }
 
   isRoleAdmin(role: number): boolean {
@@ -360,7 +359,7 @@ export class UserService {
       include: [
         { model: City, as: 'cityInfo' },
         { model: District, as: 'districtInfo' },
-        { model: Shop2, as: 'shopInfo' },
+        { model: Shop, as: 'shopInfo' },
       ]
     };
   }

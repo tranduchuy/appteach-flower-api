@@ -1,16 +1,19 @@
 import { injectable } from 'inversify';
-import OrderItemModel, { OrderItem } from '../models/order-item';
-import ProductModel from '../models/product';
+import OrderItemModel, { OrderItem } from '../models/order-item.model';
+import ProductModel, { Product } from '../models/product.model';
 import ShopModel from '../models/shop';
 import { Status } from '../constant/status';
+import { Op } from 'sequelize';
 
 @injectable()
 export class OrderItemService {
   productInfoFields = ['id', 'status', 'title', 'images', 'originalPrice', 'shop', 'saleOff', 'slug'];
   shopInfoFields = ['id', 'name', 'slug'];
 
-  updateStatus = async (id: string, status: number): Promise<OrderItem> => {
-    return await OrderItemModel.findOneAndUpdate({_id: id}, {status: status});
+  updateStatus = async (id: number, status: number): Promise<OrderItem> => {
+    const orderItem = await OrderItemModel.findOne({ where: { id } });
+    orderItem.status = status;
+    return await orderItem.save();
   };
 
   updateItemsStatus = async (items: any, status: number) => {
@@ -19,35 +22,45 @@ export class OrderItemService {
     }));
   };
 
-  updateOrderItem = async (orderItem, {quantity}) => {
+  updateOrderItem = async (orderItem, { quantity }) => {
     if (quantity) {
       orderItem.quantity = quantity;
     }
     return await orderItem.save();
   };
 
-  findNewOrderItemById = async (id: string) => {
-    return await OrderItemModel.findOne({_id: id, status: Status.ORDER_ITEM_NEW});
+  findNewOrderItemById = async (id: number) => {
+    return await OrderItemModel.findOne({ where: { id, status: Status.ORDER_ITEM_NEW } });
   };
 
-  findOrderItemById = async (id: string) => {
-    return await OrderItemModel.findOne({_id: id});
+  findOrderItemById = async (id: number) => {
+    return await OrderItemModel.findOne({ where: { id } });
   };
 
-  findOrderItemByOrderId = async (orderId: string) => {
-    return await OrderItemModel.find({order: orderId})
-      .populate('product');
+  findOrderItemByOrderId = async (orderId: number) => {
+    return await OrderItemModel.findAll(
+      {
+        where: { ordersId: orderId },
+        include: [
+          {
+            model: Product,
+            as: 'productInfo',
+            duplicating: false
+          }
+        ]
+      },
+    );
   };
 
   findPendingOrderItems = async (orderId: string): Promise<Array<any>> => {
     try {
-      const orderItems = await OrderItemModel.find({order: orderId, status: Status.ORDER_ITEM_NEW});
+      const orderItems = await OrderItemModel.find({ order: orderId, status: Status.ORDER_ITEM_NEW });
       return await Promise.all(orderItems.map(async item => {
         // get product info.
-        const productInfo = await ProductModel.findOne({_id: item.product}, this.productInfoFields);
+        const productInfo = await ProductModel.findOne({ _id: item.product }, this.productInfoFields);
         item.product = productInfo;
         // get shop info.
-        const shopInfo = await ShopModel.findOne({_id: productInfo.shop}, this.shopInfoFields);
+        const shopInfo = await ShopModel.findOne({ _id: productInfo.shop }, this.shopInfoFields);
         item.shop = shopInfo;
         return item;
       }));
@@ -70,7 +83,7 @@ export class OrderItemService {
       }
     });
 
-    stages.push({$unwind: {path: '$order'}});
+    stages.push({ $unwind: { path: '$order' } });
 
     if (queryCondition.code) {
       matchStage['order.code'] = queryCondition.code;
@@ -97,7 +110,7 @@ export class OrderItemService {
     }
 
     if (Object.keys(matchStage).length > 0) {
-      stages.push({$match: matchStage});
+      stages.push({ $match: matchStage });
     }
 
     stages.push({
@@ -109,7 +122,7 @@ export class OrderItemService {
       }
     });
 
-    stages.push({$unwind: {path: '$product'}});
+    stages.push({ $unwind: { path: '$product' } });
 
     stages.push({
       '$project': {
@@ -141,13 +154,13 @@ export class OrderItemService {
       }
     });
 
-    stages.push({$unwind: {path: '$product.shop'}});
+    stages.push({ $unwind: { path: '$product.shop' } });
 
     stages.push({
       '$group': {
         _id: '$order._id',
-        count: {$sum: 1},
-        order: {$push: '$order'},
+        count: { $sum: 1 },
+        order: { $push: '$order' },
         orderItems: {
           $push: {
             quantity: '$quantity',
@@ -163,16 +176,16 @@ export class OrderItemService {
     });
 
     stages = stages.concat([
-      {'$unwind': {'path': '$order'}},
-      {'$lookup': {'from': 'users', 'localField': 'order.fromUser', 'foreignField': '_id', 'as': 'user'}},
+      { '$unwind': { 'path': '$order' } },
+      { '$lookup': { 'from': 'users', 'localField': 'order.fromUser', 'foreignField': '_id', 'as': 'user' } },
       {
         '$unwind': {
           'path': '$user',
           preserveNullAndEmptyArrays: true
         }
       },
-      {'$lookup': {'from': 'addresses', 'localField': 'order.address', 'foreignField': '_id', 'as': 'address'}},
-      {'$unwind': {'path': '$address'}},
+      { '$lookup': { 'from': 'addresses', 'localField': 'order.address', 'foreignField': '_id', 'as': 'address' } },
+      { '$unwind': { 'path': '$address' } },
       {
         '$project': {
           '_id': 1,
@@ -191,7 +204,7 @@ export class OrderItemService {
           'user.phone': 1,
           'user.name': 1,
           'address': 1,
-          'totalCost': {'$add': ['$order.totalShippingCost', '$order.total']}
+          'totalCost': { '$add': ['$order.totalShippingCost', '$order.total'] }
         }
       }
     ]);
@@ -213,16 +226,47 @@ export class OrderItemService {
       {
         $facet: {
           entries: [
-            {$skip: (queryCondition.page - 1) * queryCondition.limit},
-            {$limit: queryCondition.limit}
+            { $skip: (queryCondition.page - 1) * queryCondition.limit },
+            { $limit: queryCondition.limit }
           ],
           meta: [
-            {$group: {_id: null, totalItems: {$sum: 1}}},
+            { $group: { _id: null, totalItems: { $sum: 1 } } },
           ],
         }
       });
 
     return stages;
+  }
+
+  buildQueryConditionOfGetListOrderItem(queryCondition) {
+    const cond: any = {};
+
+    if (queryCondition.startDate) {
+      cond.createdAt = {
+        [Op.gte]: new Date(queryCondition.startDate)
+      };
+    }
+
+    if (queryCondition.endDate) {
+      cond.createdAt = cond.createdAt || {};
+      cond.createdAt = {
+        [Op.lt]: new Date(queryCondition.endDate)
+      };
+    }
+
+    if (queryCondition.shopsId) {
+      cond.shopsId = queryCondition.shopsId;
+    }
+
+    if (queryCondition.status) {
+      cond.status = queryCondition.status;
+    } else {
+      cond.status = {
+        [Op.ne]: Status.ORDER_ITEM_NEW
+      };
+    }
+
+    return cond;
   }
 
   buildStageGetListOrderItem(queryCondition): any[] {
@@ -253,7 +297,7 @@ export class OrderItemService {
     }
 
     if (Object.keys(matchStage).length > 0) {
-      stages.push({$match: matchStage});
+      stages.push({ $match: matchStage });
     }
 
     stages.push({
@@ -265,7 +309,7 @@ export class OrderItemService {
       }
     });
 
-    stages.push({$unwind: {path: '$product'}});
+    stages.push({ $unwind: { path: '$product' } });
 
     stages.push({
       '$project': {
@@ -290,7 +334,7 @@ export class OrderItemService {
     stages.push({
       '$group': {
         _id: '$order',
-        count: {$sum: 1},
+        count: { $sum: 1 },
         total: {
           $sum: '$total'
         },
@@ -309,17 +353,17 @@ export class OrderItemService {
     });
 
     stages = stages.concat([
-      {'$lookup': {'from': 'orders', 'localField': '_id', 'foreignField': '_id', 'as': 'order'}},
-      {'$unwind': {'path': '$order'}},
-      {'$lookup': {'from': 'users', 'localField': 'order.fromUser', 'foreignField': '_id', 'as': 'user'}},
+      { '$lookup': { 'from': 'orders', 'localField': '_id', 'foreignField': '_id', 'as': 'order' } },
+      { '$unwind': { 'path': '$order' } },
+      { '$lookup': { 'from': 'users', 'localField': 'order.fromUser', 'foreignField': '_id', 'as': 'user' } },
       {
         '$unwind': {
           'path': '$user',
           preserveNullAndEmptyArrays: true
         }
       },
-      {'$lookup': {'from': 'addresses', 'localField': 'order.address', 'foreignField': '_id', 'as': 'address'}},
-      {'$unwind': {'path': '$address'}},
+      { '$lookup': { 'from': 'addresses', 'localField': 'order.address', 'foreignField': '_id', 'as': 'address' } },
+      { '$unwind': { 'path': '$address' } },
       {
         '$project': {
           '_id': 1,
@@ -341,11 +385,11 @@ export class OrderItemService {
       {
         $facet: {
           entries: [
-            {$skip: (queryCondition.page - 1) * queryCondition.limit},
-            {$limit: queryCondition.limit}
+            { $skip: (queryCondition.page - 1) * queryCondition.limit },
+            { $limit: queryCondition.limit }
           ],
           meta: [
-            {$group: {_id: null, totalItems: {$sum: 1}}},
+            { $group: { _id: null, totalItems: { $sum: 1 } } },
           ],
         }
       }

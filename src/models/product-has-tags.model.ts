@@ -21,7 +21,8 @@ ProductHasTag.init({
     tableName: 'PRODUCTS_HAS_TAGS',
     freezeTableName: true,
     sequelize: MYSQL_CONNECTION,
-    timestamps: false
+    timestamps: false,
+    modelName: 'productHasTag'
 });
 
 export default ProductHasTag;

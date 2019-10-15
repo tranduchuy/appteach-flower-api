@@ -7,16 +7,15 @@ import Joi from '@hapi/joi';
 import TYPES from '../constant/types';
 import { IRes } from '../interfaces/i-res';
 import { Address } from '../models/address';
-import { Shop } from '../models/shop';
+import { Shop } from '../models/shop.model';
 import { OrderService } from '../services/order.service';
 import { OrderRoute } from '../constant/routeMap';
-import OrderModel, { Order } from '../models/order';
-import ShopModel from '../models/shop';
+import OrderModel, { Order } from '../models/order.model';
 import { ResponseMessages } from '../constant/messages';
 import { ProductService } from '../services/product.service';
 import { AddressService } from '../services/address.service';
-import { OrderItem } from '../models/order-item';
-import { Product } from '../models/product';
+import { OrderItem } from '../models/order-item.model';
+import { Product } from '../models/product.model';
 import { OrderItemService } from '../services/order-item.service';
 import { Status } from '../constant/status';
 
@@ -30,12 +29,13 @@ import SubmitNoLoginOrderValidationSchema from '../validation-schemas/order/subm
 import { OrderWorkerService } from '../services/order-worker.service';
 import GetNoLoginOrderShippingCostValidationSchema
   from '../validation-schemas/order/get-no-login-order-shipping-cost.schema';
+import { ShopService } from '../services/shop.service';
 
 // const console = process['console'];
 
 interface IResAddOrderItem {
   order: Order;
-  orderItem: OrderItem;
+  orderItem: OrderItem | number;
 }
 
 export interface IResAddManyProducts {
@@ -86,7 +86,8 @@ export class OrderController {
     @inject(TYPES.OrderService) private orderService: OrderService,
     @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
     @inject(TYPES.AddressService) private addressService: AddressService,
-    @inject(TYPES.OrderWorkerService) private orderWorkerService: OrderWorkerService
+    @inject(TYPES.OrderWorkerService) private orderWorkerService: OrderWorkerService,
+    @inject(TYPES.ShopService) private shopService: ShopService
   ) {
     this.orderWorkerService.runCancelOrderJob();
   }
@@ -99,8 +100,12 @@ export class OrderController {
         const status = request.query.status;
 
         let orders = null;
-        if (status) orders = await this.orderService.findOrders(user.id, status);
-        else orders = await this.orderService.findOrders(user.id, null);
+        if (status) {
+          orders = await this.orderService.findOrders(user.id, status);
+        }
+        else {
+          orders = await this.orderService.findOrders(user.id, null);
+        }
 
         if (!orders) {
           const result = {
@@ -112,9 +117,9 @@ export class OrderController {
           return resolve(result);
         }
 
-        orders.forEach(order => {
-          order.productNames = order.orderItems.map(oi => {
-            return oi.product.title;
+        orders.forEach((order: any) => {
+          order.productNames = order.orderItems.map((oi: any) => {
+            return oi.productInfo.title;
           });
 
           delete order.orderItems;
@@ -265,7 +270,7 @@ export class OrderController {
       let order = await this.orderService.findPendingOrder(user.id);
       if (!order) {
         order = await this.orderService.createOrder(user);
-        order.fromUser = user._id;
+        order.usersId = user.id;
       }
 
       const results: IResAddManyProducts[] = await this.orderService.addManyProductsToCart(order, req.body.items || []);
@@ -302,7 +307,7 @@ export class OrderController {
         const { productId, quantity } = request.body;
         const user = request.user;
 
-        const product = await this.productService.findProductById(productId);
+        const product: any = await this.productService.findProductById(productId);
         if (!product) {
           const result = {
             status: HttpStatus.NOT_FOUND,
@@ -312,9 +317,9 @@ export class OrderController {
           return resolve(result);
         }
 
-        const shop = await ShopModel.findOne({ user: user._id });
+        const shop: Shop = await this.shopService.findShopOfUser(user.id);
         if (shop) {
-          if (shop._id.toString() === product.shop['_id'].toString()) {
+          if (shop.id === product.shopHasProductInfo.shopsId) {
             const result = {
               status: HttpStatus.BAD_REQUEST,
               messages: [ResponseMessages.Product.NO_ADD_ITEM_PERMISSION],
@@ -324,14 +329,12 @@ export class OrderController {
           }
         }
 
-
-        let order = await this.orderService.findPendingOrder(user.id);
+        let order: Order = await this.orderService.findPendingOrder(user.id);
         if (!order) {
           order = await this.orderService.createOrder(user);
-          order.fromUser = user._id;
         }
 
-        let orderItem = await this.orderService.findOrderItem(order, product);
+        let orderItem: OrderItem | number = await this.orderService.findOrderItem(order, product);
         if (!orderItem && quantity > 0) {
           orderItem = await this.orderService.addItem(order, product, quantity);
         } else {

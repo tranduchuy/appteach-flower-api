@@ -1,7 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
 
-export class Shop2 extends Model {
+export class Shop extends Model {
   id!: number;
   name: string;
   slug!: string;
@@ -12,7 +12,7 @@ export class Shop2 extends Model {
   discountRate: number;
 }
 
-Shop2.init({
+Shop.init({
   id: {
     type: DataTypes.INTEGER.UNSIGNED,
     field: 'ID',
@@ -57,4 +57,4 @@ Shop2.init({
   modelName: 'shop'
 });
 
-export default Shop2;
+export default Shop;

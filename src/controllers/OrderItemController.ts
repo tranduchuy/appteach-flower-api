@@ -7,7 +7,7 @@ import { Status } from '../constant/status';
 import TYPES from '../constant/types';
 import { IRes } from '../interfaces/i-res';
 import { OrderItemRoute } from '../constant/routeMap';
-import { Order } from '../models/order';
+import { Order } from '../models/order.model';
 import { ResponseMessages } from '../constant/messages';
 import { OrderItemService } from '../services/order-item.service';
 import UpdateOrderItemQuantityValidationSchema
@@ -30,13 +30,13 @@ export class OrderItemController {
   public updateOrderItem(request: Request): Promise<IRes<Order>> {
     return new Promise<IRes<any>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(request.body, UpdateOrderItemQuantityValidationSchema);
+        const { error } = Joi.validate(request.body, UpdateOrderItemQuantityValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
           });
 
-          const result: IRes<{ Order }> = {
+          const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
             messages: messages
           };
@@ -44,7 +44,7 @@ export class OrderItemController {
           return resolve(result);
         }
 
-        const id = request.params.id;
+        const id = parseInt(request.user.id);
         if (!ObjectID.isValid(id)) {
           const result = {
             status: HttpStatus.BAD_REQUEST,
@@ -70,7 +70,7 @@ export class OrderItemController {
           });
         }
 
-        const {quantity} = request.body;
+        const { quantity } = request.body;
         const newOrderItem = {
           quantity
         };
@@ -98,7 +98,7 @@ export class OrderItemController {
   public updateOrderItemStatus(request: Request): Promise<IRes<Order>> {
     return new Promise<IRes<any>>(async (resolve) => {
       try {
-        const {error} = Joi.validate(request.body, UpdateOrderItemStatusValidationSchema);
+        const { error } = Joi.validate(request.body, UpdateOrderItemStatusValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
             return detail.message;
@@ -112,9 +112,9 @@ export class OrderItemController {
           return resolve(result);
         }
 
-        const {status, orderItemIds} = request.body;
+        const { status, orderItemIds } = request.body;
 
-        const shop: any = await this.shopService.findShopOfUser(request.user._id);
+        const shop: any = await this.shopService.findShopOfUser(request.user.id);
         if (!shop) {
           const result = {
             status: HttpStatus.NOT_FOUND,
@@ -133,10 +133,10 @@ export class OrderItemController {
           return resolve(result);
         }
 
-        await Promise.all((orderItemIds || []).map(async orderItemId => {
+        await Promise.all((orderItemIds || []).map(async (orderItemId: number) => {
           const orderItem = await this.orderItemService.findOrderItemById(orderItemId);
 
-          if (shop._id.toString() !== orderItem.shop.toString()) {
+          if (shop.id !== orderItem.shopsId) {
             throw new Error(ResponseMessages.OrderItem.ORDER_ITEM_NOT_FOUND);
           }
 
@@ -148,8 +148,8 @@ export class OrderItemController {
             throw new Error(ResponseMessages.OrderItem.WRONG_STATUS_FLOW);
           }
 
-          await this.orderItemService.updateStatus(orderItem._id, status);
-          await this.notifyService.notifyUpdateOrderItemStatusToUser(orderItem._id);
+          await this.orderItemService.updateStatus(orderItem.id, status);
+          await this.notifyService.notifyUpdateOrderItemStatusToUser(orderItem.id);
         }));
 
         const result: IRes<Order> = {

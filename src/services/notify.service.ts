@@ -2,8 +2,8 @@ import { injectable } from 'inversify';
 import { Status } from '../constant/status';
 import NotifyModel from '../models/notify';
 import ShopModel from '../models/shop';
-import OrderItemModel from '../models/order-item';
-import OrderModel from '../models/order';
+import OrderItemModel from '../models/order-item.model';
+import OrderModel from '../models/order.model';
 import ProductModel from '../models/product';
 import { NotifyConstant, TypeCd2Content } from '../constant/notify-type';
 
@@ -28,7 +28,7 @@ export class NotifyService {
     ].indexOf(status) !== -1;
   };
 
-  createNotify = async ({fromUser, toUser, title, type, content, params}) => {
+  createNotify = async ({ fromUser, toUser, title, type, content, params }) => {
     const newNotify = new NotifyModel({
       fromUser,
       toUser,
@@ -43,9 +43,9 @@ export class NotifyService {
   };
 
   notifyNewOrderToShops = async (orderId) => {
-    const shopIds = await OrderItemModel.find({order: orderId}).distinct('shop');
+    const shopIds = await OrderItemModel.find({ order: orderId }).distinct('shop');
     return await Promise.all(shopIds.map(async shopId => {
-      const shop = await ShopModel.findOne({_id: shopId});
+      const shop = await ShopModel.findOne({ _id: shopId });
       const notifyContent: any = TypeCd2Content(NotifyConstant.NEW_ORDER);
 
       Socket.pushToUser(shop.user, notifyContent.title);
@@ -55,41 +55,51 @@ export class NotifyService {
         type: NotifyConstant.NEW_ORDER,
         title: notifyContent.title,
         content: notifyContent.content,
-        params: {orderId: orderId}
+        params: { orderId: orderId }
       });
     }));
   };
 
-  notifyUpdateOrderItemStatusToUser = async (orderItemId) => {
-    const orderItem: any = await OrderItemModel.findOne({_id: orderItemId})
-        .populate({model: OrderModel, path: 'order'});
+  notifyUpdateOrderItemStatusToUser = async (orderItemId: number) => {
+    const orderItem: any = await OrderItemModel.findOne(
+      {
+        where: { id: orderItemId },
+        include: [
+          {
+            model: OrderModel,
+            as: 'orderInfo',
+            duplicating: false
+          }
+        ]
+      }
+    );
 
-    let notifyContent;
-    let type;
+    let notifyContent: any;
+    let type: number;
     if (orderItem.status === Status.ORDER_ITEM_ON_DELIVERY) {
       notifyContent = TypeCd2Content(NotifyConstant.UPDATE_ORDER_ITEM_ON_DELIVERY);
       type = NotifyConstant.UPDATE_ORDER_ITEM_ON_DELIVERY;
-    } else if (orderItem.status === Status.ORDER_ITEM_FINISHED) {
+    }
+    else if (orderItem.status === Status.ORDER_ITEM_FINISHED) {
       notifyContent = TypeCd2Content(NotifyConstant.UPDATE_ORDER_ITEM_FINISHED);
       type = NotifyConstant.UPDATE_ORDER_ITEM_FINISHED;
     }
 
-
-    Socket.pushToUser(orderItem['order'].fromUser, notifyContent.title);
+    Socket.pushToUser(orderItem.orderInfo.usersId, notifyContent.title);
 
     return await this.createNotify({
-      toUser: orderItem['order'].fromUser,
+      toUser: orderItem.orderInfo.usersId,
       fromUser: orderItem.user,
       type: type,
       title: notifyContent.title,
       content: notifyContent.content,
-      params: {orderItemId: orderItemId}
+      params: { orderItemId: orderItemId }
     });
   };
 
   notifyUpdateProductApprovedStatusToShop = async (productId, fromUser) => {
-    const product: any = await ProductModel.findOne({_id: productId})
-      .populate({model: ShopModel, path: 'shop'});
+    const product: any = await ProductModel.findOne({ _id: productId })
+      .populate({ model: ShopModel, path: 'shop' });
 
     let notifyContent;
     let type;
@@ -110,7 +120,7 @@ export class NotifyService {
       type: type,
       title: notifyContent.title,
       content: notifyContent.content,
-      params: {productId: productId}
+      params: { productId: productId }
     });
   };
 
@@ -127,7 +137,7 @@ export class NotifyService {
     }
 
     if (Object.keys(matchStage).length > 0) {
-      stages.push({$match: matchStage});
+      stages.push({ $match: matchStage });
     }
 
     stages.push({
@@ -139,11 +149,11 @@ export class NotifyService {
     stages.push({
       $facet: {
         entries: [
-          {$skip: (queryCondition.page - 1) * queryCondition.limit},
-          {$limit: queryCondition.limit}
+          { $skip: (queryCondition.page - 1) * queryCondition.limit },
+          { $limit: queryCondition.limit }
         ],
         meta: [
-          {$group: {_id: null, totalItems: {$sum: 1}}},
+          { $group: { _id: null, totalItems: { $sum: 1 } } },
         ],
       }
     });

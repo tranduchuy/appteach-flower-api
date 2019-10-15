@@ -1,8 +1,5 @@
 import { Model, DataTypes } from 'sequelize';
 import { MYSQL_CONNECTION } from '../utils/secrets';
-import User2 from './user.model';
-
-// import Address2 from './address.model';
 
 class City extends Model {
   id: number;
@@ -37,9 +34,5 @@ City.init({
   timestamps: false,
   modelName: 'city'
 });
-
-console.log(User2);
-
-// City.hasMany(Address2, { foreignKey: 'CITIES_ID' });
 
 export default City;

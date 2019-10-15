@@ -5,7 +5,7 @@ import { inject } from 'inversify';
 import TYPES from '../constant/types';
 import { Request, Response } from 'express';
 import { IRes } from '../interfaces/i-res';
-import UserModel2, { User2 } from '../models/user.model';
+import UserModel, { User } from '../models/user.model';
 import { SmsService } from '../services/sms.service';
 import { UserService } from '../services/user.service';
 import { General } from '../constant/generals';
@@ -54,16 +54,16 @@ export class UserController {
   }
 
   @httpGet('/info', TYPES.CheckTokenMiddleware)
-  public getLoggedInInfo(request: Request): Promise<IRes<User2>> {
-    return new Promise<IRes<User2>>((resolve => {
+  public getLoggedInInfo(request: Request): Promise<IRes<User>> {
+    return new Promise<IRes<User>>((resolve => {
       try {
-        const user: User2 = JSON.parse(JSON.stringify(<User2>request.user));
+        const user: User = JSON.parse(JSON.stringify(<User>request.user));
         delete user.passwordHash;
         delete user.passwordSalt;
         delete user.passwordReminderExpire;
         delete user.passwordReminderToken;
 
-        const result: IRes<User2> = {
+        const result: IRes<User> = {
           status: HttpStatus.OK,
           messages: [ResponseMessages.SUCCESS],
           data: user
@@ -73,7 +73,7 @@ export class UserController {
 
       } catch (e) {
         console.error(e);
-        const result: IRes<User2> = {
+        const result: IRes<User> = {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           messages: [JSON.stringify(e)]
         };
@@ -104,7 +104,7 @@ export class UserController {
           name, username, phone, address, gender, city, district, ward
         } = request.body;
 
-        const duplicatedPhones = await UserModel2.findAll({ where: { phone: phone } });
+        const duplicatedPhones = await UserModel.findAll({ where: { phone: phone } });
         if (duplicatedPhones.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -123,7 +123,7 @@ export class UserController {
           return resolve(result);
         }
 
-        const duplicatedUsers = await UserModel2.findAll({ where: { email: email } });
+        const duplicatedUsers = await UserModel.findAll({ where: { email: email } });
         if (duplicatedUsers.length !== 0) {
           const result: IRes<{}> = {
             status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -251,6 +251,7 @@ export class UserController {
         }
         const newShop: any = await this.shopService.createNewShop(name, slug, images, availableShipCountry);
         const otpCode = this.userService.generateOTPCode();
+        shopUser.type = UserTypes.TYPE_SELLER;
         shopUser.otpCodeConfirmAccount = otpCode;
         shopUser.roleInShop = UserRolesInShop.ROLE_IN_SHOP_OWNER;
         shopUser.shopsId = newShop.id;
@@ -292,8 +293,6 @@ export class UserController {
               citiesId: addressCity.id,
             });
           }));
-
-        this.smsService.sendSMS([shopUser.phone], `Mã xác thực tài khoản: ${otpCode}`, '');
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -351,7 +350,7 @@ export class UserController {
 
         if (phone) {
           if (phone !== user.phone) {
-            const duplicatedPhones = await UserModel2.findAll({ where: { phone } });
+            const duplicatedPhones = await UserModel.findAll({ where: { phone } });
             if (duplicatedPhones.length !== 0) {
               const result: IRes<{}> = {
                 status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -508,8 +507,6 @@ export class UserController {
           return resolve(result);
         }
 
-        console.log(JSON.stringify(user));
-
         if (!this.userService.isValidHashPassword(user.passwordHash, password)) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
@@ -544,8 +541,8 @@ export class UserController {
           district: user.district,
           ward: user.ward,
           registerBy: user.registerBy
-        }
-          ;
+        };
+
         const token = this.userService.generateToken({ _id: user.id });
 
         const result: IRes<{}> = {
@@ -927,7 +924,7 @@ export class UserController {
       try {
         const { token } = request.query;
 
-        const user = await UserModel2.findOne({ where: { tokenEmailConfirm: token } });
+        const user = await UserModel.findOne({ where: { tokenEmailConfirm: token } });
 
         if (!user) {
           const result: IRes<{}> = {

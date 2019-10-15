@@ -25,7 +25,8 @@ Tag.init({
         type: DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
         unique: true,
-        primaryKey: true
+        primaryKey: true,
+        allowNull: false
     },
     slug: {
         field: 'SLUG',

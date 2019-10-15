@@ -1,20 +1,22 @@
 import { inject, injectable } from 'inversify';
-import mongoose from 'mongoose';
 import { IResAddManyProducts } from '../controllers/OrderController';
-import OrderModel, { Order } from '../models/order';
-import OrderItemModel, { OrderItem } from '../models/order-item';
-import ProductModel, { Product } from '../models/product';
-import ShopModel, { Shop } from '../models/shop';
-import { User } from '../models/user';
+import OrderModel, { Order } from '../models/order.model';
+import OrderItemModel, { OrderItem } from '../models/order-item.model';
+import ProductModel, { Product } from '../models/product.model';
+import ShopModel, { Shop } from '../models/shop.model';
+import { User } from '../models/user.model';
 import { Status } from '../constant/status';
 import { OrderItemService } from './order-item.service';
 import { AddressService } from './address.service';
 import TYPES from '../constant/types';
 import { CostService } from './cost.service';
 import { ProductService } from './product.service';
+import ImageProduct from '../models/image-product.model';
+import ShopHasProduct from '../models/shop-has-product.model';
+import SaleOffProduct from '../models/sale-off-product.model';
 
 export interface IInputOrderItem {
-  productId: string;
+  productId: number;
   quantity: number;
 }
 
@@ -29,18 +31,20 @@ export interface IQueryOrderAdmin {
 
 @injectable()
 export class OrderService {
-  productInfoFields = ['id', 'status', 'title', 'images', 'originalPrice', 'shop', 'saleOff', 'slug'];
+  productInfoFields = ['id', 'status', 'title', 'originalPrice', 'slug'];
   shopInfoFields = ['id', 'name', 'slug'];
 
   constructor(@inject(TYPES.CostService) private costService: CostService,
-              @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
-              @inject(TYPES.ProductService) private productService: ProductService,
-              @inject(TYPES.AddressService) private addressService: AddressService) {
+    @inject(TYPES.OrderItemService) private orderItemService: OrderItemService,
+    @inject(TYPES.ProductService) private productService: ProductService,
+    @inject(TYPES.AddressService) private addressService: AddressService) {
 
   }
 
   createOrder = async (user: User): Promise<Order> => {
-    const newOrder = new OrderModel({fromUser: user});
+    // must find user's address??
+
+    const newOrder = new OrderModel({ usersId: user.id });
     return await newOrder.save();
   };
 
@@ -55,15 +59,15 @@ export class OrderService {
     return await order.save();
   };
 
-  findOrder = async (userId: string): Promise<Order[]> => OrderModel.find({fromUser: userId});
+  findOrder = async (userId: string): Promise<Order[]> => OrderModel.findAll({ where: { usersId: userId } });
 
-  findOrderByCode = async (code: string): Promise<Order> => OrderModel.findOne({code});
+  findOrderByCode = async (code: string): Promise<Order> => OrderModel.findOne({ where: { code } });
 
-  findOrders = async (userId: string, status: number): Promise<Array<any>> => {
+  findOrders = async (userId: number, status: number): Promise<Array<any>> => {
     try {
       const query = {
-        fromUser: new mongoose.Types.ObjectId(userId),
-        status: status || {$ne: Status.ORDER_PENDING} // ko lấy order đang trong trang thái giỏ hảng
+        usersId: userId,
+        status: status || { $ne: Status.ORDER_PENDING } // ko lấy order đang trong trang thái giỏ hảng
       };
 
       Object.keys(query).map(key => {
@@ -72,9 +76,9 @@ export class OrderService {
         }
       });
 
-      const orders: any = await OrderModel.find(query).lean();
+      const orders: any = await OrderModel.findAll({ where: query });
       await Promise.all(orders.map(async (order: any) => {
-        const orderItems = await this.findItemInOrder(order._id.toString());
+        const orderItems = await this.findItemInOrder(order.id);
         (order as any).orderItems = orderItems;
         return order;
       }));
@@ -86,7 +90,7 @@ export class OrderService {
     }
   };
 
-  updateSubmitOrder = async (order, {deliveryTime, note, address, expectedDeliveryTime, contentOrder}) => {
+  updateSubmitOrder = async (order, { deliveryTime, note, address, expectedDeliveryTime, contentOrder }) => {
     if (deliveryTime) {
       order.deliveryTime = deliveryTime;
     }
@@ -109,21 +113,40 @@ export class OrderService {
     return await order.save();
   };
 
-  findPendingOrder = async (userId: string): Promise<Order> => OrderModel.findOne({
-    fromUser: userId,
-    status: Status.ORDER_PENDING
-  });
+  findPendingOrder = async (userId: number): Promise<Order> => {
+    return await OrderModel.findOne({
+      where: {
+        usersId: userId,
+        status: Status.ORDER_PENDING
+      }
+    });
+  }
 
-  findItemInOrder = async (orderId: string): Promise<Array<any>> => {
+  findItemInOrder = async (orderId: number): Promise<Array<any>> => {
     try {
-      const orderItems = await OrderItemModel.find({order: orderId});
-      return await Promise.all(orderItems.map(async item => {
+      const orderItems = await OrderItemModel.findAll({ where: { ordersId: orderId } });
+      return await Promise.all(orderItems.map(async (item: any) => {
+        const productInfo: any = await ProductModel.findOne({
+          attributes: ['id', 'status', 'title', 'originalPrice', 'slug'],
+          where: { id: item.productsId },
+          include: [
+            { model: ImageProduct, as: 'imageProductInfo', duplicating: false },
+            { model: ShopHasProduct, as: 'shopHasProductInfo', duplicating: false },
+            { model: SaleOffProduct, as: 'saleOffProductInfo', duplicating: false }
+          ]
+        });
+
         // get product info.
-        const productInfo = await ProductModel.findOne({_id: item.product}, this.productInfoFields);
         item.product = productInfo;
         // get shop info.
-        const shopInfo = await ShopModel.findOne({_id: productInfo.shop}, this.shopInfoFields);
+        const shopInfo = await ShopModel.findOne({
+          attributes: this.shopInfoFields,
+          where: {
+            id: productInfo.shopHasProductInfo.shopsId
+          }
+        });
         item.shop = shopInfo;
+
         return item;
       }));
     } catch (e) {
@@ -132,26 +155,29 @@ export class OrderService {
     }
   };
 
-  findOrderItem = async (order: Order, product: Product): Promise<OrderItem> => OrderItemModel.findOne({
-    order: order,
-    product: product
-  });
+  findOrderItem = async (order: Order, product: Product): Promise<OrderItem> => {
+    return await OrderItemModel.findOne({
+      where: {
+        ordersId: order.id,
+        productsId: product.id
+      }
+    });
+  }
 
   addItem = async (order: Order, product: Product, quantity: number): Promise<OrderItem> => {
     const newOrderItem = new OrderItemModel({
-      order,
-      shop: product.shop,
-      product,
+      ordersId: order.id,
+      productsId: product.id,
       quantity,
     });
 
     return newOrderItem.save();
   };
 
-  updateQuantityItem = async (orderItem, quantity) => {
+  updateQuantityItem = async (orderItem: OrderItem, quantity: number) => {
     try {
       if (quantity === 0) {
-        return await this.deleteItem(orderItem._id);
+        return await this.deleteItem(orderItem.id);
       } else {
         orderItem.quantity = quantity;
         return await orderItem.save();
@@ -183,20 +209,20 @@ export class OrderService {
 
   };
 
-  deleteItem = async (id: string) => await OrderItemModel.findByIdAndRemove(id);
+  deleteItem = async (id: number) => await OrderItemModel.destroy({ where: { id } });
 
-  findOrderById = async (orderId: string) => {
-    return await OrderModel.findById(orderId);
+  findOrderById = async (orderId: number) => {
+    return await OrderModel.findOne({ where: { id: orderId } });
   };
 
   checkAndUpdateSuccessStatus = async (orderId: string) => {
-    const orderItems = await OrderItemModel.find({order: orderId});
+    const orderItems = await OrderItemModel.find({ order: orderId });
     const finishedItems = orderItems.filter(item => {
       return item.status === Status.ORDER_ITEM_FINISHED;
     });
 
     if (orderItems.length === finishedItems.length) {
-      return await OrderModel.findByIdAndUpdate(orderId, {status: Status.ORDER_SUCCESS});
+      return await OrderModel.findByIdAndUpdate(orderId, { status: Status.ORDER_SUCCESS });
     } else {
       return null;
     }
@@ -230,7 +256,7 @@ export class OrderService {
   };
 
   calculateTotal = async (orderId) => {
-    const items = await OrderItemModel.find({order: orderId});
+    const items = await OrderItemModel.find({ order: orderId });
     let total = 0;
     items.forEach(item => {
       total += item.total;
@@ -239,10 +265,10 @@ export class OrderService {
   };
 
   updateStatus = async (id: string, status: number): Promise<Order> => {
-    const order = await OrderModel.findOne({_id: id});
+    const order = await OrderModel.findOne({ _id: id });
     order.status = status;
 
-    const orderItems = await OrderItemModel.find({order: order._id});
+    const orderItems = await OrderItemModel.find({ order: order._id });
     if (status === Status.ORDER_CANCEL) {
       await Promise.all(orderItems.map(async item => {
         item.status = Status.ORDER_ITEM_CANCEL;
@@ -337,7 +363,7 @@ export class OrderService {
     }
 
     if (Object.keys(matchStage).length > 0) {
-      stages.push({$match: matchStage});
+      stages.push({ $match: matchStage });
     }
 
     if (queryCondition.sb) {
@@ -362,7 +388,6 @@ export class OrderService {
         as: 'userInfo'
       }
     });
-
     stages.push({$unwind: {path: '$userInfo'}});*/
 
     stages.push({
@@ -374,16 +399,16 @@ export class OrderService {
       }
     });
 
-    stages.push({$unwind: {path: '$addressInfo'}});
+    stages.push({ $unwind: { path: '$addressInfo' } });
 
     stages.push({
       $facet: {
         entries: [
-          {$skip: (queryCondition.page - 1) * queryCondition.limit},
-          {$limit: queryCondition.limit}
+          { $skip: (queryCondition.page - 1) * queryCondition.limit },
+          { $limit: queryCondition.limit }
         ],
         meta: [
-          {$group: {_id: null, totalItems: {$sum: 1}}},
+          { $group: { _id: null, totalItems: { $sum: 1 } } },
         ],
       }
     });
@@ -391,14 +416,14 @@ export class OrderService {
     return stages;
   }
 
-  public async addProductToCart(order: Order, productId: string, quantity: number): Promise<IResAddManyProducts | null> {
+  public async addProductToCart(order: Order, productId: number, quantity: number): Promise<IResAddManyProducts | null> {
     const result: IResAddManyProducts = {
       product: null,
       shop: null,
       quantity
     };
 
-    const product = await this.productService.findProductById(productId);
+    const product: any = await this.productService.findProductById(productId);
     if (!product) {
       console.warn('OrderService::addProductToCart. Product not found: ', productId);
       return Promise.resolve(null);
@@ -412,7 +437,10 @@ export class OrderService {
     }
 
     result.product = product;
-    result.shop = product.shop as Shop;
+
+    const shopOfProduct = await ShopModel.findOne({ where: { id: product.shopHasProduct.shopsId } });
+
+    result.shop = shopOfProduct as Shop;
 
     return Promise.resolve(result);
   }
