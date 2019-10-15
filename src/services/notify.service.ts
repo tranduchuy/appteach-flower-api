@@ -43,21 +43,22 @@ export class NotifyService {
   };
 
   notifyNewOrderToShops = async (orderId) => {
-    const shopIds = await OrderItemModel.find({ order: orderId }).distinct('shop');
-    return await Promise.all(shopIds.map(async shopId => {
-      const shop = await ShopModel.findOne({ _id: shopId });
-      const notifyContent: any = TypeCd2Content(NotifyConstant.NEW_ORDER);
+    // TODO: create notify of new order to shop
+    // const shopIds = await OrderItemModel.find({ order: orderId }).distinct('shop');
+    // return await Promise.all(shopIds.map(async shopId => {
+    //   const shop = await ShopModel.findOne({ _id: shopId });
+    //   const notifyContent: any = TypeCd2Content(NotifyConstant.NEW_ORDER);
 
-      Socket.pushToUser(shop.user, notifyContent.title);
-      return await this.createNotify({
-        toUser: shop.user,
-        fromUser: null,
-        type: NotifyConstant.NEW_ORDER,
-        title: notifyContent.title,
-        content: notifyContent.content,
-        params: { orderId: orderId }
-      });
-    }));
+    //   Socket.pushToUser(shop.user, notifyContent.title);
+    //   return await this.createNotify({
+    //     toUser: shop.user,
+    //     fromUser: null,
+    //     type: NotifyConstant.NEW_ORDER,
+    //     title: notifyContent.title,
+    //     content: notifyContent.content,
+    //     params: { orderId: orderId }
+    //   });
+    // }));
   };
 
   notifyUpdateOrderItemStatusToUser = async (orderItemId: number) => {

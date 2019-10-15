@@ -6,7 +6,7 @@ import { Request } from 'express';
 import { IRes } from '../interfaces/i-res';
 import { AddressService } from '../services/address.service';
 import { ProductService } from '../services/product.service';
-import { ShopService, IQueryProductsOfShop } from '../services/shop.service';
+import { ShopService } from '../services/shop.service';
 import * as HttpStatus from 'http-status-codes';
 import registerShopSchema from '../validation-schemas/shop/shop-register.schema';
 import checkShopSlugSchema from '../validation-schemas/shop/check-shop-slug.schema';

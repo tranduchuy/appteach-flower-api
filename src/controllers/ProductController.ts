@@ -77,18 +77,19 @@ export class ProductController {
     return new Promise<IRes<{}>>(async (resolve, reject) => {
       try {
         const id = request.params.id;
-        const product = await this.productService.getProductDetailById(id);
-        const shop = product.shop;
+        const product = await this.productService.getProductDetailById(Number(id));
 
-        if (!product || shop.user.toString() !== request.user._id.toString()) {
-          const result: IRes<{}> = {
-            status: HttpStatus.NOT_FOUND,
-            messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
-            data: {}
-          };
+        // TODO: check shop of product
+        // const shop = product.shop;
+        // if (!product || shop.user.toString() !== request.user._id.toString()) {
+        //   const result: IRes<{}> = {
+        //     status: HttpStatus.NOT_FOUND,
+        //     messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
+        //     data: {}
+        //   };
 
-          return resolve(result);
-        }
+        //   return resolve(result);
+        // }
 
         const result: IRes<{}> = {
           status: HttpStatus.OK,
@@ -444,16 +445,17 @@ export class ProductController {
         }
 
         const id = request.params.id;
-        const product = await this.productService.getProductDetailById(id);
-        if (!product || product.shop.user.toString() !== request.user._id.toString()) {
-          const result: IRes<{}> = {
-            status: HttpStatus.NOT_FOUND,
-            messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
-            data: {}
-          };
+        const product = await this.productService.getProductDetailById(Number(id));
+        // TODO: check shop of product
+        // if (!product || product.shop.user.toString() !== request.user._id.toString()) {
+        //   const result: IRes<{}> = {
+        //     status: HttpStatus.NOT_FOUND,
+        //     messages: [ResponseMessages.Product.PRODUCT_NOT_FOUND],
+        //     data: {}
+        //   };
 
-          return resolve(result);
-        }
+        //   return resolve(result);
+        // }
 
         if (request.user.type !== UserTypes.TYPE_SELLER) {
           const result: IRes<{}> = {
@@ -470,30 +472,29 @@ export class ProductController {
           design, specialOccasion, floret, city, district, color, seoUrl, seoDescription, seoImage
         } = request.body;
 
-        let saleOff;
+        const saleOff: any = {};
 
-        const saleOffObject = product.saleOff;
-
-
-        if (salePrice && salePrice !== product.saleOff.price) {
-          if (salePrice === 0) {
-            saleOff = {
-              price: 0,
-              startDate: null,
-              endDate: null,
-              active: false
-            };
-          } else {
-            saleOff = {
-              price: salePrice,
-              startDate: Date.now(),
-              endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
-              active: true
-            };
-          }
-        } else {
-          saleOff = saleOffObject;
-        }
+        // TODO: save saleOff info of product
+        // const saleOffObject = product.saleOff;
+        // if (salePrice && salePrice !== product.saleOff.price) {
+        //   if (salePrice === 0) {
+        //     saleOff = {
+        //       price: 0,
+        //       startDate: null,
+        //       endDate: null,
+        //       active: false
+        //     };
+        //   } else {
+        //     saleOff = {
+        //       price: salePrice,
+        //       startDate: Date.now(),
+        //       endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+        //       active: true
+        //     };
+        //   }
+        // } else {
+        //   saleOff = saleOffObject;
+        // }
         if (saleActive) {
           if (salePrice) {
             saleOff.price = salePrice;
@@ -510,9 +511,9 @@ export class ProductController {
         }
 
 
-        const salePriceCheck = salePrice || product.saleOff.price;
+        // TODO: const salePriceCheck = salePrice || product.saleOff.price
+        const salePriceCheck = salePrice;
         const price = originalPrice || product.originalPrice;
-        // check sale price vs original price.
         if (Number(salePriceCheck) > Number(price)) {
           const result: IRes<{}> = {
             status: HttpStatus.BAD_REQUEST,
@@ -522,7 +523,8 @@ export class ProductController {
           return resolve(result);
         }
 
-        const oldImages = product.images || [];
+        // TODO: get images of products
+        const oldImages = [];
         const newImages = images;
 
         await this.productService.updateProduct(product, {
