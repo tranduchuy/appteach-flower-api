@@ -467,7 +467,6 @@ export class OrderController {
   public submitNoLoginOrder(request: Request, response: Response): Promise<IRes<any>> {
     return new Promise<IRes<any>>(async (resolve, reject) => {
       try {
-
         const { error } = Joi.validate(request.body, SubmitNoLoginOrderValidationSchema);
         if (error) {
           const messages = error.details.map(detail => {
@@ -480,21 +479,23 @@ export class OrderController {
             data: {}
           };
 
+          console.log(1);
           return resolve(result);
         }
 
         const order: any = new OrderModel();
         const { receiverInfo, buyerInfo, items, deliveryTime, note, expectedDeliveryTime, contentOrder } = request.body;
-
+        console.log(2);
         if (!items || items.length === 0) {
           const result = {
             status: HttpStatus.NOT_FOUND,
             messages: [ResponseMessages.Order.ORDER_EMPTY],
             data: null
           };
-
+          console.log(3);
           return resolve(result);
         }
+
 
         const productIds = items.map(item => {
           return item.productId;
@@ -534,7 +535,7 @@ export class OrderController {
         // save user info
         order.buyerInfo = buyerInfo;
         order.user = null;
-
+console.log(3);
         await Promise.all(
           orderItems.map(async (orderItem) => {
             const product = _.find(products, { id: _.get(orderItem.product, '_id').toString() }) as Product;
@@ -545,16 +546,17 @@ export class OrderController {
             return orderItem;
           })
         );
-
+        
         // update order items status: new => pending
         await this.orderItemService.updateItemsStatus(orderItems, Status.ORDER_ITEM_PROCESSING);
         // update shipping and discount
-        const totalShippingCost = await this.orderService.updateCost(order._id, address);
+        // TODO
+        // const totalShippingCost = await this.orderService.updateCost(order._id, address);
+        const totalShippingCost = 0;
         // calculate total
         order.totalShippingCost = totalShippingCost;
         order.total = await this.orderService.calculateTotal(order._id);
         await order.save();
-
         if (this.prod) {
           await this.orderService.submitOrder(order);
         } else {

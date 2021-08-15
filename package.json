@@ -14,7 +14,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "watch": "nodemon dist/server.js",
-    "build": "tslint -c tslint.json -p tsconfig.json",
+    "build": "tsc",
     "debug": "nodemon --inspect dist/server.js",
     "start-ts": "ts-node -r dotenv/config src/server.ts",
     "watch-ts": "./node_modules/.bin/ts-node-dev -r dotenv/config src/server.ts",
