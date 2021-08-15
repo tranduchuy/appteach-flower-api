@@ -419,7 +419,8 @@ export class OrderController {
         // update delivery info for order.
         order = await this.orderService.updateSubmitOrder(order, newOrder);
         // update shipping and discount
-        const totalShippingCost = await this.orderService.updateCost(order._id, address);
+        // const totalShippingCost = await this.orderService.updateCost(order._id, address);
+        const totalShippingCost = 0;
         // calculate total
         order.totalShippingCost = totalShippingCost;
         order.total = await this.orderService.calculateTotal(order._id);
@@ -672,14 +673,14 @@ console.log(3);
         shopIds = _.uniq(shopIds);
 
         //  calculate shipping cost for each orderItem
-        await Promise.all(shopIds.map(async shopId => {
-          const shopAddress = await this.addressService.findDeliveryAddressByShopId(shopId);
-          if (shopAddress) {
-            const shipping = await this.costService.calculateShippingCost(shopAddress._id, addressId);
+        // await Promise.all(shopIds.map(async shopId => {
+        //   const shopAddress = await this.addressService.findDeliveryAddressByShopId(shopId);
+        //   if (shopAddress) {
+        //     const shipping = await this.costService.calculateShippingCost(shopAddress._id, addressId);
 
-            totalShippingCost += shipping.shippingCost;
-          }
-        }));
+        //     totalShippingCost += shipping.shippingCost;
+        //   }
+        // }));
 
         const result: IRes<any> = {
           status: HttpStatus.OK,
@@ -766,13 +767,13 @@ console.log(3);
         shopIds = _.uniq(shopIds);
 
         //  calculate shipping cost for each orderItem
-        await Promise.all(shopIds.map(async (shopId: string) => {
-          const shopAddress = await this.addressService.findDeliveryAddressByShopId(shopId);
-          if (shopAddress) {
-            const shipping = await this.costService.calculateNoLoginOrderShippingCost(shopAddress._id, addressInfo);
-            totalShippingCost += shipping.shippingCost;
-          }
-        }));
+        // await Promise.all(shopIds.map(async (shopId: string) => {
+        //   const shopAddress = await this.addressService.findDeliveryAddressByShopId(shopId);
+        //   if (shopAddress) {
+        //     const shipping = await this.costService.calculateNoLoginOrderShippingCost(shopAddress._id, addressInfo);
+        //     totalShippingCost += shipping.shippingCost;
+        //   }
+        // }));
 
         const result: IRes<any> = {
           status: HttpStatus.OK,
